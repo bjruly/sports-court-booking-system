@@ -5,7 +5,7 @@ C# Programming Course Project: Sports Court Booking System featuring an ASP.NET 
 # 🏟️ Hệ thống Đặt Sân Thể Thao (Sports Court Booking System)
 
 Đồ án môn học: **Ngôn ngữ lập trình C#**  
-Giảng viên hướng dẫn: **TS. Đỗ Như Tài**[cite: 1]  
+Giảng viên hướng dẫn: **TS. Đỗ Như Tài**
 Nhóm sinh viên: 2 
 - 3124411038 - Trần Lê Gia Bảo
 - 3124411245 - Huỳnh Nhật Quang
@@ -15,19 +15,19 @@ Nhóm sinh viên: 2
 ---
 
 ## 📌 Giới thiệu dự án
-Hệ thống quản lý và đặt sân thể thao trực tuyến được xây dựng nhằm tối ưu hóa quy trình quản lý sân bãi, lịch đặt sân và các dịch vụ đi kèm. Dự án kết hợp giữa nền tảng Web hiện đại cho khách hàng và ứng dụng Desktop dành cho quản trị viên, đảm bảo tính đồng bộ dữ liệu thông qua cơ sở dữ liệu trung tâm[cite: 1].
+Hệ thống quản lý và đặt sân thể thao trực tuyến được xây dựng nhằm tối ưu hóa quy trình quản lý sân bãi, lịch đặt sân và các dịch vụ đi kèm. Dự án kết hợp giữa nền tảng Web hiện đại cho khách hàng và ứng dụng Desktop dành cho quản trị viên, đảm bảo tính đồng bộ dữ liệu thông qua cơ sở dữ liệu trung tâm.
 
 ## 🛠️ Công nghệ sử dụng
-* **Phần người dùng (Web App):** ASP.NET Core MVC / Razor Pages / Blazor (Hỗ trợ Responsive)[cite: 1].
-* **Phần quản trị (Admin Desktop):** Windows Forms / WinUI 3 (.NET)[cite: 1].
-* **Quản lý cơ sở dữ liệu:** Microsoft SQL Server, Entity Framework Core, Web API, kiến trúc phân lớp[cite: 1].
+* **Phần người dùng (Web App):** ASP.NET Core MVC / Razor Pages / Blazor (Hỗ trợ Responsive).
+* **Phần quản trị (Admin Desktop):** Windows Forms / WinUI 3 (.NET).
+* **Quản lý cơ sở dữ liệu:** Microsoft SQL Server, Entity Framework Core, Web API, kiến trúc phân lớp.
 
 ## ✨ Các tính năng chính
 * **Trang người dùng (Web):**
   * Xem danh sách sân (bóng đá, cầu lông, tennis,...) và thông tin chi tiết.
-  * Tìm kiếm, lọc sân theo khung giờ, địa điểm hoặc loại sân[cite: 1].
+  * Tìm kiếm, lọc sân theo khung giờ, địa điểm hoặc loại sân.
   * Đặt sân trực tuyến, xem lịch sử đặt sân và quản lý tài khoản cá nhân.
 * **Ứng dụng Quản trị (Desktop):**
-  * Đăng nhập và phân quyền người dùng (Admin, Nhân viên)[cite: 1].
+  * Đăng nhập và phân quyền người dùng (Admin, Nhân viên).
   * Quản lý danh mục sân, giá thuê theo khung giờ, dịch vụ đi kèm.
-  * Thêm, xóa, sửa, tìm kiếm và thống kê doanh thu, lịch đặt sân[cite: 1].
+  * Thêm, xóa, sửa, tìm kiếm và thống kê doanh thu, lịch đặt sân.
