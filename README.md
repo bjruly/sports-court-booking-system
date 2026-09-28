@@ -6,12 +6,12 @@ C# Programming Course Project: Sports Court Booking System featuring an ASP.NET 
 
 Đồ án môn học: **Ngôn ngữ lập trình C#**  
 Giảng viên hướng dẫn: **TS. Đỗ Như Tài**
-Nhóm sinh viên: 2 
+Nhóm sinh viên: 9
 - 3124411038 - Trần Lê Gia Bảo
 - 3124411245 - Huỳnh Nhật Quang
 - 3124411337 - Nguyễn Thanh Tuấn
 - 3124411 - Đào Hữu Tài
-- 3124411 - Tô Thành Nhân
+- 3124411198 - Tô Thành Nhân
 ---
 
 ## 📌 Giới thiệu dự án
