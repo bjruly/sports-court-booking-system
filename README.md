@@ -10,7 +10,7 @@ Nhóm sinh viên: 9
 - 3124411038 - Trần Lê Gia Bảo
 - 3124411245 - Huỳnh Nhật Quang
 - 3124411337 - Nguyễn Thanh Tuấn
-- 3124411 - Đào Hữu Tài
+- 3124411261 - Đào Hữu Tài
 - 3124411198 - Tô Thành Nhân
 ---
 
