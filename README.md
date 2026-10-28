@@ -1,33 +1,86 @@
-# sports-court-booking-system
-C# Programming Course Project: Sports Court Booking System featuring an ASP.NET Core Web App for users and a Windows Forms/WinUI 3 Desktop Admin App sharing an MS SQL Server database.
+# Hệ thống đặt sân thể thao
 
+Đồ án môn học **Ngôn ngữ lập trình C#**, xây dựng hệ thống đặt sân thể thao trực tuyến với giao diện web cho khách hàng, chủ sân và quản trị viên.
 
-# 🏟️ Hệ thống Đặt Sân Thể Thao (Sports Court Booking System)
+- **Giảng viên hướng dẫn:** TS. Đỗ Như Tài
+- **Nhóm sinh viên:** 9
+  - 3124411038 - Trần Lê Gia Bảo
+  - 3124411245 - Huỳnh Nhật Quang
+  - 3124411337 - Nguyễn Thanh Tuấn
+  - 3124411261 - Đào Hữu Tài
+  - 3124411198 - Tô Thành Nhân
 
-Đồ án môn học: **Ngôn ngữ lập trình C#**  
-Giảng viên hướng dẫn: **TS. Đỗ Như Tài**
-Nhóm sinh viên: 9
-- 3124411038 - Trần Lê Gia Bảo
-- 3124411245 - Huỳnh Nhật Quang
-- 3124411337 - Nguyễn Thanh Tuấn
-- 3124411261 - Đào Hữu Tài
-- 3124411198 - Tô Thành Nhân
----
+## Kiến trúc và công nghệ
 
-## 📌 Giới thiệu dự án
-Hệ thống quản lý và đặt sân thể thao trực tuyến được xây dựng nhằm tối ưu hóa quy trình quản lý sân bãi, lịch đặt sân và các dịch vụ đi kèm. Dự án kết hợp giữa nền tảng Web hiện đại cho khách hàng và ứng dụng Desktop dành cho quản trị viên, đảm bảo tính đồng bộ dữ liệu thông qua cơ sở dữ liệu trung tâm.
+Đây là dự án C# sử dụng **ASP.NET Core MVC + Razor** cho ứng dụng web, tổ chức theo kiến trúc **modular monolith** và các lớp nghiệp vụ. Báo cáo trong `docs/` có khảo sát Next.js/React như một lựa chọn frontend; bộ khung triển khai hiện tại chọn MVC để ứng dụng tập trung vào nền tảng .NET/C#.
 
-## 🛠️ Công nghệ sử dụng
-* **Phần người dùng (Web App):** ASP.NET Core MVC / Razor Pages / Blazor (Hỗ trợ Responsive).
-* **Phần quản trị (Admin Desktop):** Windows Forms / WinUI 3 (.NET).
-* **Quản lý cơ sở dữ liệu:** Microsoft SQL Server, Entity Framework Core, Web API, kiến trúc phân lớp.
+- **Ứng dụng web:** ASP.NET Core MVC, Razor và C#.
+- **Nghiệp vụ:** các lớp Application và Domain bằng C#.
+- **Truy cập dữ liệu:** Entity Framework Core và Npgsql.
+- **Cơ sở dữ liệu:** PostgreSQL.
+- **Cache/giữ chỗ:** Redis là thành phần tùy chọn theo đề xuất trong báo cáo.
+- **Tích hợp dự kiến:** VNPay/MoMo, email/SMS và dịch vụ bản đồ.
 
-## ✨ Các tính năng chính
-* **Trang người dùng (Web):**
-  * Xem danh sách sân (bóng đá, cầu lông, tennis,...) và thông tin chi tiết.
-  * Tìm kiếm, lọc sân theo khung giờ, địa điểm hoặc loại sân.
-  * Đặt sân trực tuyến, xem lịch sử đặt sân và quản lý tài khoản cá nhân.
-* **Ứng dụng Quản trị (Desktop):**
-  * Đăng nhập và phân quyền người dùng (Admin, Nhân viên).
-  * Quản lý danh mục sân, giá thuê theo khung giờ, dịch vụ đi kèm.
-  * Thêm, xóa, sửa, tìm kiếm và thống kê doanh thu, lịch đặt sân.
+Cấu hình .NET SDK, phiên bản framework và các phụ thuộc sẽ được chốt khi khởi tạo project.
+
+## Tính năng nghiệp vụ
+
+- Khách hàng tìm kiếm cơ sở và sân, xem lịch trống, đặt sân, thanh toán, hủy đặt và đánh giá.
+- Chủ sân quản lý cơ sở, sân, giá, lịch đặt, voucher và doanh thu.
+- Quản trị viên duyệt cơ sở, quản lý người dùng/danh mục và theo dõi thống kê.
+- Đơn đặt có cơ chế giữ chỗ tạm thời; thanh toán và trạng thái đơn được đồng bộ theo quy trình nghiệp vụ.
+
+## Cấu trúc thư mục
+
+```text
+.
+├── README.md
+├── docs/
+│   ├── README.md
+│   ├── 01_C4_Context.drawio
+│   ├── 02_C4_Container.drawio
+│   ├── 03_Workflow.drawio
+│   ├── 04_UseCase.drawio
+│   ├── 05_ERD.drawio
+│   └── BaoCao_Nhom_DatSanTheThao.docx
+├── backend/
+│   ├── README.md
+│   ├── src/
+│   │   ├── README.md
+│   │   ├── SportsCourtBooking.Web/
+│   │   │   ├── README.md
+│   │   │   ├── Program.cs
+│   │   │   ├── Controllers/
+│   │   │   │   ├── README.md
+│   │   │   │   └── HomeController.cs
+│   │   │   ├── Views/
+│   │   │   │   ├── README.md
+│   │   │   │   ├── Home/
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   └── Index.cshtml
+│   │   │   │   └── Shared/
+│   │   │   │       ├── README.md
+│   │   │   │       └── _Layout.cshtml
+│   │   │   └── wwwroot/
+│   │   │       └── README.md
+│   │   ├── SportsCourtBooking.Application/
+│   │   │   └── README.md
+│   │   ├── SportsCourtBooking.Domain/
+│   │   │   └── README.md
+│   │   └── SportsCourtBooking.Infrastructure/
+│   │       └── README.md
+│   └── tests/
+│       └── README.md
+└── database/
+    ├── README.md
+    └── migrations/
+        └── README.md
+```
+
+### Vai trò các thư mục
+
+- `docs/`: Báo cáo và sơ đồ phân tích, thiết kế hệ thống.
+- `backend/`: Ứng dụng ASP.NET Core MVC và các lớp nghiệp vụ C#; `SportsCourtBooking.Web/` chứa controller, Razor views và tài nguyên tĩnh; các project Application, Domain, Infrastructure đảm nhiệm use case, quy tắc miền và tích hợp/lưu trữ; `tests/` dành cho kiểm thử tự động.
+- `database/`: Tài liệu và tài sản liên quan đến PostgreSQL; `migrations/` dành cho lịch sử thay đổi schema.
+
+Các file mã nguồn trong cây hiện là **file khung trống**, chưa phải ứng dụng có thể chạy. Nội dung triển khai và cấu hình build sẽ được bổ sung sau.
