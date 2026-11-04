@@ -9,6 +9,17 @@
 - `src/SportsCourtBooking.Application/`: điều phối nghiệp vụ và use case.
 - `src/SportsCourtBooking.Domain/`: thực thể, quy tắc và khái niệm miền.
 - `src/SportsCourtBooking.Infrastructure/`: tích hợp PostgreSQL, EF Core và dịch vụ ngoài.
-- `tests/`: kiểm thử tự động cho backend.
+- `tests/SportsCourtBooking.Tests/`: project kiểm thử xUnit.
 
-Các file hiện có là file khung trống; project .NET, phiên bản SDK và cấu hình build chưa được khởi tạo.
+## Chạy và kiểm tra
+
+Cài .NET 8 SDK, sau đó chạy các lệnh từ thư mục gốc repository:
+
+```powershell
+dotnet restore backend/SportsCourtBooking.sln
+dotnet build backend/SportsCourtBooking.sln
+dotnet test backend/SportsCourtBooking.sln
+dotnet run --project backend/src/SportsCourtBooking.Web
+```
+
+Web hiện là MVC scaffold mặc định; chưa có nghiệp vụ đặt sân hoặc kết nối cơ sở dữ liệu. Project xUnit đã được tạo để bổ sung kiểm thử cùng với các use case đầu tiên.

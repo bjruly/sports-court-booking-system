@@ -16,12 +16,11 @@
 
 - **Ứng dụng web:** ASP.NET Core MVC, Razor và C#.
 - **Nghiệp vụ:** các lớp Application và Domain bằng C#.
-- **Truy cập dữ liệu:** Entity Framework Core và Npgsql.
-- **Cơ sở dữ liệu:** PostgreSQL.
+- **Framework hiện tại:** .NET 8 (`net8.0`); cấu hình EF Core/Npgsql và PostgreSQL sẽ được bổ sung ở bước thiết lập lưu trữ dữ liệu.
 - **Cache/giữ chỗ:** Redis là thành phần tùy chọn theo đề xuất trong báo cáo.
 - **Tích hợp dự kiến:** VNPay/MoMo, email/SMS và dịch vụ bản đồ.
 
-Cấu hình .NET SDK, phiên bản framework và các phụ thuộc sẽ được chốt khi khởi tạo project.
+Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`, gồm các project Web, Application, Domain, Infrastructure và kiểm thử.
 
 ## Tính năng nghiệp vụ
 
@@ -29,6 +28,7 @@ Cấu hình .NET SDK, phiên bản framework và các phụ thuộc sẽ đượ
 - Chủ sân quản lý cơ sở, sân, giá, lịch đặt, voucher và doanh thu.
 - Quản trị viên duyệt cơ sở, quản lý người dùng/danh mục và theo dõi thống kê.
 - Đơn đặt có cơ chế giữ chỗ tạm thời; thanh toán và trạng thái đơn được đồng bộ theo quy trình nghiệp vụ.
+
 ## Kế hoạch 2 tuần (05/11–18/11/2026)
 
 Mục tiêu cuối đợt: có lát cắt nghiệp vụ đầu tiên chạy được từ đăng nhập, xem danh sách sân và khung giờ trống đến tạo yêu cầu đặt sân ở trạng thái chờ; ngăn hai đơn đặt trùng khung giờ ở tầng cơ sở dữ liệu và có kiểm thử tự động. Chưa tích hợp cổng thanh toán thật, SMS/email hoặc Redis trong đợt này.
@@ -68,58 +68,33 @@ Phân công theo mảng để làm song song; nhóm có thể hoán đổi theo 
 - Chỉ xem đợt này hoàn thành khi solution build được, hướng dẫn chạy từ database mới làm theo được và demo không cần thanh toán thật.
 - Nếu giảng viên yêu cầu cố định .NET 8, giữ target đó theo yêu cầu môn học; nếu không, ưu tiên đánh giá chuyển .NET 10 ngay ngày 05/11 để tránh nâng cấp giữa chừng.
 
-
 ## Cấu trúc thư mục
 
 ```text
 .
 ├── README.md
+├── .gitignore
 ├── docs/
-│   ├── README.md
-│   ├── 01_C4_Context.drawio
-│   ├── 02_C4_Container.drawio
-│   ├── 03_Workflow.drawio
-│   ├── 04_UseCase.drawio
-│   ├── 05_ERD.drawio
-│   └── BaoCao_Nhom_DatSanTheThao.docx
+│   └── ...
 ├── backend/
+│   ├── SportsCourtBooking.sln
 │   ├── README.md
 │   ├── src/
-│   │   ├── README.md
 │   │   ├── SportsCourtBooking.Web/
-│   │   │   ├── README.md
-│   │   │   ├── Program.cs
-│   │   │   ├── Controllers/
-│   │   │   │   ├── README.md
-│   │   │   │   └── HomeController.cs
-│   │   │   ├── Views/
-│   │   │   │   ├── README.md
-│   │   │   │   ├── Home/
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   └── Index.cshtml
-│   │   │   │   └── Shared/
-│   │   │   │       ├── README.md
-│   │   │   │       └── _Layout.cshtml
-│   │   │   └── wwwroot/
-│   │   │       └── README.md
 │   │   ├── SportsCourtBooking.Application/
-│   │   │   └── README.md
 │   │   ├── SportsCourtBooking.Domain/
-│   │   │   └── README.md
 │   │   └── SportsCourtBooking.Infrastructure/
-│   │       └── README.md
 │   └── tests/
-│       └── README.md
-└── database/
-    ├── README.md
-    └── migrations/
-        └── README.md
+│       └── SportsCourtBooking.Tests/
+├── database/
+│   ├── README.md
+│   └── migrations/
 ```
 
 ### Vai trò các thư mục
 
 - `docs/`: Báo cáo và sơ đồ phân tích, thiết kế hệ thống.
-- `backend/`: Ứng dụng ASP.NET Core MVC và các lớp nghiệp vụ C#; `SportsCourtBooking.Web/` chứa controller, Razor views và tài nguyên tĩnh; các project Application, Domain, Infrastructure đảm nhiệm use case, quy tắc miền và tích hợp/lưu trữ; `tests/` dành cho kiểm thử tự động.
+- `backend/`: Solution .NET 8; `SportsCourtBooking.Web/` chứa ứng dụng MVC, các project Application, Domain, Infrastructure phân chia trách nhiệm nghiệp vụ và tích hợp; `tests/` chứa project kiểm thử xUnit.
 - `database/`: Tài liệu và tài sản liên quan đến PostgreSQL; `migrations/` dành cho lịch sử thay đổi schema.
 
-Các file mã nguồn trong cây hiện là **file khung trống**, chưa phải ứng dụng có thể chạy. Nội dung triển khai và cấu hình build sẽ được bổ sung sau.
+Ứng dụng web hiện dùng trang MVC mẫu để xác nhận solution có thể chạy; các nghiệp vụ đặt sân và cấu hình cơ sở dữ liệu sẽ được triển khai ở các bước tiếp theo.
