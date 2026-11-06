@@ -10,6 +10,7 @@ Thư mục này lưu báo cáo, sơ đồ phân tích/thiết kế và tài li�
 | `03_Workflow.drawio` | Quy trình tìm sân, giữ chỗ, thanh toán và xử lý đơn. |
 | `04_UseCase.drawio` | Use case theo vai trò khách hàng, chủ sân và quản trị viên. |
 | `05_ERD.drawio` | Mô hình dữ liệu và quan hệ giữa các thực thể. |
+| `06_Review_Checklist.md` | Checklist điều phối/review phạm vi MVP, vòng đời booking, ERD và wireframe. |
 | `TLTK/` | Tài liệu mẫu và nguồn tham khảo được liệt kê hoặc dùng để định hướng báo cáo. |
 
 **Lựa chọn công nghệ:** báo cáo và solution hiện thống nhất dùng ASP.NET Core MVC + Razor bằng C# theo kiến trúc modular monolith; PostgreSQL là cơ sở dữ liệu đề xuất. Cấu hình lưu trữ và các nghiệp vụ sẽ được bổ sung trong giai đoạn triển khai.
