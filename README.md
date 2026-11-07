@@ -19,6 +19,7 @@
 - **Framework hiện tại:** .NET 8 (`net8.0`); cấu hình EF Core/Npgsql và PostgreSQL sẽ được bổ sung ở bước thiết lập lưu trữ dữ liệu.
 - **Cache/giữ chỗ:** Redis là thành phần tùy chọn theo đề xuất trong báo cáo.
 - **Tích hợp dự kiến:** VNPay/MoMo, email/SMS và dịch vụ bản đồ.
+- **Triển khai/chạy cục bộ:** Docker và Docker Compose (web + PostgreSQL 16).
 
 Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`, gồm các project Web, Application, Domain, Infrastructure và kiểm thử.
 
@@ -41,9 +42,9 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 - Booking `PENDING` chưa phải là booking đã xác nhận hoặc đã thanh toán. Thanh toán thật, voucher, hủy/hoàn tiền và các tích hợp ngoài hệ thống nằm ngoài MVP.
 - Thời hạn giữ `PENDING`, cơ chế hết hạn/nhả giờ và ràng buộc chống đặt trùng cần được rà soát về mặt nghiệp vụ, dữ liệu và kiểm thử trước khi triển khai.
 
-| Bước | Trình tự công việc | Điều kiện hoàn tất để chuyển bước |
-|---|---|---|
-| 1. Rà soát nghiệp vụ | Dựa trên phạm vi MVP đã chốt, thống nhất luồng người dùng đầu-cuối, giá, vòng đời booking, thời hạn giữ chỗ, hết hạn và các trường hợp cạnh tranh. | Workflow và quy tắc nghiệp vụ nhất quán; thời hạn giữ chỗ và kết quả các trường hợp biên được xác định. |
+| Bước                                  | Trình tự công việc                                                                                                                                                                                         | Điều kiện hoàn tất để chuyển bước                                                                                                                  |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Rà soát nghiệp vụ                | Dựa trên phạm vi MVP đã chốt, thống nhất luồng người dùng đầu-cuối, giá, vòng đời booking, thời hạn giữ chỗ, hết hạn và các trường hợp cạnh tranh.                              | Workflow và quy tắc nghiệp vụ nhất quán; thời hạn giữ chỗ và kết quả các trường hợp biên được xác định.                              |
 | 2. Đồng bộ thiết kế và kiểm thử | Cập nhật ERD theo quyết định nghiệp vụ; hoàn thiện wireframe tối thiểu; viết tiêu chí nghiệm thu/test case theo luồng; review tính nhất quán, rồi commit các kết quả đã hoàn thành. | Tài liệu, luồng, schema, wireframe và tiêu chí nghiệm thu nhất quán; solution build được; lịch sử commit phản ánh các thay đổi thực tế. |
 
 ### Quy tắc ghi nhận đóng góp
@@ -57,6 +58,10 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 .
 ├── README.md
 ├── .gitignore
+├── .dockerignore
+├── .env.example
+├── Dockerfile
+├── docker-compose.yml
 ├── docs/
 │   └── ...
 ├── backend/
@@ -79,5 +84,46 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 - `docs/`: Báo cáo và sơ đồ phân tích, thiết kế hệ thống.
 - `backend/`: Solution .NET 8; `SportsCourtBooking.Web/` chứa ứng dụng MVC, các project Application, Domain, Infrastructure phân chia trách nhiệm nghiệp vụ và tích hợp; `tests/` chứa project kiểm thử xUnit.
 - `database/`: Tài liệu và tài sản liên quan đến PostgreSQL; `migrations/` dành cho lịch sử thay đổi schema.
+- `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`: cấu hình chạy ứng dụng web và PostgreSQL bằng Docker; `.env` là file cục bộ của từng máy, không đưa lên repository.
 
 Ứng dụng web hiện dùng trang MVC mẫu để xác nhận solution có thể chạy; các nghiệp vụ đặt sân và cấu hình cơ sở dữ liệu sẽ được triển khai ở các bước tiếp theo.
+
+
+## Chạy bằng Docker
+
+Dự án có sẵn cấu hình Docker để mọi thành viên chạy cùng một môi trường (web ASP.NET Core + PostgreSQL), không cần cài .NET SDK hay PostgreSQL trên máy.
+
+### Yêu cầu
+
+- Docker Desktop (Windows cần bật WSL 2) và đã mở lên, đợi trạng thái **Engine running**.
+
+### Các bước chạy
+
+1. Clone hoặc `git pull` repo, mở terminal tại **thư mục gốc** (nơi có `docker-compose.yml`).
+2. Tạo file `.env` từ file mẫu:
+   ```bash
+   copy .env.example .env      # Windows (PowerShell dùng được cả: cp .env.example .env)
+   ```
+3. Mở `.env`, đặt `POSTGRES_PASSWORD` tùy ý (mật khẩu chỉ dùng trên máy mình).
+4. Chạy:
+   ```bash
+   docker compose up --build
+   ```
+5. Mở trình duyệt vào [http://localhost:5101](http://localhost:5101).
+
+### Lệnh thường dùng
+
+| Mục đích                                       | Lệnh                         |
+| ------------------------------------------------- | ----------------------------- |
+| Chạy nền, không chiếm terminal                | `docker compose up -d`      |
+| Dừng và xóa container                          | `docker compose down`       |
+| Dừng và **xóa luôn dữ liệu database** | `docker compose down -v`    |
+| Xem log                                           | `docker compose logs -f`    |
+| Build lại sau khi đổi code                     | `docker compose up --build` |
+
+### Lưu ý
+
+- **Không commit file `.env`** (đã nằm trong `.gitignore`); chỉ commit `.env.example`.
+- Đã đặt mật khẩu database rồi thì đừng đổi giữa chừng; muốn đổi phải chạy `docker compose down -v` rồi chạy lại.
+- Web hiện chưa kết nối database; biến `ConnectionStrings__Default` đã được cấu hình sẵn trong `docker-compose.yml` để dùng khi bổ sung EF Core/Npgsql.
+- Nếu cổng `5101` hoặc `5432` đã bị chương trình khác dùng, đổi số bên trái trong mục `ports` của `docker-compose.yml` (ví dụ `"5102:8080"`).
