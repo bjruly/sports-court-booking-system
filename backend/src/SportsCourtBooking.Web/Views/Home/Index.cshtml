@@ -1,8 +1,131 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@using System.Globalization
+@model CourtCatalogViewModel
+
+@{
+    ViewData["Title"] = "Tìm sân thể thao";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero">
+    <div class="shell hero-grid">
+        <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-line"></span> SÂN CHƠI CỦA BẠN, NGAY GẦN ĐÂY</p>
+            <h1>Hẹn nhau ra sân.<br /><span>Chuyện đặt lịch,</span><br />để Sân Nhà lo.</h1>
+            <p class="hero-description">Tìm sân phù hợp, xem giờ còn trống và lên lịch cho trận đấu tiếp theo.</p>
+            <a class="hero-scroll" href="#court-search"><span class="scroll-icon" aria-hidden="true">↓</span> Khám phá sân gần bạn</a>
+        </div>
+
+        <div class="hero-art" aria-label="Minh họa sân thể thao">
+            <div class="hero-art-orbit hero-art-orbit--one"></div>
+            <div class="hero-art-orbit hero-art-orbit--two"></div>
+            <div class="hero-court">
+                <div class="hero-court-half"></div>
+                <div class="hero-court-center"></div>
+                <div class="hero-court-net"></div>
+                <span class="hero-court-label">GAME<br />ON</span>
+            </div>
+            <div class="floating-note floating-note--top"><span class="floating-note-icon">✳</span><span><strong>Ra sân thôi</strong><small>Trận vui bắt đầu từ đây</small></span></div>
+            <div class="floating-note floating-note--bottom"><span class="status-pulse"></span><span><strong>Giờ trống hôm nay</strong><small>Chọn sân, xem lịch ngay</small></span><span class="note-arrow">↗</span></div>
+            <span class="hero-art-spark hero-art-spark--one">✳</span>
+            <span class="hero-art-spark hero-art-spark--two">✳</span>
+        </div>
+
+        <div class="hero-index" aria-hidden="true"><span>01</span><i></i><span>03</span></div>
+    </div>
+</section>
+
+<section class="search-section" id="court-search">
+    <div class="shell">
+        <form class="search-panel" asp-controller="Home" asp-action="Index" method="get">
+            <div class="search-intro">
+                <span class="search-icon" aria-hidden="true">⌕</span>
+                <span><strong>Tìm sân phù hợp</strong><small>Chọn tiêu chí để bắt đầu</small></span>
+            </div>
+            <label class="filter-field">
+                <span>MÔN THỂ THAO</span>
+                <select name="sport">
+                    <option value="">Tất cả môn</option>
+                    <option value="Cầu lông" selected="@(Model.Sport == "Cầu lông")">Cầu lông</option>
+                    <option value="Bóng đá" selected="@(Model.Sport == "Bóng đá")">Bóng đá</option>
+                </select>
+            </label>
+            <label class="filter-field">
+                <span>KHU VỰC</span>
+                <input type="search" name="area" value="@Model.Area" placeholder="Quận, thành phố" />
+            </label>
+            <label class="filter-field filter-field--date">
+                <span>NGÀY CHƠI</span>
+                <input type="date" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" />
+            </label>
+            <button class="button button--search" type="submit">Tìm sân <span aria-hidden="true">↗</span></button>
+        </form>
+
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> SÂN ĐƯỢC GỢI Ý</p>
+                <h2>Một trận hay,<br class="mobile-break" /> bắt đầu từ <em>một cú hẹn.</em></h2>
+            </div>
+            <p class="section-aside">Một vài lựa chọn để bạn<br />bắt đầu lên lịch hôm nay.</p>
+        </div>
+
+        @if (Model.Courts.Count == 0)
+        {
+            <div class="empty-state" role="status">
+                <span class="empty-state-icon" aria-hidden="true">⌕</span>
+                <h3>Chưa tìm thấy sân phù hợp</h3>
+                <p>Thử đổi môn thể thao hoặc khu vực tìm kiếm nhé.</p>
+                <a class="text-link" asp-controller="Home" asp-action="Index">Xóa bộ lọc <span aria-hidden="true">↗</span></a>
+            </div>
+        }
+        else
+        {
+            <div class="court-grid">
+                @foreach (var court in Model.Courts)
+                {
+                    <article class="court-card">
+                        <a class="court-card-link" asp-controller="Home" asp-action="Schedule"
+                           asp-route-id="@court.Id" asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")"
+                           aria-label="Xem lịch @court.CourtName tại @court.FacilityName">
+                            <div class="court-visual @court.VisualClass" aria-hidden="true">
+                                <span class="visual-tag">@court.Sport.ToUpperInvariant()</span>
+                                <span class="visual-number">SÂN<br />NHÀ<span>.</span></span>
+                                <span class="visual-lines"></span>
+                                <span class="visual-corner visual-corner--one"></span>
+                                <span class="visual-corner visual-corner--two"></span>
+                                <span class="visual-caption">PLAY<br />LOCAL</span>
+                            </div>
+                            <div class="court-card-body">
+                                <div class="court-card-title-row">
+                                    <div>
+                                        <span class="court-location">@court.District · @court.City</span>
+                                        <h3>@court.FacilityName</h3>
+                                    </div>
+                                    <span class="card-arrow" aria-hidden="true">↗</span>
+                                </div>
+                                <p class="court-name">@court.CourtName <span>·</span> Mở cửa @court.OpeningHours</p>
+                                <p class="court-description">@court.Description</p>
+                                <div class="court-card-bottom">
+                                    <span>Giá từ <strong>@court.StartingPrice.ToString("N0", culture)₫</strong><small> / giờ</small></span>
+                                    <span class="text-link">Xem lịch <span aria-hidden="true">→</span></span>
+                                </div>
+                            </div>
+                        </a>
+                    </article>
+                }
+            </div>
+        }
+
+        <div class="catalog-footnote">
+            <span class="footnote-mark">i</span>
+            <span>Thông tin sân và giá trong bản thử là dữ liệu minh họa, chưa lấy từ cơ sở dữ liệu.</span>
+        </div>
+    </div>
+</section>
+
+<section class="closing-strip">
+    <div class="shell closing-inner">
+        <span class="closing-star" aria-hidden="true">✳</span>
+        <p>Rủ hội bạn. <strong>Chọn giờ chơi.</strong> Gặp nhau ngoài sân.</p>
+        <a asp-controller="Home" asp-action="Index">Tìm sân ngay <span aria-hidden="true">↗</span></a>
+    </div>
+</section>

@@ -1,0 +1,69 @@
+@using System.Globalization
+@model BookingReviewViewModel
+
+@{
+    ViewData["Title"] = "Xem lại lịch đặt";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="page-section">
+    <div class="shell shell--narrow">
+        <nav class="breadcrumbs" aria-label="Đường dẫn">
+            <a asp-controller="Home" asp-action="Index">Tìm sân</a>
+            <span aria-hidden="true">/</span>
+            <a asp-controller="Home" asp-action="Schedule" asp-route-id="@Model.Court.Id" asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")">Lịch sân</a>
+            <span aria-hidden="true">/</span>
+            <span>Xem lại</span>
+        </nav>
+
+        <div class="page-heading">
+            <div>
+                <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> BƯỚC CUỐI TRƯỚC KHI ĐẶT</p>
+                <h1>Xem lại lịch đặt</h1>
+                <p class="page-subtitle">Kiểm tra sân, thời gian và giá minh họa.</p>
+            </div>
+        </div>
+
+        <div class="review-layout">
+            <section class="review-card">
+                <div class="review-card-heading">
+                    <span class="review-icon" aria-hidden="true">⌖</span>
+                    <div>
+                        <span class="court-location">@Model.Court.District · @Model.Court.City</span>
+                        <h2>@Model.Court.FacilityName</h2>
+                        <p>@Model.Court.CourtName</p>
+                    </div>
+                </div>
+                <div class="review-meta">
+                    <span class="review-meta-icon" aria-hidden="true">▦</span>
+                    <span>@Model.PlayDate.ToString("dddd, dd/MM/yyyy", culture)<br /><small>@Model.Slots.First().StartHour.ToString("00"):00 – @((Model.Slots.Last().StartHour + 1).ToString("00")):00</small></span>
+                </div>
+                <div class="review-slot-list">
+                    @foreach (var slot in Model.Slots)
+                    {
+                        <div class="review-slot">
+                            <span>@slot.StartHour.ToString("00"):00 – @((slot.StartHour + 1).ToString("00")):00</span>
+                            <strong>@slot.Price.ToString("N0", culture)₫</strong>
+                        </div>
+                    }
+                </div>
+                <a class="text-link" asp-controller="Home" asp-action="Schedule" asp-route-id="@Model.Court.Id" asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")">← Chỉnh khung giờ</a>
+            </section>
+
+            <aside class="review-summary">
+                <p class="eyebrow"><span class="eyebrow-line"></span> TÓM TẮT CHI PHÍ</p>
+                <div class="summary-line"><span>@Model.Slots.Count khung giờ</span><strong>@Model.TotalPrice.ToString("N0", culture)₫</strong></div>
+                <div class="summary-line"><span>Voucher</span><strong>—</strong></div>
+                <div class="summary-total"><span>Tổng tham khảo</span><strong>@Model.TotalPrice.ToString("N0", culture)₫</strong></div>
+                <div class="notice notice--info">
+                    <span class="notice-symbol" aria-hidden="true">i</span>
+                    <span>Bạn cần đăng nhập để tiếp tục. Các khung giờ sẽ được kiểm tra lại sau khi hệ thống xác thực.</span>
+                </div>
+                <a class="button button--primary button--full" asp-controller="Home" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">
+                    Đăng nhập để tiếp tục <span aria-hidden="true">→</span>
+                </a>
+                <p class="prototype-disclaimer">Đây là bản xem trước. Chưa có booking nào được tạo hoặc giữ.</p>
+            </aside>
+        </div>
+    </div>
+</section>

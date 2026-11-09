@@ -22,4 +22,4 @@ dotnet test backend/SportsCourtBooking.sln
 dotnet run --project backend/src/SportsCourtBooking.Web
 ```
 
-Web hiện là MVC scaffold mặc định; chưa có nghiệp vụ đặt sân hoặc kết nối cơ sở dữ liệu. Project xUnit đã được tạo để bổ sung kiểm thử cùng với các use case đầu tiên.
+Web hiện có prototype Razor cho tìm sân, chọn giờ, xem lại và các màn hình tài khoản. Dữ liệu sân/giá là mẫu; Identity, PostgreSQL và tạo booking thực chưa được kết nối. Project xUnit đã được tạo nhưng hiện chưa có test case.
