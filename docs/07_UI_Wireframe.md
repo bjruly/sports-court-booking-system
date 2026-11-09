@@ -2,7 +2,7 @@
 
 ## Mục tiêu và phạm vi
 
-Prototype này mô tả giao diện web responsive cho MVP ASP.NET Core MVC/Razor. Đây là đặc tả UI để nhóm review, chưa phải giao diện đã được lập trình.
+Tài liệu này đặc tả giao diện web responsive cho MVP ASP.NET Core MVC/Razor và là tài liệu tham chiếu để nhóm review. Một phần giao diện đã được triển khai thành prototype gồm tìm sân, lịch/chọn giờ, xem lại lựa chọn và màn hình đăng nhập/đăng ký. Prototype vẫn dùng dữ liệu mẫu; đăng nhập, lưu booking và kết nối PostgreSQL chưa được triển khai.
 
 Luồng chính:
 
