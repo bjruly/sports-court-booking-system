@@ -10,7 +10,7 @@
 
 ## Chuẩn bị trước buổi họp
 
-- Nhóm cùng đưa ra các hiện vật hiện có: luồng/state booking, ERD/schema, wireframe và kịch bản nghiệm thu. Tài liệu nào chưa có thì ghi là việc tiếp theo, không mặc định đã hoàn thành.
+- Nhóm cùng rà soát các hiện vật: luồng/state booking, ERD/schema, wireframe và kịch bản nghiệm thu. Bản wireframe hiện tại là prototype ban đầu, cần được đối chiếu và chỉnh theo quyết định nhóm.
 - Đi lần lượt từ phạm vi MVP → luồng người dùng → quy tắc booking → schema → wireframe → tiêu chí nghiệm thu; mỗi bước dựa trên kết quả đã thống nhất ở bước trước.
 - Ghi rõ câu hỏi chưa thống nhất và điều kiện cần để ra quyết định.
 
@@ -18,7 +18,7 @@
 
 Phạm vi MVP đã được nhóm trưởng chốt:
 
-1. Khách đăng nhập.
+1. Khách đăng nhập; người chưa có tài khoản đăng ký trước.
 2. Xem danh sách cơ sở/sân.
 3. Xem giờ còn trống và giá cho một sân, một ngày.
 4. Chọn tối đa bốn khung giờ 1 giờ liên tiếp trên cùng sân/ngày và tạo booking `PENDING`.
@@ -37,7 +37,7 @@ Khách vãng lai/đặt hộ, thanh toán thật, voucher, hủy/hoàn tiền, t
 | Chặn review schema | ERD vẫn ghi `app_user.password_hash VARCHAR(100)`; hướng thiết kế trong báo cáo dùng kiểu không gắn cứng độ dài hash. | Sửa ERD theo quyết định Identity đã chọn; không tự lưu/định dạng mật khẩu bằng logic riêng của ứng dụng. |
 | Chặn kiểm soát lịch | BR01 nói chỉ một booking PENDING/CONFIRMED được giữ giờ; BR02 nói PENDING hết hạn sau 10 phút. ERD có cả `booking.status` lẫn `booking_item.active`, nên trạng thái giữ giờ có thể bị biểu diễn hai lần. | Làm rõ nguồn trạng thái có thẩm quyền, cách cập nhật nguyên tử booking và các item, cùng cách xử lý booking đã quá hạn nhưng tác vụ nền chưa chạy. |
 | Ngoài phạm vi MVP? | UC05 hỗ trợ 1–4 giờ liên tiếp, voucher và màn hình ghi thông tin; workflow có hủy/hoàn tiền; ERD đã chứa payment/refund/voucher. | Giữ thanh toán, voucher và hủy/hoàn tiền ở thiết kế dài hạn/backlog; sơ đồ phải phân biệt rõ với phạm vi demo. |
-| Chưa có hiện vật để review | Repository hiện có workflow và ERD, nhưng chưa thấy wireframe màn hình. | Bổ sung wireframe hoặc thống nhất màn hình tối thiểu và thời điểm bổ sung; không đánh dấu wireframe là đã review khi chưa có. |
+| Cần review prototype | Đã có wireframe ban đầu cho đăng ký, đăng nhập, tìm sân, lịch desktop/mobile, xác nhận và kết quả booking. | Đối chiếu với luồng MVP, xác nhận nội dung/trạng thái và phản hồi các màn hình cần chỉnh. |
 
 #### Các nội dung cần review kỹ thuật
 
@@ -113,7 +113,7 @@ Ghi ngay trong buổi họp. Không suy diễn quyết định từ nội dung �
 | Chống đặt trùng và transaction | Chờ review schema | Làm rõ cơ chế PostgreSQL và nguồn trạng thái giữ giờ duy nhất. |
 | Voucher quota trong lúc PENDING | Ngoài MVP | Không triển khai voucher trong lát cắt đầu tiên. |
 | Chính sách hủy cho booking cũ | Ngoài MVP | Không triển khai hủy/hoàn tiền trong lát cắt đầu tiên. |
-| Wireframe màn hình MVP | Chưa có hiện vật trong repository | Bổ sung wireframe hoặc thống nhất màn hình tối thiểu cần thiết. |
+| Wireframe màn hình MVP | Có prototype, chờ review | Đối chiếu với luồng MVP và thống nhất nội dung cần chỉnh. |
 | ERD và kiểu password_hash | Chờ review/cập nhật | ERD hiện ghi `VARCHAR(100)`; cần khớp lựa chọn ASP.NET Core Identity. |
 | Story và tiêu chí nghiệm thu thuộc MVP | Chờ nhóm xác nhận | Ánh xạ story vào luồng MVP và ghi expected result cụ thể. |
 

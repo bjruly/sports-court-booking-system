@@ -7,4 +7,4 @@
 - `Views/`: giao diện Razor.
 - `wwwroot/`: CSS, JavaScript phía trình duyệt, hình ảnh và các tài nguyên tĩnh khác.
 
-Project nhắm đến `net8.0` và hiện chạy trang MVC mẫu. Nghiệp vụ và cấu hình dữ liệu sẽ được bổ sung ở các bước tiếp theo.
+Project nhắm đến `net8.0` và có prototype Razor cho danh sách sân, lịch chọn giờ, xem lại booking và màn hình tài khoản. Dữ liệu sân/giá hiện là mẫu; form đăng nhập/đăng ký chưa kết nối ASP.NET Core Identity và chưa tạo booking thật.

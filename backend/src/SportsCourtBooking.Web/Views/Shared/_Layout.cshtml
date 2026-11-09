@@ -1,48 +1,54 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SportsCourtBooking.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <meta name="theme-color" content="#102a2a" />
+    <title>@ViewData["Title"] · Sân Nhà</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SportsCourtBooking.Web.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SportsCourtBooking.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+    <header class="site-header">
+        <div class="shell header-inner">
+            <a class="brand" asp-controller="Home" asp-action="Index" aria-label="Sân Nhà - Trang chủ">
+                <span class="brand-mark" aria-hidden="true">S</span>
+                <span>SÂN NHÀ<span class="brand-period">.</span></span>
+            </a>
+            <nav class="main-nav" aria-label="Điều hướng chính">
+                <a asp-controller="Home" asp-action="Index">Tìm sân</a>
+                <a class="nav-muted" asp-controller="Home" asp-action="Login">Lịch đặt của tôi</a>
+            </nav>
+            <div class="header-actions">
+                <a class="header-login" asp-controller="Home" asp-action="Login">Đăng nhập</a>
+                <a class="button button--small button--dark" asp-controller="Home" asp-action="Register">Tạo tài khoản</a>
             </div>
-        </nav>
+            <a class="mobile-account" asp-controller="Home" asp-action="Login" aria-label="Đăng nhập">Vào tài khoản <span aria-hidden="true">↗</span></a>
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+    <div class="prototype-banner">
+        <span class="prototype-dot" aria-hidden="true"></span>
+        <span>GIAO DIỆN BẢN THỬ</span>
+        <span class="prototype-divider">·</span>
+        <span>Dữ liệu mẫu · Tài khoản và đặt sân chưa kết nối backend</span>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - SportsCourtBooking.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="shell footer-inner">
+            <a class="brand brand--footer" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark" aria-hidden="true">S</span>
+                <span>SÂN NHÀ<span class="brand-period">.</span></span>
+            </a>
+            <p>Tìm sân phù hợp. Hẹn nhau ra sân.</p>
+            <span class="footer-note">Prototype học phần C# · ASP.NET Core MVC</span>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

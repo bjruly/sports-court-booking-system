@@ -23,7 +23,13 @@
 
 Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`, gồm các project Web, Application, Domain, Infrastructure và kiểm thử.
 
-## Tính năng nghiệp vụ
+## Trạng thái triển khai
+
+- Đã có prototype giao diện Razor cho tìm sân, lịch chọn khung giờ, xem lại lịch đặt và màn hình đăng nhập/đăng ký.
+- Prototype dùng dữ liệu mẫu. Lịch/giá chưa đọc từ PostgreSQL; đăng nhập, đăng ký và tạo booking chưa kết nối backend; không có booking thực được lưu.
+- Các nút đăng nhập/đăng ký đang bị vô hiệu hóa có chủ đích để không giả lập chức năng chưa được triển khai.
+
+## Tính năng mục tiêu
 
 - Khách hàng tìm kiếm cơ sở và sân, xem lịch trống, đặt sân, thanh toán, hủy đặt và đánh giá.
 - Chủ sân quản lý cơ sở, sân, giá, lịch đặt, voucher và doanh thu.
@@ -36,7 +42,7 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 
 ### Phạm vi MVP đã chốt
 
-- Khách phải đăng nhập để đặt sân; khách vãng lai và đặt hộ để giai đoạn sau.
+- Khách cần có tài khoản và đăng nhập để đặt sân; người mới có thể đăng ký. Khách vãng lai/đặt hộ để giai đoạn sau.
 - Luồng MVP: đăng nhập → xem danh sách sân → xem lịch trống và giá → chọn giờ → tạo booking `PENDING`.
 - Mỗi khung giờ dài 1 giờ; một booking gồm tối đa 4 khung liên tiếp trên cùng một sân trong cùng ngày.
 - Booking `PENDING` chưa phải là booking đã xác nhận hoặc đã thanh toán. Thanh toán thật, voucher, hủy/hoàn tiền và các tích hợp ngoài hệ thống nằm ngoài MVP.
@@ -86,7 +92,7 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 - `database/`: Tài liệu và tài sản liên quan đến PostgreSQL; `migrations/` dành cho lịch sử thay đổi schema.
 - `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`: cấu hình chạy ứng dụng web và PostgreSQL bằng Docker; `.env` là file cục bộ của từng máy, không đưa lên repository.
 
-Ứng dụng web hiện dùng trang MVC mẫu để xác nhận solution có thể chạy; các nghiệp vụ đặt sân và cấu hình cơ sở dữ liệu sẽ được triển khai ở các bước tiếp theo.
+Các bước chạy Docker bên dưới phục vụ xem prototype giao diện. Đăng ký/đăng nhập, dữ liệu PostgreSQL và nghiệp vụ booking sẽ được nối ở các bước tiếp theo.
 
 
 ## Chạy bằng Docker

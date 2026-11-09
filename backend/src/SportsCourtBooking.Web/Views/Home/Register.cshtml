@@ -1,0 +1,40 @@
+@model AccountPrototypeViewModel
+
+@{
+    ViewData["Title"] = "Tạo tài khoản";
+}
+
+<section class="account-section">
+    <div class="shell account-shell">
+        <div class="account-aside">
+            <p class="eyebrow"><span class="eyebrow-line"></span> TÀI KHOẢN SÂN NHÀ</p>
+            <h1>Hội bạn đủ rồi.<br /><em>Thiếu sân thôi.</em></h1>
+            <p>Tạo tài khoản để sẵn sàng cho trận đấu tiếp theo.</p>
+            <div class="account-aside-mark" aria-hidden="true">S<span>.</span></div>
+        </div>
+        <div class="account-card">
+            <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> THAM GIA CÙNG CHÚNG MÌNH</p>
+            <h2>Tạo tài khoản</h2>
+            <p class="account-subtitle">Điền thông tin để bắt đầu.</p>
+
+            <div class="notice notice--prototype" role="status">
+                <span class="notice-symbol" aria-hidden="true">i</span>
+                <span>Giao diện đăng ký đang ở bước prototype. Tài khoản chưa được lưu.</span>
+            </div>
+
+            <form class="account-form">
+                <label for="fullName">Họ và tên</label>
+                <input id="fullName" type="text" autocomplete="name" placeholder="Tên của bạn" />
+                <label for="email">Email</label>
+                <input id="email" type="email" autocomplete="email" placeholder="ban@example.com" />
+                <label for="password">Mật khẩu</label>
+                <input id="password" type="password" autocomplete="new-password" placeholder="Tạo mật khẩu" />
+                <label for="confirmPassword">Nhập lại mật khẩu</label>
+                <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" />
+                <button class="button button--primary button--full" type="button" disabled>Tạo tài khoản <span aria-hidden="true">→</span></button>
+            </form>
+            <p class="account-switch">Đã có tài khoản? <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Đăng nhập</a></p>
+            <a class="account-back" asp-controller="Home" asp-action="Index">← Quay lại tìm sân</a>
+        </div>
+    </div>
+</section>

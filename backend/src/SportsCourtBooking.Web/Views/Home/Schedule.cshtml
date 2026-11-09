@@ -1,0 +1,183 @@
+@using System.Globalization
+@model CourtScheduleViewModel
+
+@{
+    ViewData["Title"] = "Lịch sân";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="page-section">
+    <div class="shell">
+        <nav class="breadcrumbs" aria-label="Đường dẫn">
+            <a asp-controller="Home" asp-action="Index">Tìm sân</a>
+            <span aria-hidden="true">/</span>
+            <span>@Model.Court.FacilityName</span>
+        </nav>
+
+        <div class="page-heading page-heading--schedule">
+            <div>
+                <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> @Model.Court.Sport.ToUpperInvariant() · @Model.Court.District.ToUpperInvariant()</p>
+                <h1>@Model.Court.FacilityName</h1>
+                <p class="page-subtitle">@Model.Court.CourtName <span>·</span> @Model.Court.City <span>·</span> Mở cửa @Model.Court.OpeningHours</p>
+            </div>
+            <a class="button button--outline" asp-controller="Home" asp-action="Index">← <span class="desktop-only">Tất cả sân</span></a>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="notice notice--error" role="alert">
+                <span class="notice-symbol" aria-hidden="true">!</span>
+                <span>@Model.ErrorMessage</span>
+            </div>
+        }
+
+        <div class="schedule-layout">
+            <section class="schedule-card" aria-labelledby="schedule-title">
+                <div class="schedule-card-header">
+                    <div>
+                        <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> CHỌN LỊCH CỦA BẠN</p>
+                        <h2 id="schedule-title">Chọn giờ chơi</h2>
+                    </div>
+                    <form class="date-picker" asp-controller="Home" asp-action="Schedule" method="get">
+                        <input type="hidden" name="id" value="@Model.Court.Id" />
+                        <label class="sr-only" for="playDate">Ngày chơi</label>
+                        <input id="playDate" type="date" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" />
+                        <button type="submit" aria-label="Xem ngày đã chọn">↗</button>
+                    </form>
+                </div>
+
+                <div class="schedule-toolbar">
+                    <span class="selected-date">@Model.PlayDate.ToString("dddd, dd/MM/yyyy", culture)</span>
+                    <div class="slot-legend" aria-label="Chú giải trạng thái">
+                        <span><i class="legend-dot legend-dot--available"></i>Còn trống</span>
+                        <span><i class="legend-dot legend-dot--busy"></i>Đã có người đặt</span>
+                        <span><i class="legend-dot legend-dot--selected"></i>Đã chọn</span>
+                    </div>
+                </div>
+
+                <form id="slotSelectionForm" asp-controller="Home" asp-action="Review" method="get">
+                    <input type="hidden" name="id" value="@Model.Court.Id" />
+                    <input type="hidden" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" />
+                    <div class="slot-grid" aria-label="Các khung giờ trong ngày">
+                        @foreach (var slot in Model.Slots)
+                        {
+                            var endHour = slot.StartHour + 1;
+                            <button class="slot-button"
+                                    type="button"
+                                    data-hour="@slot.StartHour"
+                                    data-price="@slot.Price.ToString(CultureInfo.InvariantCulture)"
+                                    data-available="@slot.IsAvailable.ToString().ToLowerInvariant()"
+                                    aria-pressed="false"
+                                    aria-label="@($"{slot.StartHour:00}:00 đến {endHour:00}:00, {slot.Price.ToString("N0", culture)} đồng, {slot.StatusLabel}")"
+                                    disabled="@(!slot.IsAvailable)">
+                                <span class="slot-time">@($"{slot.StartHour:00}:00")</span>
+                                <span class="slot-price">@slot.Price.ToString("N0", culture)₫</span>
+                                <span class="slot-status">@slot.StatusLabel</span>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="selection-error" id="selectionError" role="status" aria-live="polite"></div>
+                    <div class="schedule-card-footer">
+                        <span class="selection-hint">Chọn tối đa 4 giờ liên tiếp trên cùng sân/ngày.</span>
+                        <button class="button button--primary" id="continueButton" type="submit" disabled>
+                            Xem lại lịch đặt <span aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <aside class="booking-summary">
+                <div class="summary-label"><span class="summary-icon" aria-hidden="true">✳</span> LỊCH CỦA BẠN</div>
+                <h2>Sẵn sàng<br />ra sân?</h2>
+                <p class="summary-date">@Model.PlayDate.ToString("dd.MM.yyyy")</p>
+                <div class="summary-divider"></div>
+                <div class="summary-line"><span>Khung giờ</span><strong id="selectedCount">Chưa chọn</strong></div>
+                <div class="summary-line"><span>Thời lượng</span><strong id="selectedDuration">—</strong></div>
+                <div class="summary-total"><span>Tạm tính</span><strong id="selectedTotal">0₫</strong></div>
+                <p class="summary-caption">Giá minh họa, sẽ được kiểm tra lại khi gửi yêu cầu.</p>
+                <div class="summary-rule"><span>i</span><p>Chưa có giờ nào được giữ. Chỗ chỉ được xử lý khi backend đặt sân được kết nối.</p></div>
+            </aside>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (() => {
+            const form = document.getElementById("slotSelectionForm");
+            const buttons = Array.from(form.querySelectorAll(".slot-button"));
+            const error = document.getElementById("selectionError");
+            const continueButton = document.getElementById("continueButton");
+            const selectedCount = document.getElementById("selectedCount");
+            const selectedDuration = document.getElementById("selectedDuration");
+            const selectedTotal = document.getElementById("selectedTotal");
+            const selected = new Map();
+            const formatter = new Intl.NumberFormat("vi-VN");
+
+            function renderSelection() {
+                const hours = Array.from(selected.keys()).sort((a, b) => a - b);
+                const total = Array.from(selected.values()).reduce((sum, price) => sum + price, 0);
+
+                buttons.forEach(button => {
+                    const isSelected = selected.has(Number(button.dataset.hour));
+                    button.classList.toggle("is-selected", isSelected);
+                    button.setAttribute("aria-pressed", String(isSelected));
+                });
+
+                selectedCount.textContent = hours.length === 0 ? "Chưa chọn" : `${hours.length} khung`;
+                selectedDuration.textContent = hours.length === 0 ? "—" : `${hours.length} giờ`;
+                selectedTotal.textContent = `${formatter.format(total)}₫`;
+                continueButton.disabled = hours.length === 0;
+            }
+
+            buttons.forEach(button => {
+                button.addEventListener("click", () => {
+                    const hour = Number(button.dataset.hour);
+                    error.textContent = "";
+
+                    if (selected.has(hour)) {
+                        const hours = Array.from(selected.keys()).sort((a, b) => a - b);
+                        if (hours.length > 1 && hour !== hours[0] && hour !== hours[hours.length - 1]) {
+                            error.textContent = "Hãy bỏ khung đầu hoặc cuối để giữ các giờ liên tiếp.";
+                            return;
+                        }
+                        selected.delete(hour);
+                    } else {
+                        const hours = Array.from(selected.keys()).sort((a, b) => a - b);
+                        const isAdjacent = hours.length === 0 || hour === hours[0] - 1 || hour === hours[hours.length - 1] + 1;
+                        if (!isAdjacent) {
+                            error.textContent = "Vui lòng chọn các khung giờ liền nhau.";
+                            return;
+                        }
+                        if (hours.length === 4) {
+                            error.textContent = "Mỗi booking tối đa 4 khung giờ.";
+                            return;
+                        }
+                        selected.set(hour, Number(button.dataset.price));
+                    }
+
+                    renderSelection();
+                });
+            });
+
+            form.addEventListener("submit", event => {
+                const hours = Array.from(selected.keys()).sort((a, b) => a - b);
+                if (hours.length === 0) {
+                    event.preventDefault();
+                    error.textContent = "Chọn ít nhất một khung giờ còn trống.";
+                    return;
+                }
+
+                form.querySelectorAll('input[name="selectedHours"]').forEach(input => input.remove());
+                hours.forEach(hour => {
+                    const input = document.createElement("input");
+                    input.type = "hidden";
+                    input.name = "selectedHours";
+                    input.value = String(hour);
+                    form.appendChild(input);
+                });
+            });
+        })();
+    </script>
+}
