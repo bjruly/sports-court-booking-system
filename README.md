@@ -88,7 +88,6 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 
 Ứng dụng web hiện dùng trang MVC mẫu để xác nhận solution có thể chạy; các nghiệp vụ đặt sân và cấu hình cơ sở dữ liệu sẽ được triển khai ở các bước tiếp theo.
 
-
 ## Chạy bằng Docker
 
 Dự án có sẵn cấu hình Docker để mọi thành viên chạy cùng một môi trường (web ASP.NET Core + PostgreSQL), không cần cài .NET SDK hay PostgreSQL trên máy.
@@ -120,6 +119,18 @@ Dự án có sẵn cấu hình Docker để mọi thành viên chạy cùng mộ
 | Dừng và **xóa luôn dữ liệu database** | `docker compose down -v`    |
 | Xem log                                           | `docker compose logs -f`    |
 | Build lại sau khi đổi code                     | `docker compose up --build` |
+
+
+
+### Quản lý database bằng pgAdmin
+
+Mở [http://localhost:5050](http://localhost:5050), đăng nhập bằng `PGADMIN_EMAIL` và `PGADMIN_PASSWORD` trong `.env`, rồi kết nối với:
+
+| Ô                         | Giá trị                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| Host                       | `db` (không phải `localhost`)                                               |
+| Port                       | `5432`                                                                          |
+| Database / User / Password | lấy từ `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` trong `.env` |
 
 ### Lưu ý
 
