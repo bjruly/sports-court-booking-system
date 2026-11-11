@@ -4,13 +4,22 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5101:8080"          # mở web ở http://localhost:5101
+      - "5101:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      # Chuỗi kết nối sẵn cho sau này khi nhóm thêm EF Core + PostgreSQL
-      - ConnectionStrings__Default=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - ConnectionStrings__DefaultConnection=Server=mssql,1433;Database=SportsCourtBookingDb;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
     depends_on:
-      - db
+      - mssql
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssqldata:/var/opt/mssql
 
   db:
     image: postgres:16-alpine
@@ -38,3 +47,4 @@ services:
 volumes:
   pgdata:
   pgadmindata:
+  mssqldata:
