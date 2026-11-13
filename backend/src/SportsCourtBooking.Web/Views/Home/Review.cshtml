@@ -20,7 +20,7 @@
             <div>
                 <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> BƯỚC CUỐI TRƯỚC KHI ĐẶT</p>
                 <h1>Xem lại lịch đặt</h1>
-                <p class="page-subtitle">Kiểm tra sân, thời gian và giá minh họa.</p>
+                <p class="page-subtitle">Kiểm tra sân, thời gian và tổng tiền trước khi xác nhận.</p>
             </div>
         </div>
 
@@ -54,15 +54,37 @@
                 <p class="eyebrow"><span class="eyebrow-line"></span> TÓM TẮT CHI PHÍ</p>
                 <div class="summary-line"><span>@Model.Slots.Count khung giờ</span><strong>@Model.TotalPrice.ToString("N0", culture)₫</strong></div>
                 <div class="summary-line"><span>Voucher</span><strong>—</strong></div>
-                <div class="summary-total"><span>Tổng tham khảo</span><strong>@Model.TotalPrice.ToString("N0", culture)₫</strong></div>
-                <div class="notice notice--info">
-                    <span class="notice-symbol" aria-hidden="true">i</span>
-                    <span>Bạn cần đăng nhập để tiếp tục. Các khung giờ sẽ được kiểm tra lại sau khi hệ thống xác thực.</span>
-                </div>
-                <a class="button button--primary button--full" asp-controller="Home" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">
-                    Đăng nhập để tiếp tục <span aria-hidden="true">→</span>
-                </a>
-                <p class="prototype-disclaimer">Đây là bản xem trước. Chưa có booking nào được tạo hoặc giữ.</p>
+                <div class="summary-total"><span>Tổng tiền</span><strong>@Model.TotalPrice.ToString("N0", culture)₫</strong></div>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="notice notice--info">
+                        <span class="notice-symbol" aria-hidden="true">i</span>
+                        <span>Đơn đặt sân sẽ được tạo ở trạng thái chờ xác nhận. Khung giờ được kiểm tra lại ngay khi bạn bấm xác nhận.</span>
+                    </div>
+                    <form asp-controller="Home" asp-action="ConfirmBooking" method="post">
+                        <input type="hidden" name="id" value="@Model.Court.Id" />
+                        <input type="hidden" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" />
+                        @foreach (var slot in Model.Slots)
+                        {
+                            <input type="hidden" name="selectedHours" value="@slot.StartHour" />
+                        }
+                        <label class="note-field" for="note">Ghi chú (không bắt buộc)</label>
+                        <textarea id="note" name="note" rows="3" maxlength="500" placeholder="Ví dụ: cần thuê thêm vợt"></textarea>
+                        <button class="button button--primary button--full" type="submit">
+                            Xác nhận đặt sân <span aria-hidden="true">→</span>
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="notice notice--info">
+                        <span class="notice-symbol" aria-hidden="true">i</span>
+                        <span>Bạn cần đăng nhập để tiếp tục. Các khung giờ sẽ được kiểm tra lại khi bạn xác nhận đặt sân.</span>
+                    </div>
+                    <a class="button button--primary button--full" asp-controller="Home" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">
+                        Đăng nhập để tiếp tục <span aria-hidden="true">→</span>
+                    </a>
+                }
             </aside>
         </div>
     </div>

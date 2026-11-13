@@ -405,3 +405,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .account-form { gap: 6px; }
   .account-form input { height: 41px; }
 }
+
+/* ===== Bổ sung: thông báo chung, tài khoản đăng nhập, danh sách đặt sân ===== */
+.flash-stack { display: grid; gap: 8px; padding-top: 18px; }
+.flash-stack .notice { margin: 0; font-size: 12px; }
+.notice--success { border-color: #cfe0b4; color: #3d5a24; background: #f1f7e6; }
+.notice--success .notice-symbol { color: white; background: #789044; font-family: "Segoe UI", Arial, sans-serif; }
+
+.header-user { color: var(--ink-soft); font-size: 13px; }
+.inline-form { margin: 0; }
+
+.note-field { display: block; margin: 14px 0 6px; color: #c0d0c3; font-size: 10px; font-weight: 700; }
+.review-summary textarea { width: 100%; margin-bottom: 14px; padding: 10px 12px; border: 1px solid #38514a; border-radius: 4px; color: var(--ink); background: #fff; font: inherit; font-size: 12px; resize: vertical; }
+
+.booking-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
+.booking-filter input, .booking-filter select { height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); background: #fff; font-size: 12px; }
+
+.booking-table-wrap { overflow-x: auto; border: 1px solid #e4e9e2; border-radius: 8px; background: #fff; }
+.booking-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.booking-table th, .booking-table td { padding: 13px 16px; border-bottom: 1px solid #edf0eb; text-align: left; white-space: nowrap; }
+.booking-table th { color: var(--muted); background: #fbfcf9; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.booking-table tbody tr:last-child td { border-bottom: 0; }
+
+.status-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; }
+.status-badge--pending { color: #7a5a12; background: #fdf3d6; }
+.status-badge--confirmed { color: #3d5a24; background: #e8f3d4; }
+.status-badge--cancelled { color: #87372f; background: #fde9e6; }
+.status-badge--completed { color: #35504d; background: #e6ecea; }
+
+.my-bookings-actions { display: flex; gap: 12px; margin-top: 20px; }

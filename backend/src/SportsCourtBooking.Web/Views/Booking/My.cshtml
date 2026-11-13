@@ -1,0 +1,65 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.DTOs
+@model List<BookingDto>
+
+@{
+    ViewData["Title"] = "Lịch đặt của tôi";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="page-section">
+    <div class="shell shell--narrow">
+        <div class="page-heading">
+            <div>
+                <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> TÀI KHOẢN CỦA BẠN</p>
+                <h1>Lịch đặt của tôi</h1>
+                <p class="page-subtitle">@User.Identity?.Name</p>
+            </div>
+            <a class="button button--outline" asp-controller="Home" asp-action="Index">Tìm sân</a>
+        </div>
+
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state" role="status">
+                <span class="empty-state-icon" aria-hidden="true">▦</span>
+                <h3>Bạn chưa có đơn đặt sân nào</h3>
+                <p>Chọn một sân và khung giờ phù hợp để bắt đầu.</p>
+                <a class="text-link" asp-controller="Home" asp-action="Index">Tìm sân ngay <span aria-hidden="true">↗</span></a>
+            </div>
+        }
+        else
+        {
+            <div class="booking-table-wrap">
+                <table class="booking-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Sân</th>
+                            <th>Giờ</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var booking in Model)
+                        {
+                            <tr>
+                                <td>@booking.BookingDate.ToString("dd/MM/yyyy")</td>
+                                <td>@booking.CourtName</td>
+                                <td>@booking.StartTime.ToString("HH:mm") – @booking.EndTime.ToString("HH:mm")</td>
+                                <td>@booking.TotalPrice.ToString("N0", culture)₫</td>
+                                <td><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="my-bookings-actions">
+            <form class="inline-form" asp-controller="Auth" asp-action="Logout" method="post">
+                <button class="button button--outline button--small" type="submit">Đăng xuất</button>
+            </form>
+        </div>
+    </div>
+</section>
