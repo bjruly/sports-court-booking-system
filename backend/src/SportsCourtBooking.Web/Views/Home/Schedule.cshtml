@@ -1,4 +1,5 @@
 @using System.Globalization
+@using SportsCourtBooking.Application.Rules
 @model CourtScheduleViewModel
 
 @{
@@ -95,8 +96,8 @@
                 <div class="summary-line"><span>Khung giờ</span><strong id="selectedCount">Chưa chọn</strong></div>
                 <div class="summary-line"><span>Thời lượng</span><strong id="selectedDuration">—</strong></div>
                 <div class="summary-total"><span>Tạm tính</span><strong id="selectedTotal">0₫</strong></div>
-                <p class="summary-caption">Giá minh họa, sẽ được kiểm tra lại khi gửi yêu cầu.</p>
-                <div class="summary-rule"><span>i</span><p>Chưa có giờ nào được giữ. Chỗ chỉ được xử lý khi backend đặt sân được kết nối.</p></div>
+                <p class="summary-caption">Giá đã gồm phụ thu @BookingRules.PeakSurcharge.ToString("N0", culture)₫/giờ từ @BookingRules.PeakStartHour:00.</p>
+                <div class="summary-rule"><span>i</span><p>Giờ chỉ được giữ sau khi bạn đăng nhập và xác nhận đặt sân ở bước tiếp theo.</p></div>
             </aside>
         </div>
     </div>

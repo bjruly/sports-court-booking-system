@@ -16,18 +16,18 @@
 
 - **Ứng dụng web:** ASP.NET Core MVC, Razor và C#.
 - **Nghiệp vụ:** các lớp Application và Domain bằng C#.
-- **Framework hiện tại:** .NET 8 (`net8.0`); cấu hình EF Core/Npgsql và PostgreSQL sẽ được bổ sung ở bước thiết lập lưu trữ dữ liệu.
+- **Framework hiện tại:** .NET 8 (`net8.0`), EF Core 8 với **PostgreSQL** (Npgsql). Thư mục migration là `SportsCourtBooking.Infrastructure/Data/Migrations` (chưa có file nào, xem mục "Tạo migration PostgreSQL").
 - **Cache/giữ chỗ:** Redis là thành phần tùy chọn theo đề xuất trong báo cáo.
 - **Tích hợp dự kiến:** VNPay/MoMo, email/SMS và dịch vụ bản đồ.
-- **Triển khai/chạy cục bộ:** Docker và Docker Compose (web + PostgreSQL 16).
+- **Triển khai/chạy cục bộ:** Docker và Docker Compose (web + PostgreSQL 16 + pgAdmin).
 
 Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`, gồm các project Web, Application, Domain, Infrastructure và kiểm thử.
 
 ## Trạng thái triển khai
 
-- Đã có prototype giao diện Razor cho tìm sân, lịch chọn khung giờ, xem lại lịch đặt và màn hình đăng nhập/đăng ký.
-- Prototype dùng dữ liệu mẫu. Lịch/giá chưa đọc từ PostgreSQL; đăng nhập, đăng ký và tạo booking chưa kết nối backend; không có booking thực được lưu.
-- Các nút đăng nhập/đăng ký đang bị vô hiệu hóa có chủ đích để không giả lập chức năng chưa được triển khai.
+- Đã kết nối PostgreSQL: danh sách sân, lịch khung giờ, đăng ký, đăng nhập (cookie, mật khẩu băm PBKDF2) và tạo đơn đặt sân (trạng thái `Pending`) đều lưu/đọc từ database.
+- Quy tắc đặt sân nằm tập trung ở `Application/Rules/BookingRules.cs`: giờ mở cửa 06:00–22:00, tối đa 4 giờ liên tiếp, phụ thu 50.000₫/giờ từ 17:00, không đặt giờ đã qua (tính theo giờ Việt Nam), chống đặt trùng khi nhiều người bấm cùng lúc.
+- Chưa làm: thanh toán, đánh giá, hủy/hoàn tiền, cơ chế hết hạn giữ chỗ `Pending`, trang quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
 
 ## Tính năng mục tiêu
 
@@ -89,10 +89,10 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 
 - `docs/`: Báo cáo và sơ đồ phân tích, thiết kế hệ thống.
 - `backend/`: Solution .NET 8; `SportsCourtBooking.Web/` chứa ứng dụng MVC, các project Application, Domain, Infrastructure phân chia trách nhiệm nghiệp vụ và tích hợp; `tests/` chứa project kiểm thử xUnit.
-- `database/`: Tài liệu và tài sản liên quan đến PostgreSQL; `migrations/` dành cho lịch sử thay đổi schema.
-- `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`: cấu hình chạy ứng dụng web và PostgreSQL bằng Docker; `.env` là file cục bộ của từng máy, không đưa lên repository.
+- `database/`: Tài liệu và tài sản liên quan đến cơ sở dữ liệu. Lịch sử migration thực tế của EF Core nằm trong `backend/src/SportsCourtBooking.Infrastructure/Data/Migrations`.
+- `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`: cấu hình chạy ứng dụng web, PostgreSQL và pgAdmin bằng Docker; `.env` là file cục bộ của từng máy, không đưa lên repository.
 
-Các bước chạy Docker bên dưới phục vụ xem prototype giao diện. Đăng ký/đăng nhập, dữ liệu PostgreSQL và nghiệp vụ booking sẽ được nối ở các bước tiếp theo.
+Các bước chạy Docker bên dưới chạy toàn bộ hệ thống: web + PostgreSQL + pgAdmin. Lần đầu khởi động, ứng dụng tự tạo database và chạy migration.
 
 ## Chạy bằng Docker
 
@@ -109,12 +109,21 @@ Dự án có sẵn cấu hình Docker để mọi thành viên chạy cùng mộ
    ```bash
    copy .env.example .env      # Windows (PowerShell dùng được cả: cp .env.example .env)
    ```
-3. Mở `.env`, đặt `POSTGRES_PASSWORD` tùy ý (mật khẩu chỉ dùng trên máy mình).
+3. Mở `.env`, đặt `POSTGRES_PASSWORD` và `PGADMIN_PASSWORD` (không dùng ký tự `;` `=` `$`; mật khẩu chỉ dùng trên máy mình).
 4. Chạy:
    ```bash
    docker compose up --build
    ```
-5. Mở trình duyệt vào [http://localhost:5101](http://localhost:5101).
+5. Đợi log hiện `Database đã sẵn sàng.` (lần đầu có thể mất vài chục giây để PostgreSQL khởi động), rồi mở [http://localhost:5101](http://localhost:5101).
+
+### Tài khoản mẫu (chỉ dùng để thử trên máy)
+
+| Vai trò         | Email                    | Mật khẩu       |
+| ---------------- | ------------------------ | ---------------- |
+| Quản trị viên | `admin@sportscourt.vn` | `Admin@123`    |
+| Khách hàng     | `khachhang@gmail.com`  | `Customer@123` |
+
+Bạn cũng có thể tự đăng ký tài khoản mới ở trang **Tạo tài khoản**. Đăng nhập xong, vào **Lịch đặt của tôi** để xem đơn vừa tạo. Tài khoản quản trị xem lịch của mọi khách ở `/Booking`.
 
 ### Lệnh thường dùng
 
@@ -126,21 +135,40 @@ Dự án có sẵn cấu hình Docker để mọi thành viên chạy cùng mộ
 | Xem log                                           | `docker compose logs -f`    |
 | Build lại sau khi đổi code                     | `docker compose up --build` |
 
+### Xem dữ liệu bằng pgAdmin
 
+1. Chạy `docker compose up` và đợi log hiện `Database đã sẵn sàng.`
+2. Mở [http://localhost:5050](http://localhost:5050), đăng nhập bằng `PGADMIN_EMAIL` và `PGADMIN_PASSWORD` trong `.env`.
+3. Chuột phải **Servers → Register → Server**, tab **Connection** điền:
 
-### Quản lý database bằng pgAdmin
+| Ô                   | Giá trị                                                                 |
+| -------------------- | ------------------------------------------------------------------------- |
+| Host                 | `db` (không phải `localhost`, vì pgAdmin chạy trong mạng Docker) |
+| Port                 | `5432`                                                                  |
+| Maintenance database | `POSTGRES_DB` trong `.env` (mặc định `sportscourt`)              |
+| Username / Password  | `POSTGRES_USER` / `POSTGRES_PASSWORD` trong `.env`                  |
 
-Mở [http://localhost:5050](http://localhost:5050), đăng nhập bằng `PGADMIN_EMAIL` và `PGADMIN_PASSWORD` trong `.env`, rồi kết nối với:
+4. Mở **Servers → (tên server) → Databases → sportscourt → Schemas → public → Tables**, chuột phải bảng → **View/Edit Data → All Rows**.
 
-| Ô                         | Giá trị                                                                         |
-| -------------------------- | --------------------------------------------------------------------------------- |
-| Host                       | `db` (không phải `localhost`)                                               |
-| Port                       | `5432`                                                                          |
-| Database / User / Password | lấy từ `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` trong `.env` |
+Tên bảng và cột do EF Core tạo theo dạng chữ hoa đầu (`"Users"`, `"Courts"`, `"Bookings"`...), nên khi viết SQL phải đặt trong dấu nháy kép, ví dụ `SELECT * FROM "Courts";`.
+
+Muốn kết nối bằng công cụ cài trên máy (DBeaver, DataGrip...): host `localhost`, port `5432`, cùng user/mật khẩu như trên.
+
+### Tạo migration PostgreSQL
+
+Thư mục `Data/Migrations` hiện chưa có file nào (các migration cũ viết cho SQL Server đã bị xóa vì không chạy được trên PostgreSQL). Khi chưa có migration, ứng dụng tự tạo bảng và dữ liệu mẫu từ model bằng `EnsureCreated`. Để dùng migration (cần .NET 8 SDK và công cụ `dotnet-ef`):
+
+```bash
+dotnet ef migrations add InitialCreate --project backend/src/SportsCourtBooking.Infrastructure --startup-project backend/src/SportsCourtBooking.Web --output-dir Data/Migrations
+```
+
+Nếu database đã được tạo bằng `EnsureCreated` trước khi có migration, chạy `docker compose down -v` để xóa dữ liệu rồi `docker compose up --build` lại.
 
 ### Lưu ý
 
 - **Không commit file `.env`** (đã nằm trong `.gitignore`); chỉ commit `.env.example`.
-- Đã đặt mật khẩu database rồi thì đừng đổi giữa chừng; muốn đổi phải chạy `docker compose down -v` rồi chạy lại.
-- Web hiện chưa kết nối database; biến `ConnectionStrings__Default` đã được cấu hình sẵn trong `docker-compose.yml` để dùng khi bổ sung EF Core/Npgsql.
-- Nếu cổng `5101` hoặc `5432` đã bị chương trình khác dùng, đổi số bên trái trong mục `ports` của `docker-compose.yml` (ví dụ `"5102:8080"`).
+- Đã đặt `POSTGRES_PASSWORD` rồi thì đừng đổi giữa chừng; muốn đổi phải chạy `docker compose down -v` rồi chạy lại. Nếu trước đây bạn từng chạy bản cũ của dự án (dùng SQL Server), cũng nên chạy `docker compose down -v` một lần để xóa container và dữ liệu cũ.
+- Web kết nối PostgreSQL qua biến `ConnectionStrings__DefaultConnection` trong `docker-compose.yml`. Khi chạy ngoài Docker (`dotnet run`), `appsettings.json` chỉ có host, database và user (không lưu mật khẩu); hãy đặt biến môi trường `ConnectionStrings__DefaultConnection` kèm mật khẩu, ví dụ `Host=localhost;Port=5432;Database=sportscourt;Username=postgres;Password=...`, và nhớ chạy `docker compose up -d db` trước.
+- Nếu container `db` không chạy, kiểm tra `docker compose logs db`.
+- Chạy kiểm thử đơn vị: `dotnet test backend/SportsCourtBooking.sln` (cần cài .NET 8 SDK).
+- Nếu cổng `5101`, `5432` hoặc `5050` đã bị chương trình khác dùng, đổi số bên trái trong mục `ports` của `docker-compose.yml` (ví dụ `"5102:8080"`).

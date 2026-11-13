@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SportsCourtBooking.Domain\SportsCourtBooking.Domain.csproj" />
     <ProjectReference Include="..\..\src\SportsCourtBooking.Application\SportsCourtBooking.Application.csproj" />
+    <ProjectReference Include="..\..\src\SportsCourtBooking.Infrastructure\SportsCourtBooking.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,69 @@
+@using SportsCourtBooking.Application.DTOs
+@model BookingPageViewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Quản lý lịch đặt";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="page-section">
+    <div class="shell shell--narrow">
+        <div class="page-heading">
+            <div>
+                <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> DÀNH CHO NHÂN VIÊN</p>
+                <h1>Lịch đặt theo ngày</h1>
+                <p class="page-subtitle">@Model.SelectedDate.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+
+        <form class="booking-filter" method="get" asp-controller="Booking" asp-action="Index">
+            <input type="date" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+            <select name="courtId">
+                <option value="">Tất cả sân</option>
+                @foreach (var court in Model.Courts)
+                {
+                    <option value="@court.Id" selected="@(Model.SelectedCourtId == court.Id)">@court.Name</option>
+                }
+            </select>
+            <button class="button button--small button--dark" type="submit">Xem</button>
+        </form>
+
+        @if (Model.Bookings.Count == 0)
+        {
+            <div class="empty-state" role="status">
+                <span class="empty-state-icon" aria-hidden="true">▦</span>
+                <h3>Không có đơn đặt sân</h3>
+                <p>Chưa có đơn nào cho ngày và sân đã chọn.</p>
+            </div>
+        }
+        else
+        {
+            <div class="booking-table-wrap">
+                <table class="booking-table">
+                    <thead>
+                        <tr>
+                            <th>Sân</th>
+                            <th>Khách hàng</th>
+                            <th>Giờ</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var booking in Model.Bookings)
+                        {
+                            <tr>
+                                <td>@booking.CourtName</td>
+                                <td>@booking.CustomerName</td>
+                                <td>@booking.StartTime.ToString("HH:mm") – @booking.EndTime.ToString("HH:mm")</td>
+                                <td>@booking.TotalPrice.ToString("N0", culture)₫</td>
+                                <td><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
