@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SportsCourtBooking.Application.Common;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
+using SportsCourtBooking.Web.Extensions;
 using SportsCourtBooking.Web.Models;
 
 namespace SportsCourtBooking.Web.Controllers;
@@ -16,11 +19,12 @@ public class BookingController : Controller
         _courtService = courtService;
     }
 
-    // Xem lịch đặt sân theo ngày và sân
+    // Xem lịch đặt của tất cả khách theo ngày và sân (chỉ nhân viên / quản trị viên, vì có tên khách hàng)
+    [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
     public async Task<IActionResult> Index(DateOnly? date, int? courtId, int? courtTypeId)
     {
-        var selectedDate = date ?? DateOnly.FromDateTime(DateTime.Today);
+        var selectedDate = date ?? VietnamClock.Today;
         var courts = await _courtService.GetAllCourtsAsync(courtTypeId);
         var bookings = await _bookingService.GetBookingsByDateAsync(selectedDate, courtId);
 
@@ -36,26 +40,44 @@ public class BookingController : Controller
         return View(viewModel);
     }
 
-    // Xử lý khi khách bấm nút "Đặt sân" (Form Submit)
-    [HttpPost]
-    public async Task<IActionResult> Create(CreateBookingRequest request)
+    // Lịch đặt của chính người dùng đang đăng nhập
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> My()
     {
-        // Nếu chưa có hệ thống Session, mặc định lấy UserId = 2 (Khách hàng mẫu trong SeedData)
-        if (request.UserId <= 0)
+        var userId = User.GetUserId();
+        if (userId is null)
         {
-            request.UserId = 2;
+            return Challenge();
         }
 
+        var bookings = await _bookingService.GetBookingsByUserAsync(userId.Value);
+        return View(bookings);
+    }
+
+    // Xử lý form đặt sân. UserId luôn lấy từ cookie đăng nhập, bỏ qua mọi giá trị UserId do form gửi lên.
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(CreateBookingRequest request)
+    {
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Challenge();
+        }
+
+        request.UserId = userId.Value;
         var result = await _bookingService.CreateBookingAsync(request);
 
         if (!result.Success)
         {
             TempData["ErrorMessage"] = result.Message;
-            return RedirectToAction("Schedule", "Home", new { date = request.BookingDate.ToString("yyyy-MM-dd"), courtId = request.CourtId });
+            return RedirectToAction("Schedule", "Home", new { id = request.CourtId, date = request.BookingDate.ToString("yyyy-MM-dd") });
         }
 
         TempData["SuccessMessage"] = $"{result.Message} Tổng tiền: {result.Data?.TotalPrice:N0} VNĐ.";
-        return RedirectToAction("Schedule", "Home", new { date = request.BookingDate.ToString("yyyy-MM-dd"), courtId = request.CourtId });
+        return RedirectToAction(nameof(My));
     }
 
     // API nhỏ trả về JSON để kiểm tra nhanh khung giờ trống bằng JavaScript/AJAX

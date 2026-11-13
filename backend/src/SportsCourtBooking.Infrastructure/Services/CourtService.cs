@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
+using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
 
 namespace SportsCourtBooking.Infrastructure.Services;
@@ -14,16 +15,21 @@ public class CourtService : ICourtService
         _context = context;
     }
 
-    public async Task<List<CourtDto>> GetAllCourtsAsync(int? courtTypeId = null)
+    public async Task<List<CourtDto>> GetAllCourtsAsync(int? courtTypeId = null, bool onlyActive = false)
     {
-        var query = _context.Courts.Include(c => c.CourtType).AsQueryable();
+        var query = _context.Courts.AsQueryable();
 
         if (courtTypeId.HasValue)
         {
             query = query.Where(c => c.CourtTypeId == courtTypeId.Value);
         }
 
-        return await query.Select(c => new CourtDto
+        if (onlyActive)
+        {
+            query = query.Where(c => c.Status == CourtStatus.Active);
+        }
+
+        return await query.OrderBy(c => c.Id).Select(c => new CourtDto
         {
             Id = c.Id,
             Name = c.Name,
