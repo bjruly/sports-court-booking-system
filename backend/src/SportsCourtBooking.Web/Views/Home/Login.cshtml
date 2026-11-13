@@ -17,17 +17,13 @@
             <h2>Đăng nhập</h2>
             <p class="account-subtitle">Vui lòng đăng nhập để tiếp tục đặt sân.</p>
 
-            <div class="notice notice--prototype" role="status">
-                <span class="notice-symbol" aria-hidden="true">i</span>
-                <span>Giao diện đăng nhập đang ở bước prototype. ASP.NET Core Identity chưa được kết nối.</span>
-            </div>
-
-            <form class="account-form">
+            <form class="account-form" asp-controller="Auth" asp-action="Login" method="post">
+                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
                 <label for="email">Email</label>
-                <input id="email" type="email" autocomplete="email" placeholder="ban@example.com" />
+                <input id="email" name="Email" type="email" autocomplete="email" placeholder="ban@example.com" required />
                 <label for="password">Mật khẩu</label>
-                <input id="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" />
-                <button class="button button--primary button--full" type="button" disabled>Đăng nhập <span aria-hidden="true">→</span></button>
+                <input id="password" name="Password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required />
+                <button class="button button--primary button--full" type="submit">Đăng nhập <span aria-hidden="true">→</span></button>
             </form>
             <p class="account-switch">Chưa có tài khoản? <a asp-controller="Home" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Tạo tài khoản</a></p>
             <a class="account-back" asp-controller="Home" asp-action="Index">← Quay lại tìm sân</a>

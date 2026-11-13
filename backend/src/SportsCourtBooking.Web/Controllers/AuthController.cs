@@ -1,3 +1,6 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
@@ -14,45 +17,83 @@ public class AuthController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login(LoginRequest request)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginRequest request, string? returnUrl)
     {
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = JoinModelErrors();
+            return RedirectToAction("Login", "Home", new { returnUrl });
+        }
+
         var result = await _authService.LoginAsync(request);
         if (!result.Success || result.User == null)
         {
             TempData["ErrorMessage"] = result.Message;
-            return RedirectToAction("Login", "Home");
+            return RedirectToAction("Login", "Home", new { returnUrl });
         }
 
-        // Lưu thông tin cơ bản vào TempData/Cookies để hiển thị tên người dùng
-        TempData["SuccessMessage"] = $"Xin chào {result.User.FullName} ({result.User.Role})!";
-        Response.Cookies.Append("CurrentUserId", result.User.Id.ToString());
-        Response.Cookies.Append("CurrentUserName", result.User.FullName);
-        Response.Cookies.Append("CurrentUserRole", result.User.Role.ToString());
+        var user = result.User;
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.FullName),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role.ToString())
+        };
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+        TempData["SuccessMessage"] = $"Xin chào {user.FullName}!";
+
+        // Chỉ cho phép quay lại địa chỉ nội bộ của website (chống open redirect)
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
 
         return RedirectToAction("Index", "Home");
     }
 
     [HttpPost]
-    public async Task<IActionResult> Register(RegisterRequest request)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterRequest request, string? returnUrl)
     {
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = JoinModelErrors();
+            return RedirectToAction("Register", "Home", new { returnUrl });
+        }
+
         var result = await _authService.RegisterAsync(request);
         if (!result.Success)
         {
             TempData["ErrorMessage"] = result.Message;
-            return RedirectToAction("Register", "Home");
+            return RedirectToAction("Register", "Home", new { returnUrl });
         }
 
         TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
-        return RedirectToAction("Login", "Home");
+        return RedirectToAction("Login", "Home", new { returnUrl });
     }
 
-    [HttpGet]
-    public IActionResult Logout()
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
     {
-        Response.Cookies.Delete("CurrentUserId");
-        Response.Cookies.Delete("CurrentUserName");
-        Response.Cookies.Delete("CurrentUserRole");
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         TempData["SuccessMessage"] = "Đã đăng xuất thành công.";
         return RedirectToAction("Index", "Home");
+    }
+
+    private string JoinModelErrors()
+    {
+        var messages = ModelState.Values
+            .SelectMany(entry => entry.Errors)
+            .Select(error => error.ErrorMessage)
+            .Where(message => !string.IsNullOrWhiteSpace(message))
+            .Distinct()
+            .ToArray();
+
+        return messages.Length > 0 ? string.Join(" ", messages) : "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
     }
 }
