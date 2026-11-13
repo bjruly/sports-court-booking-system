@@ -14,7 +14,7 @@ Project nhắm đến `net8.0` và có prototype Razor cho danh sách sân, lị
 Đây là tầng **Presentation / Web UI (`SportsCourtBooking.Web`)** của hệ thống Đặt sân Thể thao, được xây dựng trên nền tảng **ASP.NET Core 8.0 MVC**.
 Tầng này là điểm khởi chạy chính (`Startup Project`) của toàn bộ ứng dụng:
 
-* Chứa cấu hình khởi tạo hệ thống, chuỗi kết nối SQL Server và đăng ký Dependency Injection (`Program.cs`, `appsettings.json`).
+* Chứa cấu hình khởi tạo hệ thống, chuỗi kết nối PostgreSQL và đăng ký Dependency Injection (`Program.cs`, `appsettings.json`).
 * Chứa hệ thống `Controllers`, `Models` (`ViewModels`), giao diện người dùng `Views` (`.cshtml`) và tài nguyên tĩnh `wwwroot` (CSS, JS, Bootstrap).
 
 ---
@@ -38,7 +38,7 @@ SportsCourtBooking.Web/
 │   ├── Home/                  # Index.cshtml, Schedule.cshtml, Review.cshtml, Login.cshtml, Register.cshtml
 │   └── Shared/                # _Layout.cshtml (Khung giao diện chung), Error.cshtml
 ├── wwwroot/                   # Chứa file tĩnh: css/site.css, js/site.js, thư viện Bootstrap & jQuery
-├── appsettings.json           # Cấu hình chuỗi kết nối SQL Server (DefaultConnection)
+├── appsettings.json           # Cấu hình chuỗi kết nối PostgreSQL (DefaultConnection)
 ├── Program.cs                 # Cấu hình dịch vụ (DbContext, Services) và HTTP Pipeline
 ├── README.md                  # Tài liệu hướng dẫn tầng Web
 └── SportsCourtBooking.Web.csproj

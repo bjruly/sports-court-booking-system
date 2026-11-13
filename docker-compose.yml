@@ -4,22 +4,18 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5101:8080"
+      - "5101:8080"          # mở web ở http://localhost:5101
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=mssql,1433;Database=SportsCourtBookingDb;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+      # Ứng dụng dùng PostgreSQL (EF Core + Npgsql). Tên host "db" là tên service bên dưới.
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     depends_on:
-      - mssql
-
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
-    ports:
-      - "1433:1433"
+      db:
+        condition: service_healthy   # chờ PostgreSQL sẵn sàng mới chạy web
+    restart: on-failure
     volumes:
-      - mssqldata:/var/opt/mssql
+      # Lưu khóa mã hóa cookie đăng nhập, để build lại container không bị đăng xuất / lỗi token
+      - dpkeys:/root/.aspnet/DataProtection-Keys
 
   db:
     image: postgres:16-alpine
@@ -28,10 +24,16 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5432:5432"          # để kết nối bằng công cụ trên máy: localhost:5432
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
+  # pgAdmin: giao diện web quản lý PostgreSQL, mở ở http://localhost:5050
   pgadmin:
     image: dpage/pgadmin4
     environment:
@@ -45,6 +47,6 @@ services:
       - pgadmindata:/var/lib/pgadmin
 
 volumes:
+  dpkeys:
   pgdata:
   pgadmindata:
-  mssqldata:

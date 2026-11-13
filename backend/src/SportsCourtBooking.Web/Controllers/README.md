@@ -11,7 +11,7 @@ Thư mục **`Controllers/`** chứa các lớp điều hướng (MVC Controller
 Các Controller tại đây chịu trách nhiệm:
 
 * Tiếp nhận yêu cầu (HTTP `GET` / `POST`) từ trình duyệt của người dùng.
-* Gọi các dịch vụ nghiệp vụ (`ICourtService`, `IBookingService`, `IAuthService`) từ tầng `Application` để lấy hoặc lưu dữ liệu xuống SQL Server.
+* Gọi các dịch vụ nghiệp vụ (`ICourtService`, `IBookingService`, `IAuthService`) từ tầng `Application` để lấy hoặc lưu dữ liệu xuống PostgreSQL.
 * Chuyển đổi dữ liệu từ `DTOs` sang `ViewModels` và trả về các trang giao diện Razor Views (`.cshtml`) tương ứng.
 
 ---
