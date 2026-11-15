@@ -25,9 +25,10 @@ Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`,
 
 ## Trạng thái triển khai
 
-- Đã kết nối PostgreSQL: danh sách sân, lịch khung giờ, đăng ký, đăng nhập (cookie, mật khẩu băm PBKDF2) và tạo đơn đặt sân (trạng thái `Pending`) đều lưu/đọc từ database.
+- Đã kết nối PostgreSQL: danh sách sân, lịch khung giờ, đăng ký, đăng nhập (cookie, mật khẩu băm PBKDF2) và tạo đơn đặt sân đều lưu/đọc từ database.
 - Quy tắc đặt sân nằm tập trung ở `Application/Rules/BookingRules.cs`: giờ mở cửa 06:00–22:00, tối đa 4 giờ liên tiếp, phụ thu 50.000₫/giờ từ 17:00, không đặt giờ đã qua (tính theo giờ Việt Nam), chống đặt trùng khi nhiều người bấm cùng lúc.
-- Chưa làm: thanh toán, đánh giá, hủy/hoàn tiền, cơ chế hết hạn giữ chỗ `Pending`, trang quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
+- Booking `Pending` giữ khung giờ tối đa 10 phút; tác vụ nền quét mỗi 15 giây và chuyển đơn quá hạn sang `Expired`. Các lần kiểm tra lịch cũng hết hạn đơn cũ trước khi xác định tình trạng khung giờ. PostgreSQL dùng ràng buộc `EXCLUDE` với khoảng thời gian nửa mở `[bắt đầu, kết thúc)` để chặn booking `Pending`/`Confirmed` bị trùng trên cùng sân. Khởi động ứng dụng cài `btree_gist` và áp dụng schema theo cách idempotent.
+- Chưa làm: thanh toán, đánh giá, hủy/hoàn tiền, trang quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
 
 ## Tính năng mục tiêu
 
@@ -46,7 +47,7 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 - Luồng MVP: đăng nhập → xem danh sách sân → xem lịch trống và giá → chọn giờ → tạo booking `PENDING`.
 - Mỗi khung giờ dài 1 giờ; một booking gồm tối đa 4 khung liên tiếp trên cùng một sân trong cùng ngày.
 - Booking `PENDING` chưa phải là booking đã xác nhận hoặc đã thanh toán. Thanh toán thật, voucher, hủy/hoàn tiền và các tích hợp ngoài hệ thống nằm ngoài MVP.
-- Thời hạn giữ `PENDING`, cơ chế hết hạn/nhả giờ và ràng buộc chống đặt trùng cần được rà soát về mặt nghiệp vụ, dữ liệu và kiểm thử trước khi triển khai.
+- Quy tắc hết hạn 10 phút và ràng buộc chống trùng đã được áp dụng trong code; cần chạy kiểm thử và xác minh trên PostgreSQL trước khi triển khai.
 
 | Bước                                  | Trình tự công việc                                                                                                                                                                                         | Điều kiện hoàn tất để chuyển bước                                                                                                                  |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |

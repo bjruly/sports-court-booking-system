@@ -432,5 +432,45 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .status-badge--confirmed { color: #3d5a24; background: #e8f3d4; }
 .status-badge--cancelled { color: #87372f; background: #fde9e6; }
 .status-badge--completed { color: #35504d; background: #e6ecea; }
+.status-badge--expired { color: #87372f; background: #f3e8e7; }
 
 .my-bookings-actions { display: flex; gap: 12px; margin-top: 20px; }
+
+@media (max-width: 640px) {
+  .booking-history-table-wrap { overflow: visible; border: 0; background: transparent; }
+  .booking-history-table { display: block; }
+  .booking-history-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+  .booking-history-table tbody { display: grid; gap: 10px; }
+  .booking-history-table tr {
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+  }
+  .booking-history-table td {
+    display: grid;
+    grid-template-columns: minmax(78px, .7fr) minmax(0, 1.3fr);
+    gap: 10px;
+    padding: 11px 13px;
+    border-bottom: 1px solid #edf0eb;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .booking-history-table td::before {
+    color: var(--muted);
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+}

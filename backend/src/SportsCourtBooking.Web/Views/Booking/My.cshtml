@@ -29,8 +29,8 @@
         }
         else
         {
-            <div class="booking-table-wrap">
-                <table class="booking-table">
+            <div class="booking-table-wrap booking-history-table-wrap">
+                <table class="booking-table booking-history-table">
                     <thead>
                         <tr>
                             <th>Ngày</th>
@@ -44,11 +44,11 @@
                         @foreach (var booking in Model)
                         {
                             <tr>
-                                <td>@booking.BookingDate.ToString("dd/MM/yyyy")</td>
-                                <td>@booking.CourtName</td>
-                                <td>@booking.StartTime.ToString("HH:mm") – @booking.EndTime.ToString("HH:mm")</td>
-                                <td>@booking.TotalPrice.ToString("N0", culture)₫</td>
-                                <td><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
+                                <td data-label="Ngày">@booking.BookingDate.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Sân">@booking.CourtName</td>
+                                <td data-label="Giờ">@booking.StartTime.ToString("HH:mm") – @booking.EndTime.ToString("HH:mm")</td>
+                                <td data-label="Tổng tiền">@booking.TotalPrice.ToString("N0", culture)₫</td>
+                                <td data-label="Trạng thái"><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
                             </tr>
                         }
                     </tbody>
