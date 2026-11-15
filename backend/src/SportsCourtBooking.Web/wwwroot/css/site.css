@@ -433,6 +433,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .status-badge--cancelled { color: #87372f; background: #fde9e6; }
 .status-badge--completed { color: #35504d; background: #e6ecea; }
 .status-badge--expired { color: #87372f; background: #f3e8e7; }
+.booking-actions { display: flex; gap: 8px; }
 
 .my-bookings-actions { display: flex; gap: 12px; margin-top: 20px; }
 

@@ -27,12 +27,17 @@ public class BookingService : IBookingService
         _expirationService = expirationService;
     }
 
-    public async Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null)
+    public async Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null, bool includeInactive = false)
     {
         await _expirationService.ExpireOverdueAsync();
 
-        var query = _context.Bookings
-            .Where(b => b.BookingDate == date && b.Status != BookingStatus.Cancelled);
+        var query = _context.Bookings.Where(b => b.BookingDate == date);
+
+        if (!includeInactive)
+        {
+            // Đơn đã hủy hoặc hết hạn không còn giữ khung giờ nên không được hiện là "đã đặt".
+            query = query.Where(b => b.Status != BookingStatus.Cancelled && b.Status != BookingStatus.Expired);
+        }
 
         if (courtId.HasValue)
         {
@@ -181,4 +186,78 @@ public class BookingService : IBookingService
             return (false, "Hệ thống đang bận hoặc gặp lỗi khi lưu đơn đặt sân. Vui lòng thử lại.", null);
         }
     }
+
+    public async Task<(bool Success, string Message)> ConfirmBookingAsync(int bookingId, int actorUserId)
+    {
+        await _expirationService.ExpireOverdueAsync();
+
+        var now = DateTime.UtcNow;
+
+        // Một câu UPDATE có điều kiện: chỉ đổi khi đơn vẫn Pending và còn hạn, nên không tranh chấp với tác vụ hết hạn.
+        var updated = await _context.Bookings
+            .Where(b => b.Id == bookingId
+                && b.Status == BookingStatus.Pending
+                && (b.ExpiresAt == null || b.ExpiresAt > now))
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(b => b.Status, BookingStatus.Confirmed)
+                .SetProperty(b => b.ExpiresAt, (DateTime?)null)
+                .SetProperty(b => b.UpdatedAt, now));
+
+        if (updated == 0)
+        {
+            var current = await GetStatusAsync(bookingId);
+            _logger.LogWarning(
+                "Người dùng {ActorUserId} xác nhận đơn {BookingId} thất bại, trạng thái hiện tại: {Status}",
+                actorUserId, bookingId, current);
+
+            return (false, current switch
+            {
+                null => "Không tìm thấy đơn đặt sân.",
+                BookingStatus.Expired => "Đơn đã hết hạn giữ chỗ nên không thể xác nhận.",
+                BookingStatus.Confirmed => "Đơn này đã được xác nhận trước đó.",
+                _ => "Chỉ đơn đang chờ xác nhận mới có thể xác nhận."
+            });
+        }
+
+        _logger.LogInformation("Người dùng {ActorUserId} đã xác nhận đơn {BookingId}", actorUserId, bookingId);
+        return (true, "Đã xác nhận đơn đặt sân.");
+    }
+
+    public async Task<(bool Success, string Message)> CancelBookingAsync(int bookingId, int actorUserId)
+    {
+        await _expirationService.ExpireOverdueAsync();
+
+        var now = DateTime.UtcNow;
+
+        var updated = await _context.Bookings
+            .Where(b => b.Id == bookingId
+                && (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed))
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(b => b.Status, BookingStatus.Cancelled)
+                .SetProperty(b => b.UpdatedAt, now));
+
+        if (updated == 0)
+        {
+            var current = await GetStatusAsync(bookingId);
+            _logger.LogWarning(
+                "Người dùng {ActorUserId} hủy đơn {BookingId} thất bại, trạng thái hiện tại: {Status}",
+                actorUserId, bookingId, current);
+
+            return (false, current switch
+            {
+                null => "Không tìm thấy đơn đặt sân.",
+                BookingStatus.Cancelled => "Đơn này đã được hủy trước đó.",
+                _ => "Đơn ở trạng thái hiện tại không thể hủy."
+            });
+        }
+
+        _logger.LogInformation("Người dùng {ActorUserId} đã hủy đơn {BookingId}, khung giờ được nhả", actorUserId, bookingId);
+        return (true, "Đã hủy đơn đặt sân, khung giờ được mở lại.");
+    }
+
+    private Task<BookingStatus?> GetStatusAsync(int bookingId)
+        => _context.Bookings
+            .Where(b => b.Id == bookingId)
+            .Select(b => (BookingStatus?)b.Status)
+            .FirstOrDefaultAsync();
 }

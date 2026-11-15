@@ -1,4 +1,5 @@
 using SportsCourtBooking.Application.Rules;
+using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Tests;
 
@@ -141,5 +142,29 @@ public class BookingRulesTests
     {
         Assert.True(BookingRules.IsSlotInPast(new DateOnly(2026, 11, 11), 21, Now));
         Assert.False(BookingRules.IsSlotInPast(Tomorrow, 6, Now));
+    }
+
+    // ---------- Chuyển trạng thái đơn (Admin/Staff) ----------
+
+    [Theory]
+    [InlineData(BookingStatus.Pending, true)]
+    [InlineData(BookingStatus.Confirmed, false)]
+    [InlineData(BookingStatus.Cancelled, false)]
+    [InlineData(BookingStatus.Completed, false)]
+    [InlineData(BookingStatus.Expired, false)]
+    public void CanConfirm_OnlyPendingBookings(BookingStatus status, bool expected)
+    {
+        Assert.Equal(expected, BookingRules.CanConfirm(status));
+    }
+
+    [Theory]
+    [InlineData(BookingStatus.Pending, true)]
+    [InlineData(BookingStatus.Confirmed, true)]
+    [InlineData(BookingStatus.Cancelled, false)]
+    [InlineData(BookingStatus.Completed, false)]
+    [InlineData(BookingStatus.Expired, false)]
+    public void CanCancel_OnlyPendingOrConfirmedBookings(BookingStatus status, bool expected)
+    {
+        Assert.Equal(expected, BookingRules.CanCancel(status));
     }
 }

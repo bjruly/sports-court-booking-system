@@ -26,7 +26,7 @@ public class BookingController : Controller
     {
         var selectedDate = date ?? VietnamClock.Today;
         var courts = await _courtService.GetAllCourtsAsync(courtTypeId);
-        var bookings = await _bookingService.GetBookingsByDateAsync(selectedDate, courtId);
+        var bookings = await _bookingService.GetBookingsByDateAsync(selectedDate, courtId, includeInactive: true);
 
         var viewModel = new BookingPageViewModel
         {
@@ -38,6 +38,40 @@ public class BookingController : Controller
         };
 
         return View(viewModel);
+    }
+
+    // Admin/Staff xác nhận đơn đang chờ. Id người thực hiện lấy từ cookie đăng nhập để ghi log.
+    [Authorize(Roles = "Admin,Staff")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Confirm(int id, DateOnly? date, int? courtId)
+    {
+        var actorId = User.GetUserId();
+        if (actorId is null)
+        {
+            return Challenge();
+        }
+
+        var result = await _bookingService.ConfirmBookingAsync(id, actorId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Index), new { date = date?.ToString("yyyy-MM-dd"), courtId });
+    }
+
+    // Admin/Staff hủy đơn Pending hoặc Confirmed; khung giờ được nhả cho khách khác.
+    [Authorize(Roles = "Admin,Staff")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Cancel(int id, DateOnly? date, int? courtId)
+    {
+        var actorId = User.GetUserId();
+        if (actorId is null)
+        {
+            return Challenge();
+        }
+
+        var result = await _bookingService.CancelBookingAsync(id, actorId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Index), new { date = date?.ToString("yyyy-MM-dd"), courtId });
     }
 
     // Lịch đặt của chính người dùng đang đăng nhập

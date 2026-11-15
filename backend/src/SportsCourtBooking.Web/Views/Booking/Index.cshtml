@@ -1,4 +1,5 @@
 @using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Application.Rules
 @model BookingPageViewModel
 @using System.Globalization
 
@@ -48,6 +49,7 @@
                             <th>Giờ</th>
                             <th>Tổng tiền</th>
                             <th>Trạng thái</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -59,6 +61,25 @@
                                 <td>@booking.StartTime.ToString("HH:mm") – @booking.EndTime.ToString("HH:mm")</td>
                                 <td>@booking.TotalPrice.ToString("N0", culture)₫</td>
                                 <td><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
+                                <td>
+                                    <div class="booking-actions">
+                                        @if (BookingRules.CanConfirm(booking.Status))
+                                        {
+                                            <form class="inline-form" method="post" asp-controller="Booking" asp-action="Confirm"
+                                                  asp-route-id="@booking.Id" asp-route-date="@Model.SelectedDate.ToString("yyyy-MM-dd")" asp-route-courtId="@Model.SelectedCourtId">
+                                                <button class="button button--small button--dark" type="submit">Xác nhận</button>
+                                            </form>
+                                        }
+                                        @if (BookingRules.CanCancel(booking.Status))
+                                        {
+                                            <form class="inline-form" method="post" asp-controller="Booking" asp-action="Cancel"
+                                                  asp-route-id="@booking.Id" asp-route-date="@Model.SelectedDate.ToString("yyyy-MM-dd")" asp-route-courtId="@Model.SelectedCourtId"
+                                                  onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn này?');">
+                                                <button class="button button--small button--outline" type="submit">Hủy đơn</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
                             </tr>
                         }
                     </tbody>
