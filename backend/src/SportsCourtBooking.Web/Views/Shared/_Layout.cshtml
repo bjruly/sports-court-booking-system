@@ -17,6 +17,10 @@
             </a>
             <nav class="main-nav" aria-label="Điều hướng chính">
                 <a asp-controller="Home" asp-action="Index">Tìm sân</a>
+                @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                {
+                    <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
+                }
                 <a asp-controller="Booking" asp-action="My">Lịch đặt của tôi</a>
                 @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
                 {
