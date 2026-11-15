@@ -43,7 +43,14 @@
             </div>
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <a class="mobile-account" asp-controller="Booking" asp-action="My" aria-label="Lịch đặt của tôi">Lịch đặt của tôi <span aria-hidden="true">↗</span></a>
+                if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                {
+                    <a class="mobile-account" asp-controller="Booking" asp-action="Index" aria-label="Quản lý lịch đặt">Quản lý lịch đặt <span aria-hidden="true">↗</span></a>
+                }
+                else
+                {
+                    <a class="mobile-account" asp-controller="Booking" asp-action="My" aria-label="Lịch đặt của tôi">Lịch đặt của tôi <span aria-hidden="true">↗</span></a>
+                }
             }
             else
             {
