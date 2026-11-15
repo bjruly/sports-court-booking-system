@@ -1,3 +1,5 @@
+using SportsCourtBooking.Domain.Enums;
+
 namespace SportsCourtBooking.Application.Rules;
 
 /// <summary>
@@ -21,6 +23,13 @@ public static class BookingRules
     public const decimal PeakSurcharge = 50_000m;
 
     public const int MaxNoteLength = 500;
+
+    /// <summary>Chỉ đơn đang chờ xác nhận (Pending) mới được xác nhận.</summary>
+    public static bool CanConfirm(BookingStatus status) => status == BookingStatus.Pending;
+
+    /// <summary>Đơn Pending hoặc Confirmed mới được hủy; đơn đã hủy, hết hạn, hoàn thành thì không.</summary>
+    public static bool CanCancel(BookingStatus status)
+        => status == BookingStatus.Pending || status == BookingStatus.Confirmed;
 
     /// <summary>Giá 1 khung giờ = giá cơ bản của sân + phụ thu (nếu là giờ cao điểm).</summary>
     public static decimal GetSlotPrice(decimal basePricePerHour, int startHour)

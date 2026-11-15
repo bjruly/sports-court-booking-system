@@ -28,7 +28,8 @@ Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`,
 - Đã kết nối PostgreSQL: danh sách sân, lịch khung giờ, đăng ký, đăng nhập (cookie, mật khẩu băm PBKDF2) và tạo đơn đặt sân đều lưu/đọc từ database.
 - Quy tắc đặt sân nằm tập trung ở `Application/Rules/BookingRules.cs`: giờ mở cửa 06:00–22:00, tối đa 4 giờ liên tiếp, phụ thu 50.000₫/giờ từ 17:00, không đặt giờ đã qua (tính theo giờ Việt Nam), chống đặt trùng khi nhiều người bấm cùng lúc.
 - Booking `Pending` giữ khung giờ tối đa 10 phút; tác vụ nền quét mỗi 15 giây và chuyển đơn quá hạn sang `Expired`. Các lần kiểm tra lịch cũng hết hạn đơn cũ trước khi xác định tình trạng khung giờ. PostgreSQL dùng ràng buộc `EXCLUDE` với khoảng thời gian nửa mở `[bắt đầu, kết thúc)` để chặn booking `Pending`/`Confirmed` bị trùng trên cùng sân. Khởi động ứng dụng cài `btree_gist` và áp dụng schema theo cách idempotent.
-- Chưa làm: thanh toán, đánh giá, hủy/hoàn tiền, trang quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
+- Đã có: Admin/Staff xem, xác nhận và hủy đơn tại trang "Quản lý lịch đặt" (hủy thì nhả khung giờ ngay); lưới lịch của khách không còn hiện đơn đã hủy hoặc hết hạn là "đã đặt".
+- Chưa làm: thanh toán, đánh giá, hoàn tiền và hủy đơn do khách tự thực hiện, trang quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
 
 ## Tính năng mục tiêu
 
