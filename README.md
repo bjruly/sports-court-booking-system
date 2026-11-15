@@ -12,6 +12,8 @@
 
 ## Kiến trúc và công nghệ
 
+> 📄 **Xem tài liệu chi tiết:** [Báo cáo Công nghệ Sử dụng (TechStack.md)](./TechStack.md) để xem phân tích chi tiết về kiến trúc, giải pháp chống đặt trùng, bảo mật và danh mục NuGet packages.
+
 Đây là dự án C# sử dụng **ASP.NET Core MVC + Razor** cho ứng dụng web, tổ chức theo kiến trúc **modular monolith** và các lớp nghiệp vụ. Báo cáo trong `docs/` có khảo sát Next.js/React như một lựa chọn frontend; bộ khung triển khai hiện tại chọn MVC để ứng dụng tập trung vào nền tảng .NET/C#.
 
 - **Ứng dụng web:** ASP.NET Core MVC, Razor và C#.
