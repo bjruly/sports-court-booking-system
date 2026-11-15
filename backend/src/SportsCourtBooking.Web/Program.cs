@@ -4,6 +4,7 @@ using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Infrastructure.Data;
 using SportsCourtBooking.Infrastructure.Security;
 using SportsCourtBooking.Infrastructure.Services;
+using SportsCourtBooking.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<PendingBookingExpirationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddHostedService<PendingBookingExpirationWorker>();
 
 // Đăng nhập bằng cookie xác thực (được mã hóa/ký bởi ASP.NET Core, người dùng không tự sửa được)
 builder.Services
@@ -54,6 +57,8 @@ using (var scope = app.Services.CreateScope())
                 db.Database.Migrate();
             else
                 db.Database.EnsureCreated();
+
+            await db.EnsureBookingSchemaAsync();
 
             // Dữ liệu mẫu có Id cố định nên cần đồng bộ lại bộ đếm Id, nếu không bản ghi mới sẽ bị trùng Id.
             db.SyncIdentitySequences();

@@ -7,6 +7,7 @@ using SportsCourtBooking.Application.Rules;
 using SportsCourtBooking.Domain.Entities;
 using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
+using Npgsql;
 
 namespace SportsCourtBooking.Infrastructure.Services;
 
@@ -14,15 +15,22 @@ public class BookingService : IBookingService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<BookingService> _logger;
+    private readonly PendingBookingExpirationService _expirationService;
 
-    public BookingService(AppDbContext context, ILogger<BookingService> logger)
+    public BookingService(
+        AppDbContext context,
+        ILogger<BookingService> logger,
+        PendingBookingExpirationService expirationService)
     {
         _context = context;
         _logger = logger;
+        _expirationService = expirationService;
     }
 
     public async Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null)
     {
+        await _expirationService.ExpireOverdueAsync();
+
         var query = _context.Bookings
             .Where(b => b.BookingDate == date && b.Status != BookingStatus.Cancelled);
 
@@ -48,6 +56,8 @@ public class BookingService : IBookingService
 
     public async Task<List<BookingDto>> GetBookingsByUserAsync(int userId)
     {
+        await _expirationService.ExpireOverdueAsync();
+
         return await _context.Bookings
             .Where(b => b.UserId == userId)
             .OrderByDescending(b => b.BookingDate)
@@ -69,11 +79,13 @@ public class BookingService : IBookingService
 
     public async Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
     {
+        await _expirationService.ExpireOverdueAsync();
+
         // Hai khoảng thời gian [StartA, EndA] và [StartB, EndB] giao nhau khi: StartA < EndB VÀ EndA > StartB
         bool isOverlapping = await _context.Bookings.AnyAsync(b =>
             b.CourtId == courtId &&
             b.BookingDate == date &&
-            b.Status != BookingStatus.Cancelled &&
+            (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed) &&
             startTime < b.EndTime &&
             endTime > b.StartTime);
 
@@ -121,6 +133,7 @@ public class BookingService : IBookingService
                 return (false, "Khung giờ này đã có người đặt. Vui lòng chọn khung giờ khác!", null);
 
             // 3. Giá = tổng giá từng khung giờ (đã gồm phụ thu giờ cao điểm), cùng công thức với giao diện
+            var createdAt = DateTime.UtcNow;
             var booking = new Booking
             {
                 UserId = request.UserId,
@@ -130,7 +143,9 @@ public class BookingService : IBookingService
                 EndTime = request.EndTime,
                 TotalPrice = BookingRules.CalculateTotalPrice(court.PricePerHour, request.StartTime, request.EndTime),
                 Note = note,
-                Status = BookingStatus.Pending // MVP: đơn mới ở trạng thái chờ xác nhận
+                Status = BookingStatus.Pending,
+                CreatedAt = createdAt,
+                ExpiresAt = createdAt.AddMinutes(Booking.PendingExpirationMinutes)
             };
 
             _context.Bookings.Add(booking);
@@ -149,6 +164,16 @@ public class BookingService : IBookingService
                 TotalPrice = booking.TotalPrice,
                 Status = booking.Status
             });
+        }
+        catch (DbUpdateException ex) when (
+            ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.ExclusionViolation })
+        {
+            _logger.LogInformation(
+                ex,
+                "Booking bị từ chối do trùng khung giờ ở sân {CourtId} ngày {Date}",
+                request.CourtId,
+                request.BookingDate);
+            return (false, "Khung giờ này đã có người đặt. Vui lòng chọn khung giờ khác!", null);
         }
         catch (Exception ex)
         {

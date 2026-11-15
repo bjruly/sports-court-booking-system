@@ -4,6 +4,8 @@ namespace SportsCourtBooking.Domain.Entities;
 
 public class Booking : BaseEntity
 {
+    public const int PendingExpirationMinutes = 10;
+
     public int UserId { get; set; }
     public int CourtId { get; set; }
     
@@ -14,6 +16,7 @@ public class Booking : BaseEntity
     public decimal TotalPrice { get; set; }
     public string? Note { get; set; }
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
+    public DateTime? ExpiresAt { get; set; }
 
     // Navigation properties
     public User? User { get; set; }

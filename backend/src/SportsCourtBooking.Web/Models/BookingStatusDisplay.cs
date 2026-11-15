@@ -11,6 +11,7 @@ public static class BookingStatusDisplay
         BookingStatus.Confirmed => "Đã xác nhận",
         BookingStatus.Cancelled => "Đã hủy",
         BookingStatus.Completed => "Hoàn thành",
+        BookingStatus.Expired => "Hết hạn",
         _ => status.ToString()
     };
 
@@ -20,6 +21,7 @@ public static class BookingStatusDisplay
         BookingStatus.Confirmed => "status-badge--confirmed",
         BookingStatus.Cancelled => "status-badge--cancelled",
         BookingStatus.Completed => "status-badge--completed",
+        BookingStatus.Expired => "status-badge--expired",
         _ => string.Empty
     };
 }
