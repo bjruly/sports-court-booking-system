@@ -9,27 +9,34 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
+    @{
+        var isAccountPage = ViewContext.RouteData.Values["controller"]?.ToString() == "Home"
+            && ViewContext.RouteData.Values["action"]?.ToString() is "Login" or "Register";
+    }
     <header class="site-header">
         <div class="shell header-inner">
             <a class="brand" asp-controller="Home" asp-action="Index" aria-label="Sân Nhà - Trang chủ">
                 <span class="brand-mark" aria-hidden="true">S</span>
                 <span>SÂN NHÀ<span class="brand-period">.</span></span>
             </a>
-            <nav class="main-nav" aria-label="Điều hướng chính">
-                @if (User.IsInRole("Admin") || User.IsInRole("CourtOwner"))
-                {
-                    <a asp-controller="Home" asp-action="Index">Về trang chính</a>
-                }
-                else
-                {
-                    <a asp-controller="Home" asp-action="Index">Tìm sân</a>
-                    @if (User.IsInRole("Staff"))
+            @if (!isAccountPage)
+            {
+                <nav class="main-nav" aria-label="Điều hướng chính">
+                    @if (User.IsInRole("Admin") || User.IsInRole("CourtOwner"))
                     {
-                        <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
+                        <a asp-controller="Home" asp-action="Index">Về trang chính</a>
                     }
-                    <a asp-controller="Booking" asp-action="My">Lịch đặt của tôi</a>
-                }
-            </nav>
+                    else
+                    {
+                        <a asp-controller="Home" asp-action="Index">Tìm sân</a>
+                        @if (User.IsInRole("Staff"))
+                        {
+                            <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
+                        }
+                        <a asp-controller="Booking" asp-action="My">Lịch đặt của tôi</a>
+                    }
+                </nav>
+            }
             <div class="header-actions">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
