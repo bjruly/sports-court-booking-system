@@ -2,7 +2,7 @@
 
 ## Mục tiêu và phạm vi
 
-Tài liệu này đặc tả giao diện web responsive cho MVP ASP.NET Core MVC/Razor và là tài liệu tham chiếu để nhóm review. Một phần giao diện đã được triển khai thành prototype gồm tìm sân, lịch/chọn giờ, xem lại lựa chọn và màn hình đăng nhập/đăng ký. Prototype vẫn dùng dữ liệu mẫu; đăng nhập, lưu booking và kết nối PostgreSQL chưa được triển khai.
+Tài liệu này đặc tả giao diện mục tiêu cho MVP ASP.NET Core MVC/Razor và là tài liệu tham chiếu để nhóm review. Ứng dụng hiện đã triển khai các màn hình tìm sân, lịch/chọn giờ, xem lại lựa chọn, đăng nhập/đăng ký và lịch đặt, có kết nối PostgreSQL. Wireframe là tài liệu thiết kế; cần đối chiếu với giao diện đang chạy để cập nhật các khác biệt và trạng thái chưa hoàn thiện.
 
 Luồng chính:
 

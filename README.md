@@ -50,7 +50,7 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 - Luồng MVP: đăng nhập → xem danh sách sân → xem lịch trống và giá → chọn giờ → tạo booking `PENDING`.
 - Mỗi khung giờ dài 1 giờ; một booking gồm tối đa 4 khung liên tiếp trên cùng một sân trong cùng ngày.
 - Booking `PENDING` chưa phải là booking đã xác nhận hoặc đã thanh toán. Thanh toán thật, voucher, hủy/hoàn tiền và các tích hợp ngoài hệ thống nằm ngoài MVP.
-- Quy tắc hết hạn 10 phút và ràng buộc chống trùng đã được áp dụng trong code; cần chạy kiểm thử và xác minh trên PostgreSQL trước khi triển khai.
+- Quy tắc hết hạn 10 phút và ràng buộc chống trùng đã được áp dụng trong code. Đã xác minh build solution, 49 unit tests và ràng buộc `EXCLUDE` trên PostgreSQL; vẫn cần kiểm thử tích hợp đầy đủ luồng đặt đồng thời và hết hạn trước khi triển khai.
 
 | Bước                                  | Trình tự công việc                                                                                                                                                                                         | Điều kiện hoàn tất để chuyển bước                                                                                                                  |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |

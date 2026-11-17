@@ -2,6 +2,8 @@
 
 > Đây là tài liệu hỗ trợ buổi làm việc của nhóm, không phải biên bản quyết định đã được thông qua. Chỉ chuyển mục sang “Đã chốt” sau khi cả nhóm thống nhất.
 
+> **Lưu ý trạng thái:** Checklist này được lập trong giai đoạn thiết kế; một số mô tả “đề xuất/chờ triển khai” có thể không còn phản ánh code hiện tại. Xem [README ở thư mục gốc](../README.md) để biết trạng thái triển khai; checklist này dùng để rà soát nghiệp vụ và đồng bộ tài liệu.
+
 ## Mục tiêu
 
 1. Rà soát tính khả thi và nhất quán của phạm vi MVP đã chốt; không mở rộng sang toàn bộ 26 user story.
