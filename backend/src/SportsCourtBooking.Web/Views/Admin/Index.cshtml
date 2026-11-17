@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Tổng quan quản trị";
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> KHU VỰC QUẢN TRỊ</p>
+                    <h1>Tổng quan</h1>
+                    <p class="page-subtitle">Xin chào, @User.Identity?.Name. Quản lý hệ thống đặt sân tại đây.</p>
+                </div>
+            </header>
+
+            <section class="admin-welcome-card">
+                <div class="admin-welcome-copy">
+                    <p class="admin-section-label">TRANG QUẢN TRỊ SÂN NHÀ</p>
+                    <h2>Chào mừng trở lại</h2>
+                    <p>Theo dõi hoạt động và truy cập nhanh các chức năng quản lý.</p>
+                    <a class="button button--small button--dark"
+                       asp-controller="Booking"
+                       asp-action="Index">Theo dõi tất cả đơn đặt</a>
+                </div>
+                <div class="admin-welcome-art">
+                    <div class="hero-art admin-hero-art" role="img" aria-label="Minh họa sân thể thao">
+                        <div class="hero-art-orbit hero-art-orbit--one"></div>
+                        <div class="hero-art-orbit hero-art-orbit--two"></div>
+                        <div class="hero-court">
+                            <div class="hero-court-half"></div>
+                            <div class="hero-court-center"></div>
+                            <div class="hero-court-net"></div>
+                            <span class="hero-court-label">GAME<br />ON</span>
+                        </div>
+                        <div class="floating-note floating-note--top"><span class="floating-note-icon">✳</span><span><strong>Ra sân thôi</strong><small>Trận vui bắt đầu từ đây</small></span></div>
+                        <div class="floating-note floating-note--bottom"><span class="status-pulse"></span><span><strong>Giờ trống hôm nay</strong><small>Chọn sân, xem lịch ngay</small></span><span class="note-arrow">↗</span></div>
+                        <span class="hero-art-spark hero-art-spark--one">✳</span>
+                        <span class="hero-art-spark hero-art-spark--two">✳</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-status-card" aria-labelledby="admin-status-title">
+                <div>
+                    <p class="admin-section-label">CHƯA TRIỂN KHAI</p>
+                    <h2 id="admin-status-title">Thống kê toàn hệ thống</h2>
+                    <p>Các số liệu tổng quan sẽ được bổ sung sau. Hiện tại bạn có thể theo dõi và xử lý đơn đặt sân.</p>
+                </div>
+                <a class="text-link" asp-controller="Booking" asp-action="Index">Mở quản lý lịch đặt <span aria-hidden="true">↗</span></a>
+            </section>
+        </div>
+    </div>
+</section>

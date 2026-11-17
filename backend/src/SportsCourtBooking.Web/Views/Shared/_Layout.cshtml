@@ -16,15 +16,18 @@
                 <span>SÂN NHÀ<span class="brand-period">.</span></span>
             </a>
             <nav class="main-nav" aria-label="Điều hướng chính">
-                <a asp-controller="Home" asp-action="Index">Tìm sân</a>
-                @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                @if (User.IsInRole("Admin"))
                 {
-                    <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
+                    <a asp-controller="Home" asp-action="Index">Về trang chính</a>
                 }
-                <a asp-controller="Booking" asp-action="My">Lịch đặt của tôi</a>
-                @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                else
                 {
-                    <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
+                    <a asp-controller="Home" asp-action="Index">Tìm sân</a>
+                    @if (User.IsInRole("Staff"))
+                    {
+                        <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
+                    }
+                    <a asp-controller="Booking" asp-action="My">Lịch đặt của tôi</a>
                 }
             </nav>
             <div class="header-actions">
@@ -43,7 +46,11 @@
             </div>
             @if (User.Identity?.IsAuthenticated == true)
             {
-                if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                if (User.IsInRole("Admin"))
+                {
+                    <a class="mobile-account" asp-controller="Admin" asp-action="Index" aria-label="Trang quản trị">Trang quản trị <span aria-hidden="true">↗</span></a>
+                }
+                else if (User.IsInRole("Staff"))
                 {
                     <a class="mobile-account" asp-controller="Booking" asp-action="Index" aria-label="Quản lý lịch đặt">Quản lý lịch đặt <span aria-hidden="true">↗</span></a>
                 }
