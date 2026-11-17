@@ -98,6 +98,44 @@ public async Task<IActionResult> Details(int id)
 }
     // Lịch đặt của chính người dùng đang đăng nhập
     [Authorize]
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> CancelMy(int id)
+{
+    var userId = User.GetUserId();
+
+    if (userId is null)
+    {
+        return Challenge();
+    }
+
+    var booking = await _bookingService.GetOwnBookingAsync(
+        id,
+        userId.Value
+    );
+
+    if (booking is null)
+    {
+        return NotFound();
+    }
+
+    var result = await _bookingService.CancelOwnBookingAsync(
+        id,
+        userId.Value
+    );
+
+    if (result.Success)
+    {
+        TempData["SuccessMessage"] = result.Message;
+    }
+    else
+    {
+        TempData["ErrorMessage"] = result.Message;
+    }
+
+    return RedirectToAction(nameof(Details), new { id });
+}
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> My()
     {

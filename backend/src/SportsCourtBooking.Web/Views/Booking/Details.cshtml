@@ -6,6 +6,24 @@
 @{
     ViewData["Title"] = $"Chi tiết đơn #{Model.Id}";
     var culture = CultureInfo.GetCultureInfo("vi-VN");
+
+    var nowUtc = DateTime.UtcNow;
+    var nowVietnam = nowUtc.AddHours(7);
+
+    var canCancel =
+        (
+            Model.Status == BookingStatus.Pending
+            || Model.Status == BookingStatus.Confirmed
+        )
+        && !Model.IsPaid
+        && Model.BookingDate.ToDateTime(Model.StartTime) > nowVietnam
+        && (
+            Model.Status != BookingStatus.Pending
+            || (
+                Model.ExpiresAt.HasValue
+                && Model.ExpiresAt.Value > nowUtc
+            )
+        );
 }
 
 <section class="page-section">
@@ -96,6 +114,30 @@
                 </tbody>
             </table>
         </div>
+        @if (canCancel)
+{
+    <div class="my-bookings-actions">
+        <form asp-controller="Booking"
+              asp-action="CancelMy"
+              asp-route-id="@Model.Id"
+              method="post"
+              onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn này? Khung giờ sẽ được mở lại cho người khác.');">
+
+            @Html.AntiForgeryToken()
+
+            <button class="button button--outline" type="submit">
+                Hủy đơn đặt sân
+            </button>
+        </form>
+    </div>
+}
+else if (Model.IsPaid)
+{
+    <p>
+        Đơn đã thanh toán. Vui lòng liên hệ nhân viên
+        để được hỗ trợ hủy và xử lý tiền.
+    </p>
+}
 
         <div class="my-bookings-actions">
             <div>
