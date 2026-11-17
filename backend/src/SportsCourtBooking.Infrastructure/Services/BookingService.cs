@@ -59,28 +59,58 @@ public class BookingService : IBookingService
         }).ToListAsync();
     }
 
-    public async Task<List<BookingDto>> GetBookingsByUserAsync(int userId)
-    {
-        await _expirationService.ExpireOverdueAsync();
+   public async Task<List<BookingDto>> GetBookingsByUserAsync(
+    int userId,
+    BookingStatus? status = null,
+    DateOnly? fromDate = null,
+    DateOnly? toDate = null)
+{
+    await _expirationService.ExpireOverdueAsync();
 
-        return await _context.Bookings
-            .Where(b => b.UserId == userId)
-            .OrderByDescending(b => b.BookingDate)
-            .ThenBy(b => b.StartTime)
-            .Select(b => new BookingDto
-            {
-                Id = b.Id,
-                UserId = b.UserId,
-                CustomerName = b.User != null ? b.User.FullName : string.Empty,
-                CourtId = b.CourtId,
-                CourtName = b.Court != null ? b.Court.Name : string.Empty,
-                BookingDate = b.BookingDate,
-                StartTime = b.StartTime,
-                EndTime = b.EndTime,
-                TotalPrice = b.TotalPrice,
-                Status = b.Status
-            }).ToListAsync();
+    var query = _context.Bookings
+        .Where(b => b.UserId == userId);
+
+    if (status.HasValue)
+    {
+        query = query.Where(b => b.Status == status.Value);
     }
+
+    if (fromDate.HasValue)
+    {
+        query = query.Where(b => b.BookingDate >= fromDate.Value);
+    }
+
+    if (toDate.HasValue)
+    {
+        query = query.Where(b => b.BookingDate <= toDate.Value);
+    }
+
+    return await query
+        .OrderByDescending(b => b.BookingDate)
+        .ThenBy(b => b.StartTime)
+        .Select(b => new BookingDto
+        {
+            Id = b.Id,
+            UserId = b.UserId,
+
+            CustomerName = b.User != null
+                ? b.User.FullName
+                : string.Empty,
+
+            CourtId = b.CourtId,
+
+            CourtName = b.Court != null
+                ? b.Court.Name
+                : string.Empty,
+
+            BookingDate = b.BookingDate,
+            StartTime = b.StartTime,
+            EndTime = b.EndTime,
+            TotalPrice = b.TotalPrice,
+            Status = b.Status
+        })
+        .ToListAsync();
+}
 
     public async Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
     {

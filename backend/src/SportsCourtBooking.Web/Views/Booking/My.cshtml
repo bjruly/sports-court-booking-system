@@ -1,6 +1,7 @@
 @using System.Globalization
 @using SportsCourtBooking.Application.DTOs
-@model List<BookingDto>
+@using SportsCourtBooking.Domain.Enums
+@model BookingHistoryViewModel
 
 @{
     ViewData["Title"] = "Lịch đặt của tôi";
@@ -18,12 +19,63 @@
             <a class="button button--outline" asp-controller="Home" asp-action="Index">Tìm sân</a>
         </div>
 
-        @if (Model.Count == 0)
+        <form class="booking-filter"
+      asp-controller="Booking"
+      asp-action="My"
+      method="get">
+
+    <label>
+        Trạng thái
+
+        <select name="status">
+            <option value="">Tất cả trạng thái</option>
+
+            @foreach (var status in Enum.GetValues<BookingStatus>())
+            {
+                <option value="@((int)status)"
+                        selected="@(Model.Status == status)">
+                    @BookingStatusDisplay.Label(status)
+                </option>
+            }
+        </select>
+    </label>
+
+    <label>
+        Từ ngày chơi
+
+        <input type="date"
+               name="fromDate"
+               value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+    </label>
+
+    <label>
+        Đến ngày chơi
+
+        <input type="date"
+               name="toDate"
+               value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+    </label>
+
+    <button class="button button--small button--dark"
+            type="submit">
+        Lọc
+    </button>
+
+    <a class="text-link"
+       asp-controller="Booking"
+       asp-action="My">
+        Xóa bộ lọc
+    </a>
+</form>
+
+<p>Tìm thấy @Model.Bookings.Count đơn đặt sân.</p>
+
+        @if (Model.Bookings.Count == 0)
         {
             <div class="empty-state" role="status">
                 <span class="empty-state-icon" aria-hidden="true">▦</span>
-                <h3>Bạn chưa có đơn đặt sân nào</h3>
-                <p>Chọn một sân và khung giờ phù hợp để bắt đầu.</p>
+                <h3>Không có đơn đặt sân phù hợp</h3>
+                <p>Thử xóa bộ lọc hoặc chọn sân để tạo lịch đặt mới.</p>
                 <a class="text-link" asp-controller="Home" asp-action="Index">Tìm sân ngay <span aria-hidden="true">↗</span></a>
             </div>
         }
@@ -42,7 +94,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var booking in Model)
+                        @foreach (var booking in Model.Bookings)
                         {
                             <tr>
                                 <td data-label="Ngày">@booking.BookingDate.ToString("dd/MM/yyyy")</td>

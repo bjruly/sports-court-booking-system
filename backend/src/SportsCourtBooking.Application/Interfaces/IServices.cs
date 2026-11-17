@@ -1,4 +1,5 @@
 using SportsCourtBooking.Application.DTOs;
+using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Application.Interfaces;
 
@@ -14,7 +15,11 @@ public interface IBookingService
     /// <param name="includeInactive">false: chỉ lấy đơn đang giữ giờ (Pending/Confirmed/Completed), dùng cho lưới lịch của khách.
     /// true: lấy cả đơn đã hủy/hết hạn, dùng cho trang quản trị.</param>
     Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null, bool includeInactive = false);
-    Task<List<BookingDto>> GetBookingsByUserAsync(int userId);
+    Task<List<BookingDto>> GetBookingsByUserAsync(
+    int userId,
+    BookingStatus? status = null,
+    DateOnly? fromDate = null,
+    DateOnly? toDate = null);
     Task<BookingDetailDto?> GetOwnBookingAsync(int bookingId, int userId);
     Task<(bool Success, string Message)> CancelOwnBookingAsync(
     int bookingId,
