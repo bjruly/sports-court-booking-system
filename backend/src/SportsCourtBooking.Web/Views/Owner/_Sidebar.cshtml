@@ -2,6 +2,7 @@
 @using SportsCourtBooking.Domain.Enums
 @{
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isFacilityManagement = currentAction is "Facilities" or "CreateFacility" or "EditFacility";
     var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
     var isCourtList = currentAction is "Courts" or "EditCourt";
     var isPricingManagement = currentAction is "Pricing" or "EditCourt";
@@ -39,12 +40,15 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isFacilityManagement ? "open" : null)">
             <summary>Quản lý cơ sở</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Danh sách cơ sở</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Thêm cơ sở</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Sửa cơ sở</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isFacilityManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Facilities"
+                   aria-current="@(currentAction == "Facilities" ? "page" : null)">Danh sách cơ sở</a>
+                <a class="admin-menu-item @(currentAction == "CreateFacility" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CreateFacility"
+                   aria-current="@(currentAction == "CreateFacility" ? "page" : null)">Thêm cơ sở</a>
             </div>
         </details>
 

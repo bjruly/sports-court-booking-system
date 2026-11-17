@@ -33,6 +33,8 @@ public class CourtService : ICourtService
         {
             Id = c.Id,
             Name = c.Name,
+            FacilityId = c.FacilityId,
+            FacilityName = c.Facility != null ? c.Facility.Name : null,
             CourtTypeId = c.CourtTypeId,
             CourtTypeName = c.CourtType != null ? c.CourtType.Name : string.Empty,
             Location = c.Location,
@@ -54,6 +56,8 @@ public class CourtService : ICourtService
         {
             Id = c.Id,
             Name = c.Name,
+            FacilityId = c.FacilityId,
+            FacilityName = c.Facility?.Name,
             CourtTypeId = c.CourtTypeId,
             CourtTypeName = c.CourtType?.Name ?? string.Empty,
             Location = c.Location,

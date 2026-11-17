@@ -27,6 +27,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IOwnerDashboardService, OwnerDashboardService>();
 builder.Services.AddScoped<IOwnerCourtService, OwnerCourtService>();
+builder.Services.AddScoped<IOwnerFacilityService, OwnerFacilityService>();
 builder.Services.AddScoped<IVoucherService, OwnerVoucherService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOwnerRevenueReportService, OwnerRevenueReportService>();
@@ -82,6 +83,7 @@ using (var scope = app.Services.CreateScope())
             }
 
             await db.EnsureCourtOwnerSchemaAsync();
+            await db.EnsureOwnerFacilitySchemaAsync();
             await db.EnsureCourtPricingSchemaAsync();
             await db.EnsureVoucherSchemaAsync();
             await db.EnsureBookingSchemaAsync();

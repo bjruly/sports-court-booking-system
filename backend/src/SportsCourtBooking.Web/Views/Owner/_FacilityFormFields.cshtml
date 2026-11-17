@@ -1,0 +1,21 @@
+@using SportsCourtBooking.Web.Models
+@model OwnerFacilityFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="owner-form-summary" role="alert"></div>
+<div class="owner-form-grid">
+    <div class="owner-form-field">
+        <label asp-for="Name">Tên cơ sở <span aria-hidden="true">*</span></label>
+        <input asp-for="Name" class="filter-input" maxlength="150" autocomplete="organization" />
+        <span asp-validation-for="Name" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="Address">Địa chỉ <span aria-hidden="true">*</span></label>
+        <input asp-for="Address" class="filter-input" maxlength="255" autocomplete="street-address" />
+        <span asp-validation-for="Address" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field owner-form-field--full">
+        <label asp-for="Description">Mô tả</label>
+        <textarea asp-for="Description" class="filter-input" rows="4" maxlength="1000"></textarea>
+        <span asp-validation-for="Description" class="field-validation-error"></span>
+    </div>
+</div>

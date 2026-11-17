@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<User> Users => Set<User>();
+    public DbSet<Facility> Facilities => Set<Facility>();
     public DbSet<CourtType> CourtTypes => Set<CourtType>();
     public DbSet<Court> Courts => Set<Court>();
     public DbSet<Booking> Bookings => Set<Booking>();
@@ -39,6 +40,20 @@ public class AppDbContext : DbContext
             entity.Property(ct => ct.Name).IsRequired().HasMaxLength(100);
         });
 
+        modelBuilder.Entity<Facility>(entity =>
+        {
+            entity.HasKey(facility => facility.Id);
+            entity.Property(facility => facility.Name).IsRequired().HasMaxLength(150);
+            entity.Property(facility => facility.Address).IsRequired().HasMaxLength(255);
+            entity.Property(facility => facility.Description).HasMaxLength(1000);
+            entity.HasIndex(facility => facility.OwnerId);
+
+            entity.HasOne(facility => facility.Owner)
+                .WithMany(owner => owner.OwnedFacilities)
+                .HasForeignKey(facility => facility.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         // 3. Cấu hình bảng Court
         modelBuilder.Entity<Court>(entity =>
         {
@@ -57,6 +72,11 @@ public class AppDbContext : DbContext
                   .WithMany(u => u.OwnedCourts)
                   .HasForeignKey(c => c.OwnerId)
                   .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(court => court.Facility)
+                .WithMany(facility => facility.Courts)
+                .HasForeignKey(court => court.FacilityId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(c => c.CourtType)
                   .WithMany(ct => ct.Courts)

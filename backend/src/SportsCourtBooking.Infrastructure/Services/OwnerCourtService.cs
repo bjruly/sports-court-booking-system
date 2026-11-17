@@ -27,6 +27,8 @@ public class OwnerCourtService : IOwnerCourtService
             {
                 Id = court.Id,
                 Name = court.Name,
+                FacilityId = court.FacilityId,
+                FacilityName = court.Facility == null ? null : court.Facility.Name,
                 CourtTypeId = court.CourtTypeId,
                 CourtTypeName = court.CourtType!.Name,
                 Location = court.Location,
@@ -62,6 +64,8 @@ public class OwnerCourtService : IOwnerCourtService
             {
                 Id = court.Id,
                 Name = court.Name,
+                FacilityId = court.FacilityId,
+                FacilityName = court.Facility == null ? null : court.Facility.Name,
                 CourtTypeId = court.CourtTypeId,
                 CourtTypeName = court.CourtType!.Name,
                 Location = court.Location,
@@ -77,7 +81,7 @@ public class OwnerCourtService : IOwnerCourtService
 
     public async Task<(bool Success, string Message)> CreateOwnerCourtAsync(int ownerId, OwnerCourtRequest request)
     {
-        if (!await IsValidRequestAsync(request) || request.PricePerHour is not decimal pricePerHour)
+        if (!await IsValidRequestAsync(ownerId, request) || request.PricePerHour is not decimal pricePerHour)
         {
             return (false, "Thông tin sân hoặc môn thể thao không hợp lệ.");
         }
@@ -85,6 +89,7 @@ public class OwnerCourtService : IOwnerCourtService
         _context.Courts.Add(new Court
         {
             OwnerId = ownerId,
+            FacilityId = request.FacilityId!.Value,
             Name = request.Name.Trim(),
             CourtTypeId = request.CourtTypeId,
             Location = request.Location.Trim(),
@@ -109,7 +114,7 @@ public class OwnerCourtService : IOwnerCourtService
             return (false, "Không tìm thấy sân thuộc tài khoản của bạn.");
         }
 
-        if (!await IsValidRequestAsync(request) || request.PricePerHour is not decimal pricePerHour)
+        if (!await IsValidRequestAsync(ownerId, request) || request.PricePerHour is not decimal pricePerHour)
         {
             return (false, "Thông tin sân hoặc môn thể thao không hợp lệ.");
         }
@@ -140,19 +145,25 @@ public class OwnerCourtService : IOwnerCourtService
         return (true, "Đã cập nhật trạng thái sân.");
     }
 
-    private async Task<bool> IsValidRequestAsync(OwnerCourtRequest request)
+    private async Task<bool> IsValidRequestAsync(int ownerId, OwnerCourtRequest request)
     {
         return Enum.IsDefined(request.Status)
+            && request.FacilityId.HasValue
             && request.PricePerHour.HasValue
             && request.PricePerHour.Value > 0
             && request.PeakStartHour >= BookingRules.OpeningHour
             && request.PeakStartHour < BookingRules.ClosingHour
             && request.PeakSurcharge >= 0
+            && await _context.Facilities.AnyAsync(facility =>
+                facility.Id == request.FacilityId.Value
+                && facility.OwnerId == ownerId
+                && facility.Owner!.Role == UserRole.CourtOwner)
             && await _context.CourtTypes.AnyAsync(courtType => courtType.Id == request.CourtTypeId);
     }
 
     private static void ApplyRequest(Court court, OwnerCourtRequest request, decimal pricePerHour)
     {
+        court.FacilityId = request.FacilityId!.Value;
         court.Name = request.Name.Trim();
         court.CourtTypeId = request.CourtTypeId;
         court.Location = request.Location.Trim();

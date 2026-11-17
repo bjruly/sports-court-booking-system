@@ -19,6 +19,7 @@ public class OwnerController : Controller
 {
     private readonly IOwnerDashboardService _dashboardService;
     private readonly IOwnerCourtService _courtService;
+    private readonly IOwnerFacilityService _facilityService;
     private readonly IBookingService _bookingService;
     private readonly IUserService _userService;
     private readonly IVoucherService _voucherService;
@@ -28,6 +29,7 @@ public class OwnerController : Controller
     public OwnerController(
         IOwnerDashboardService dashboardService,
         IOwnerCourtService courtService,
+        IOwnerFacilityService facilityService,
         IBookingService bookingService,
         IUserService userService,
         IVoucherService voucherService,
@@ -36,6 +38,7 @@ public class OwnerController : Controller
     {
         _dashboardService = dashboardService;
         _courtService = courtService;
+        _facilityService = facilityService;
         _bookingService = bookingService;
         _userService = userService;
         _voucherService = voucherService;
@@ -152,6 +155,104 @@ public class OwnerController : Controller
 
         TempData["SuccessMessage"] = result.Message;
         return RedirectToAction(nameof(ChangePassword));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Facilities()
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        return View(await _facilityService.GetOwnerFacilitiesAsync(ownerId.Value));
+    }
+
+    [HttpGet]
+    public IActionResult CreateFacility()
+    {
+        if (User.GetUserId() is null)
+        {
+            return Forbid();
+        }
+
+        return View(new OwnerFacilityFormViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateFacility(OwnerFacilityFormViewModel model)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _facilityService.CreateOwnerFacilityAsync(ownerId.Value, model);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Facilities));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditFacility(int id)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var facility = await _facilityService.GetOwnerFacilityAsync(id, ownerId.Value);
+        if (facility is null)
+        {
+            return NotFound();
+        }
+
+        return View(new OwnerFacilityFormViewModel
+        {
+            Name = facility.Name,
+            Address = facility.Address,
+            Description = facility.Description
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditFacility(int id, OwnerFacilityFormViewModel model)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _facilityService.UpdateOwnerFacilityAsync(id, ownerId.Value, model);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Facilities));
     }
 
     [HttpGet]
@@ -582,8 +683,14 @@ public class OwnerController : Controller
     [HttpGet]
     public async Task<IActionResult> CreateCourt()
     {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
         var model = new OwnerCourtFormViewModel();
-        await PopulateCourtTypesAsync(model);
+        await PopulateCourtFormOptionsAsync(model, ownerId.Value);
         return View(model);
     }
 
@@ -599,7 +706,7 @@ public class OwnerController : Controller
 
         if (!ModelState.IsValid)
         {
-            await PopulateCourtTypesAsync(model);
+            await PopulateCourtFormOptionsAsync(model, ownerId.Value);
             return View(model);
         }
 
@@ -607,7 +714,7 @@ public class OwnerController : Controller
         if (!result.Success)
         {
             ModelState.AddModelError(string.Empty, result.Message);
-            await PopulateCourtTypesAsync(model);
+            await PopulateCourtFormOptionsAsync(model, ownerId.Value);
             return View(model);
         }
 
@@ -633,6 +740,7 @@ public class OwnerController : Controller
         var model = new OwnerCourtFormViewModel
         {
             Name = court.Name,
+            FacilityId = court.FacilityId,
             CourtTypeId = court.CourtTypeId,
             Location = court.Location,
             Description = court.Description,
@@ -642,7 +750,7 @@ public class OwnerController : Controller
             PeakSurcharge = court.PeakSurcharge,
             Status = court.Status
         };
-        await PopulateCourtTypesAsync(model);
+        await PopulateCourtFormOptionsAsync(model, ownerId.Value);
         return View(model);
     }
 
@@ -658,7 +766,7 @@ public class OwnerController : Controller
 
         if (!ModelState.IsValid)
         {
-            await PopulateCourtTypesAsync(model);
+            await PopulateCourtFormOptionsAsync(model, ownerId.Value);
             return View(model);
         }
 
@@ -666,7 +774,7 @@ public class OwnerController : Controller
         if (!result.Success)
         {
             ModelState.AddModelError(string.Empty, result.Message);
-            await PopulateCourtTypesAsync(model);
+            await PopulateCourtFormOptionsAsync(model, ownerId.Value);
             return View(model);
         }
 
@@ -700,10 +808,13 @@ public class OwnerController : Controller
         return RedirectToAction(nameof(Courts));
     }
 
-    private async Task PopulateCourtTypesAsync(OwnerCourtFormViewModel model)
+    private async Task PopulateCourtFormOptionsAsync(OwnerCourtFormViewModel model, int ownerId)
     {
         model.CourtTypes = (await _courtService.GetCourtTypesAsync())
             .Select(courtType => new SelectListItem(courtType.Name, courtType.Id.ToString()))
+            .ToList();
+        model.Facilities = (await _facilityService.GetOwnerFacilitiesAsync(ownerId))
+            .Select(facility => new SelectListItem(facility.Name, facility.Id.ToString()))
             .ToList();
     }
 

@@ -90,6 +90,17 @@ public interface IOwnerCourtService
     Task<(bool Success, string Message)> UpdateOwnerCourtStatusAsync(int courtId, int ownerId, CourtStatus status);
 }
 
+public interface IOwnerFacilityService
+{
+    Task<List<OwnerFacilityDto>> GetOwnerFacilitiesAsync(int ownerId);
+    Task<OwnerFacilityDto?> GetOwnerFacilityAsync(int facilityId, int ownerId);
+    Task<(bool Success, string Message)> CreateOwnerFacilityAsync(int ownerId, OwnerFacilityRequest request);
+    Task<(bool Success, string Message)> UpdateOwnerFacilityAsync(
+        int facilityId,
+        int ownerId,
+        OwnerFacilityRequest request);
+}
+
 public interface IVoucherService
 {
     Task<List<OwnerVoucherDto>> GetOwnerVouchersAsync(int ownerId);

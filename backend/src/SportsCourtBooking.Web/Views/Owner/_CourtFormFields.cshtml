@@ -10,6 +10,17 @@
         <span asp-validation-for="Name" class="field-validation-error"></span>
     </div>
     <div class="owner-form-field">
+        <label asp-for="FacilityId">Cơ sở <span aria-hidden="true">*</span></label>
+        <select asp-for="FacilityId" asp-items="Model.Facilities" class="filter-input">
+            <option value="">-- Chọn cơ sở --</option>
+        </select>
+        <span asp-validation-for="FacilityId" class="field-validation-error"></span>
+        @if (Model.Facilities.Count == 0)
+        {
+            <small>Chưa có cơ sở. <a asp-controller="Owner" asp-action="CreateFacility">Tạo cơ sở trước</a>.</small>
+        }
+    </div>
+    <div class="owner-form-field">
         <label asp-for="CourtTypeId">Môn thể thao <span aria-hidden="true">*</span></label>
         <select asp-for="CourtTypeId" asp-items="Model.CourtTypes" class="filter-input">
             <option value="">-- Chọn môn thể thao --</option>
@@ -17,8 +28,8 @@
         <span asp-validation-for="CourtTypeId" class="field-validation-error"></span>
     </div>
     <div class="owner-form-field">
-        <label asp-for="Location">Địa điểm <span aria-hidden="true">*</span></label>
-        <input asp-for="Location" class="filter-input" autocomplete="street-address" />
+        <label asp-for="Location">Vị trí trong cơ sở <span aria-hidden="true">*</span></label>
+        <input asp-for="Location" class="filter-input" autocomplete="off" placeholder="Ví dụ: Khu A - Tầng 1" />
         <span asp-validation-for="Location" class="field-validation-error"></span>
     </div>
     <div class="owner-form-field">

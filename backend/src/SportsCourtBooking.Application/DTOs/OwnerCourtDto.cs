@@ -10,6 +10,10 @@ public class OwnerCourtRequest
     [StringLength(150, MinimumLength = 2, ErrorMessage = "Tên sân phải từ 2 đến 150 ký tự.")]
     public string Name { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "Vui lòng chọn cơ sở.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn cơ sở hợp lệ.")]
+    public int? FacilityId { get; set; }
+
     [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn môn thể thao.")]
     public int CourtTypeId { get; set; }
 
@@ -42,4 +46,27 @@ public class CourtTypeDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+}
+
+public class OwnerFacilityRequest
+{
+    [Required(ErrorMessage = "Vui lòng nhập tên cơ sở.")]
+    [StringLength(150, MinimumLength = 2, ErrorMessage = "Tên cơ sở phải từ 2 đến 150 ký tự.")]
+    public string Name { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Vui lòng nhập địa chỉ cơ sở.")]
+    [StringLength(255, ErrorMessage = "Địa chỉ không được vượt quá 255 ký tự.")]
+    public string Address { get; set; } = string.Empty;
+
+    [StringLength(1000, ErrorMessage = "Mô tả không được vượt quá 1000 ký tự.")]
+    public string? Description { get; set; }
+}
+
+public class OwnerFacilityDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int CourtCount { get; set; }
 }

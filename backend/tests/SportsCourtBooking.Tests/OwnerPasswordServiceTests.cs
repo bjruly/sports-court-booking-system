@@ -21,7 +21,8 @@ public class OwnerPasswordServiceTests
         var result = await new UserService(context, hasher).ChangeOwnerPasswordAsync(3, new OwnerChangePasswordRequest
         {
             CurrentPassword = "OldPassword1",
-            NewPassword = "NewPassword2"
+            NewPassword = "NewPassword2",
+            ConfirmPassword = "NewPassword2"
         });
 
         var updatedUser = await context.Users.SingleAsync();
@@ -46,12 +47,14 @@ public class OwnerPasswordServiceTests
         var wrongPassword = await service.ChangeOwnerPasswordAsync(3, new OwnerChangePasswordRequest
         {
             CurrentPassword = "WrongPassword",
-            NewPassword = "NewPassword2"
+            NewPassword = "NewPassword2",
+            ConfirmPassword = "NewPassword2"
         });
         var nonOwner = await service.ChangeOwnerPasswordAsync(2, new OwnerChangePasswordRequest
         {
             CurrentPassword = "OldPassword1",
-            NewPassword = "NewPassword2"
+            NewPassword = "NewPassword2",
+            ConfirmPassword = "NewPassword2"
         });
 
         Assert.False(wrongPassword.Success);
@@ -73,16 +76,25 @@ public class OwnerPasswordServiceTests
         var weakPassword = await service.ChangeOwnerPasswordAsync(3, new OwnerChangePasswordRequest
         {
             CurrentPassword = "OldPassword1",
-            NewPassword = "short"
+            NewPassword = "short",
+            ConfirmPassword = "short"
         });
         var unchangedPassword = await service.ChangeOwnerPasswordAsync(3, new OwnerChangePasswordRequest
         {
             CurrentPassword = "OldPassword1",
-            NewPassword = "OldPassword1"
+            NewPassword = "OldPassword1",
+            ConfirmPassword = "OldPassword1"
+        });
+        var mismatchedConfirmation = await service.ChangeOwnerPasswordAsync(3, new OwnerChangePasswordRequest
+        {
+            CurrentPassword = "OldPassword1",
+            NewPassword = "NewPassword2",
+            ConfirmPassword = "DifferentPassword3"
         });
 
         Assert.False(weakPassword.Success);
         Assert.False(unchangedPassword.Success);
+        Assert.False(mismatchedConfirmation.Success);
         Assert.Equal(storedHash, (await context.Users.SingleAsync()).PasswordHash);
     }
 
