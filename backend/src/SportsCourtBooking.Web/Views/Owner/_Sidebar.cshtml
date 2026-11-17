@@ -8,6 +8,7 @@
     var isVoucherManagement = currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher";
     var isReviewManagement = currentAction is "Reviews" or "ReplyToReview";
     var isRevenueReport = currentAction == "RevenueReport";
+    var isAccountManagement = currentAction is "Profile" or "ChangePassword";
     var isTodayCheckInView = currentAction == "Bookings"
         && ViewContext.HttpContext.Request.Query["date"] == VietnamClock.Today.ToString("yyyy-MM-dd")
         && ViewContext.HttpContext.Request.Query["status"] == BookingStatus.Confirmed.ToString();
@@ -125,10 +126,12 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isAccountManagement ? "open" : null)">
             <summary>Tài khoản</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Hồ sơ cá nhân</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "Profile" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Profile"
+                   aria-current="@(currentAction == "Profile" ? "page" : null)">Hồ sơ cá nhân</a>
                 <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Đổi mật khẩu</span><small>Chưa triển khai</small></span>
             </div>
         </details>

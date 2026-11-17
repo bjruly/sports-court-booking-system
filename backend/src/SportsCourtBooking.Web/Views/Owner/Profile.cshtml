@@ -1,0 +1,58 @@
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Web.Models
+@model OwnerProfileViewModel
+
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> TÀI KHOẢN CHỦ SÂN</p>
+                    <h1>Hồ sơ cá nhân</h1>
+                    <p class="page-subtitle">Cập nhật thông tin liên hệ của tài khoản Chủ sân.</p>
+                </div>
+            </header>
+
+            <section class="admin-status-card owner-profile-card">
+                <form asp-action="Profile" method="post" class="owner-profile-form">
+                    <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+                    <div class="owner-profile-fields">
+                        <div class="form-group">
+                            <label asp-for="FullName">Họ và tên</label>
+                            <input asp-for="FullName" class="form-control" maxlength="100" autocomplete="name" />
+                            <span asp-validation-for="FullName" class="field-validation"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Email">Email đăng nhập</label>
+                            <input asp-for="Email" class="form-control" type="email" readonly />
+                            <small class="owner-profile-hint">Email đang dùng để đăng nhập và hiện chưa thể thay đổi.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="PhoneNumber">Số điện thoại</label>
+                            <input asp-for="PhoneNumber" class="form-control" maxlength="13"
+                                   autocomplete="tel" placeholder="0901234567" />
+                            <span asp-validation-for="PhoneNumber" class="field-validation"></span>
+                        </div>
+                    </div>
+
+                    <p class="owner-profile-hint">
+                        Tài khoản được tạo ngày @VietnamClock.ToVietnamTime(Model.CreatedAt).ToString("dd/MM/yyyy").
+                    </p>
+
+                    <div class="owner-profile-actions">
+                        <button class="button button--primary" type="submit">Lưu hồ sơ</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</section>

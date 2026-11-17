@@ -1,3 +1,6 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -17,6 +20,7 @@ public class OwnerController : Controller
     private readonly IOwnerDashboardService _dashboardService;
     private readonly IOwnerCourtService _courtService;
     private readonly IBookingService _bookingService;
+    private readonly IUserService _userService;
     private readonly IVoucherService _voucherService;
     private readonly IReviewService _reviewService;
     private readonly IOwnerRevenueReportService _revenueReportService;
@@ -25,6 +29,7 @@ public class OwnerController : Controller
         IOwnerDashboardService dashboardService,
         IOwnerCourtService courtService,
         IBookingService bookingService,
+        IUserService userService,
         IVoucherService voucherService,
         IReviewService reviewService,
         IOwnerRevenueReportService revenueReportService)
@@ -32,6 +37,7 @@ public class OwnerController : Controller
         _dashboardService = dashboardService;
         _courtService = courtService;
         _bookingService = bookingService;
+        _userService = userService;
         _voucherService = voucherService;
         _reviewService = reviewService;
         _revenueReportService = revenueReportService;
@@ -48,6 +54,65 @@ public class OwnerController : Controller
 
         var dashboard = await _dashboardService.GetDashboardAsync(ownerId.Value);
         return View(dashboard);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Profile()
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var profile = await _userService.GetOwnerProfileAsync(ownerId.Value);
+        if (profile is null)
+        {
+            return NotFound();
+        }
+
+        return View(new OwnerProfileViewModel
+        {
+            FullName = profile.FullName,
+            Email = profile.Email,
+            PhoneNumber = profile.PhoneNumber,
+            CreatedAt = profile.CreatedAt
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Profile(OwnerProfileViewModel model)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var currentProfile = await _userService.GetOwnerProfileAsync(ownerId.Value);
+        if (currentProfile is null)
+        {
+            return NotFound();
+        }
+
+        model.Email = currentProfile.Email;
+        model.CreatedAt = currentProfile.CreatedAt;
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _userService.UpdateOwnerProfileAsync(ownerId.Value, model);
+        if (!result.Success || result.Profile is null)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
+        }
+
+        await RefreshOwnerNameClaimAsync(result.Profile.FullName);
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Profile));
     }
 
     [HttpGet]
@@ -601,6 +666,17 @@ public class OwnerController : Controller
         model.CourtTypes = (await _courtService.GetCourtTypesAsync())
             .Select(courtType => new SelectListItem(courtType.Name, courtType.Id.ToString()))
             .ToList();
+    }
+
+    private async Task RefreshOwnerNameClaimAsync(string fullName)
+    {
+        var claims = User.Claims
+            .Where(claim => claim.Type != ClaimTypes.Name)
+            .Append(new Claim(ClaimTypes.Name, fullName));
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity));
     }
 
     private async Task<List<CourtDto>> GetActiveOwnerCourtsAsync(int ownerId)

@@ -53,6 +53,10 @@ public interface IUserService
 
     /// <summary>Khóa hoặc mở khóa tài khoản. Trả về (Success, Message, trạng thái IsActive mới).</summary>
     Task<(bool Success, string Message, bool? IsActive)> ToggleLockAsync(int targetUserId, int? adminUserId);
+    Task<OwnerProfileDto?> GetOwnerProfileAsync(int ownerId);
+    Task<(bool Success, string Message, OwnerProfileDto? Profile)> UpdateOwnerProfileAsync(
+        int ownerId,
+        OwnerProfileUpdateRequest request);
 }
 
 public interface IReportService

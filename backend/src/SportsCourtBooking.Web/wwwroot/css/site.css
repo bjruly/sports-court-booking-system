@@ -473,14 +473,28 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-report-note { margin: 0 0 20px; padding: 14px 16px; border-left: 4px solid #6b9478; border-radius: 6px; background: #eef4ef; color: #35483a; font-size: .92rem; line-height: 1.6; }
 .owner-report-kpis { margin-bottom: 20px; }
 .owner-report-warning { border-color: #e4c891; }
+.owner-profile-card { max-width: 940px; padding: 24px; }
+.owner-profile-form { display: grid; gap: 20px; }
+.owner-profile-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.owner-profile-form .form-group { min-width: 0; display: grid; align-content: start; gap: 9px; margin: 0; padding: 16px; border: 1px solid #e4e9e2; border-radius: 12px; background: linear-gradient(145deg, #fff, #f8faf6); transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.owner-profile-form .form-group:focus-within { border-color: #9cb673; box-shadow: 0 8px 20px rgba(20, 45, 37, .07); transform: translateY(-2px); }
+.owner-profile-form label { color: #45554c; font-size: .88rem; font-weight: 700; }
+.owner-profile-form input { width: 100%; min-width: 0; height: 46px; padding: 0 12px; border: 1px solid #dfe5dc; border-radius: 8px; background: #fff; color: var(--ink); transition: border-color .18s ease, background .18s ease; }
+.owner-profile-form input:focus { border-color: #92aa68; outline: none; }
+.owner-profile-form input[readonly] { padding-right: 8px; padding-left: 8px; border-color: #e5e9e3; background: #f0f3ef; color: #647067; font-size: .7rem; }
+.owner-profile-hint { margin: 0; color: #647067; font-size: .9rem; }
+.owner-profile-actions { display: flex; justify-content: flex-end; }
 
 @media (max-width: 640px) {
   .booking-history-table-wrap { overflow: visible; border: 0; background: transparent; }
   .review-booking-panel,
   .review-filter { align-items: stretch; flex-direction: column; }
   .owner-report-filter { grid-template-columns: 1fr; gap: 12px; }
+  .owner-profile-fields { grid-template-columns: 1fr; }
+  .owner-profile-form input[readonly] { padding: 0 12px; font-size: .88rem; }
   .review-form-card,
-  .owner-review-card { padding: 16px; }
+  .owner-review-card,
+  .owner-profile-card { padding: 16px; }
   .booking-history-table { display: block; }
   .booking-history-table thead {
     position: absolute;

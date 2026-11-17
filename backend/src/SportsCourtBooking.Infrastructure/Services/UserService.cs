@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Domain.Enums;
@@ -62,5 +63,51 @@ public class UserService : IUserService
 
         var action = user.IsActive ? "Mở khóa" : "Khóa";
         return (true, $"{action} tài khoản \"{user.FullName}\" thành công.", user.IsActive);
+    }
+
+    public async Task<OwnerProfileDto?> GetOwnerProfileAsync(int ownerId)
+        => await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Id == ownerId && user.Role == UserRole.CourtOwner)
+            .Select(user => new OwnerProfileDto
+            {
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                CreatedAt = user.CreatedAt
+            })
+            .SingleOrDefaultAsync();
+
+    public async Task<(bool Success, string Message, OwnerProfileDto? Profile)> UpdateOwnerProfileAsync(
+        int ownerId,
+        OwnerProfileUpdateRequest request)
+    {
+        var fullName = request.FullName?.Trim() ?? string.Empty;
+        var phoneNumber = request.PhoneNumber?.Trim() ?? string.Empty;
+        if (fullName.Length is 0 or > 100
+            || !Regex.IsMatch(phoneNumber, @"^(0|\+84)\d{9}$"))
+        {
+            return (false, "Thông tin hồ sơ không hợp lệ.", null);
+        }
+
+        var user = await _context.Users
+            .SingleOrDefaultAsync(item => item.Id == ownerId && item.Role == UserRole.CourtOwner);
+        if (user is null)
+        {
+            return (false, "Không tìm thấy tài khoản Chủ sân.", null);
+        }
+
+        user.FullName = fullName;
+        user.PhoneNumber = phoneNumber;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return (true, "Đã cập nhật hồ sơ cá nhân.", new OwnerProfileDto
+        {
+            FullName = user.FullName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            CreatedAt = user.CreatedAt
+        });
     }
 }
