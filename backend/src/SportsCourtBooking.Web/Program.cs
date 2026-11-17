@@ -27,6 +27,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IOwnerDashboardService, OwnerDashboardService>();
 builder.Services.AddScoped<IOwnerCourtService, OwnerCourtService>();
+builder.Services.AddScoped<IVoucherService, OwnerVoucherService>();
 builder.Services.AddHostedService<PendingBookingExpirationWorker>();
 
 // Đăng nhập bằng cookie xác thực (được mã hóa/ký bởi ASP.NET Core, người dùng không tự sửa được)
@@ -80,6 +81,7 @@ using (var scope = app.Services.CreateScope())
 
             await db.EnsureCourtOwnerSchemaAsync();
             await db.EnsureCourtPricingSchemaAsync();
+            await db.EnsureVoucherSchemaAsync();
             await db.EnsureBookingSchemaAsync();
 
             // Dữ liệu mẫu có Id cố định nên cần đồng bộ lại bộ đếm Id, nếu không bản ghi mới sẽ bị trùng Id.

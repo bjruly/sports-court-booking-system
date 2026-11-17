@@ -156,6 +156,87 @@ public class OwnerWalkInBookingTests
         Assert.NotNull(booking.ExpiresAt);
     }
 
+    [Fact]
+    public async Task CreateBookingAsync_AppliesVoucherAndStoresDiscountSnapshot()
+    {
+        await using var context = CreateContext();
+        await context.Database.EnsureCreatedAsync();
+        context.Vouchers.Add(new Voucher
+        {
+            OwnerId = 3,
+            Code = "SAVE25",
+            DiscountType = VoucherDiscountType.Percentage,
+            DiscountValue = 25,
+            StartDate = VietnamClock.Today,
+            EndDate = VietnamClock.Today,
+            UsageLimit = 1
+        });
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var result = await service.CreateBookingAsync(new CreateBookingRequest
+        {
+            UserId = 2,
+            CourtId = 1,
+            BookingDate = VietnamClock.Today.AddDays(1),
+            StartTime = new TimeOnly(10, 0),
+            EndTime = new TimeOnly(11, 0),
+            VoucherCode = "save25"
+        });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(20_000m, result.Data!.DiscountAmount);
+        Assert.Equal(60_000m, result.Data.TotalPrice);
+        var booking = await context.Bookings.SingleAsync();
+        Assert.Equal("SAVE25", booking.VoucherCode);
+        Assert.Equal(20_000m, booking.DiscountAmount);
+        Assert.Equal(60_000m, booking.TotalPrice);
+    }
+
+    [Fact]
+    public async Task CreateBookingAsync_RejectsVoucherAfterItsUsageLimitIsReached()
+    {
+        await using var context = CreateContext();
+        await context.Database.EnsureCreatedAsync();
+        context.Vouchers.Add(new Voucher
+        {
+            OwnerId = 3,
+            Code = "ONCE",
+            DiscountType = VoucherDiscountType.FixedAmount,
+            DiscountValue = 10_000,
+            StartDate = VietnamClock.Today,
+            EndDate = VietnamClock.Today.AddDays(2),
+            UsageLimit = 1
+        });
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+        var date = VietnamClock.Today.AddDays(1);
+
+        var first = await service.CreateBookingAsync(new CreateBookingRequest
+        {
+            UserId = 2,
+            CourtId = 1,
+            BookingDate = date,
+            StartTime = new TimeOnly(10, 0),
+            EndTime = new TimeOnly(11, 0),
+            VoucherCode = "ONCE"
+        });
+        var second = await service.CreateBookingAsync(new CreateBookingRequest
+        {
+            UserId = 2,
+            CourtId = 1,
+            BookingDate = date,
+            StartTime = new TimeOnly(11, 0),
+            EndTime = new TimeOnly(12, 0),
+            VoucherCode = "ONCE"
+        });
+
+        Assert.True(first.Success, first.Message);
+        Assert.False(second.Success);
+        Assert.Contains("hết lượt", second.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Single(await context.Bookings.ToListAsync());
+    }
+
     private static BookingService CreateService(AppDbContext context)
         => new(
             context,

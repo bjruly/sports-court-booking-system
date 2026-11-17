@@ -52,8 +52,29 @@
 
             <aside class="review-summary">
                 <p class="eyebrow"><span class="eyebrow-line"></span> TÓM TẮT CHI PHÍ</p>
-                <div class="summary-line"><span>@Model.Slots.Count khung giờ</span><strong>@Model.TotalPrice.ToString("N0", culture)₫</strong></div>
-                <div class="summary-line"><span>Voucher</span><strong>—</strong></div>
+                <div class="summary-line"><span>Tạm tính (@Model.Slots.Count khung giờ)</span><strong>@Model.Subtotal.ToString("N0", culture)₫</strong></div>
+                <form asp-controller="Home" asp-action="Review" method="get" class="voucher-apply-form">
+                    <input type="hidden" name="id" value="@Model.Court.Id" />
+                    <input type="hidden" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" />
+                    @foreach (var slot in Model.Slots)
+                    {
+                        <input type="hidden" name="selectedHours" value="@slot.StartHour" />
+                    }
+                    <label class="note-field" for="voucherCode">Mã voucher</label>
+                    <div class="voucher-apply-fields">
+                        <input id="voucherCode" name="voucherCode" value="@Model.VoucherCode" class="filter-input"
+                               maxlength="30" autocomplete="off" placeholder="Nhập mã giảm giá" />
+                        <button class="button button--outline" type="submit">Áp dụng</button>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.VoucherError))
+                    {
+                        <p class="field-validation-error" role="alert">@Model.VoucherError</p>
+                    }
+                </form>
+                @if (Model.DiscountAmount > 0)
+                {
+                    <div class="summary-line"><span>Giảm giá (@Model.VoucherCode)</span><strong>−@Model.DiscountAmount.ToString("N0", culture)₫</strong></div>
+                }
                 <div class="summary-total"><span>Tổng tiền</span><strong>@Model.TotalPrice.ToString("N0", culture)₫</strong></div>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
@@ -64,6 +85,7 @@
                     <form asp-controller="Home" asp-action="ConfirmBooking" method="post">
                         <input type="hidden" name="id" value="@Model.Court.Id" />
                         <input type="hidden" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" name="voucherCode" value="@Model.VoucherCode" />
                         @foreach (var slot in Model.Slots)
                         {
                             <input type="hidden" name="selectedHours" value="@slot.StartHour" />

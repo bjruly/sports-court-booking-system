@@ -52,6 +52,19 @@
                     </tr>
 
                     <tr>
+                        <th>Tạm tính</th>
+                        <td>@((Model.TotalPrice + Model.DiscountAmount).ToString("N0", culture))₫</td>
+                    </tr>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.VoucherCode))
+                    {
+                        <tr>
+                            <th>Voucher (@Model.VoucherCode)</th>
+                            <td>−@Model.DiscountAmount.ToString("N0", culture)₫</td>
+                        </tr>
+                    }
+
+                    <tr>
                         <th>Tổng tiền</th>
                         <td>@Model.TotalPrice.ToString("N0", culture)₫</td>
                     </tr>

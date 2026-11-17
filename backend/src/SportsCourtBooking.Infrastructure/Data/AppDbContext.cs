@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<CourtType> CourtTypes => Set<CourtType>();
     public DbSet<Court> Courts => Set<Court>();
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<Voucher> Vouchers => Set<Voucher>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Review> Reviews => Set<Review>();
 
@@ -63,17 +64,50 @@ public class AppDbContext : DbContext
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<Voucher>(entity =>
+        {
+            entity.HasKey(voucher => voucher.Id);
+            entity.Property(voucher => voucher.Code).IsRequired().HasMaxLength(30);
+            entity.Property(voucher => voucher.DiscountValue).HasColumnType("decimal(18,2)");
+            entity.HasIndex(voucher => new { voucher.OwnerId, voucher.Code }).IsUnique();
+            entity.ToTable(table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_vouchers_values",
+                    "(\"DiscountType\" = 1 AND \"DiscountValue\" > 0 AND \"DiscountValue\" <= 100) " +
+                    "OR (\"DiscountType\" = 2 AND \"DiscountValue\" > 0)");
+                table.HasCheckConstraint(
+                    "ck_vouchers_dates_and_usage",
+                    "\"EndDate\" >= \"StartDate\" AND (\"UsageLimit\" IS NULL OR \"UsageLimit\" > 0)");
+            });
+
+            entity.HasOne(voucher => voucher.Owner)
+                .WithMany(owner => owner.OwnedVouchers)
+                .HasForeignKey(voucher => voucher.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         // 4. Cấu hình bảng Booking
         modelBuilder.Entity<Booking>(entity =>
         {
             entity.HasKey(b => b.Id);
             entity.Property(b => b.TotalPrice).HasColumnType("decimal(18,2)");
+            entity.Property(b => b.DiscountAmount).HasColumnType("decimal(18,2)");
+            entity.Property(b => b.VoucherCode).HasMaxLength(30);
             entity.Property(b => b.GuestName).HasMaxLength(100);
             entity.Property(b => b.GuestPhone).HasMaxLength(20);
             entity.Property(b => b.CheckInAt).HasColumnType("timestamp with time zone");
-            entity.ToTable(table => table.HasCheckConstraint(
-                "ck_bookings_customer_identity",
-                "\"UserId\" IS NOT NULL OR (\"GuestName\" IS NOT NULL AND \"GuestPhone\" IS NOT NULL)"));
+            entity.ToTable(table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_bookings_customer_identity",
+                    "\"UserId\" IS NOT NULL OR (\"GuestName\" IS NOT NULL AND \"GuestPhone\" IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_bookings_voucher_discount",
+                    "\"DiscountAmount\" >= 0 AND " +
+                    "((\"VoucherId\" IS NULL AND \"VoucherCode\" IS NULL AND \"DiscountAmount\" = 0) " +
+                    "OR (\"VoucherId\" IS NOT NULL AND \"VoucherCode\" IS NOT NULL))");
+            });
 
             entity.HasOne(b => b.User)
                   .WithMany(u => u.Bookings)
@@ -84,6 +118,11 @@ public class AppDbContext : DbContext
             entity.HasOne(b => b.Court)
                   .WithMany(c => c.Bookings)
                   .HasForeignKey(b => b.CourtId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(b => b.Voucher)
+                  .WithMany(voucher => voucher.Bookings)
+                  .HasForeignKey(b => b.VoucherId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 

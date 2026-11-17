@@ -106,7 +106,13 @@
                                                 <small class="owner-booking-phone">@booking.CustomerPhone</small>
                                             }
                                         </td>
-                                        <td>@booking.TotalPrice.ToString("N0", culture) đ</td>
+                                        <td>
+                                            @booking.TotalPrice.ToString("N0", culture) đ
+                                            @if (!string.IsNullOrWhiteSpace(booking.VoucherCode))
+                                            {
+                                                <small class="owner-booking-phone">Voucher @booking.VoucherCode · giảm @booking.DiscountAmount.ToString("N0", culture) đ</small>
+                                            }
+                                        </td>
                                         <td>
                                             <span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span>
                                             @if (booking.CheckInAt.HasValue)

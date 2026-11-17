@@ -26,7 +26,7 @@ Phạm vi MVP đã được nhóm trưởng chốt:
 4. Chọn tối đa bốn khung giờ 1 giờ liên tiếp trên cùng sân/ngày và tạo booking `PENDING`.
 5. Từ chối khung giờ không hợp lệ hoặc đã được giữ/đặt.
 
-Khách vãng lai/đặt hộ, thanh toán thật, voucher, hủy/hoàn tiền, thông báo ngoài hệ thống và màn hình quản trị nằm ngoài MVP. Booking `PENDING` không đồng nghĩa đã xác nhận hoặc thanh toán. Các chi tiết thời hạn giữ, hết hạn/nhả giờ và chống đặt trùng vẫn cần được review trước khi triển khai.
+Khách vãng lai/đặt hộ, thanh toán thật, voucher, hủy/hoàn tiền, thông báo ngoài hệ thống và màn hình quản trị nằm ngoài phạm vi MVP ban đầu. Chức năng đặt hộ và voucher đã được bổ sung sau phạm vi MVP; voucher hiện áp dụng giảm giá vào booking nhưng không tích hợp thanh toán. Booking `PENDING` không đồng nghĩa đã xác nhận hoặc thanh toán. Các chi tiết thời hạn giữ, hết hạn/nhả giờ và chống đặt trùng vẫn cần được review trước khi triển khai.
 
 ### Kết quả rà soát tài liệu
 
@@ -38,7 +38,7 @@ Khách vãng lai/đặt hộ, thanh toán thật, voucher, hủy/hoàn tiền, t
 | Cần cập nhật schema theo phạm vi | ERD yêu cầu `booking.customer_id`, trong khi báo cáo cho phép chủ sân tạo đơn cho khách đến quầy và có nhắc khách không có tài khoản. | MVP chỉ có khách đã đăng nhập; giữ guest/walk-in ngoài phạm vi hiện tại. Cập nhật ERD/use case để phân biệt MVP với thiết kế dài hạn. |
 | Chặn review schema | ERD vẫn ghi `app_user.password_hash VARCHAR(100)`; hướng thiết kế trong báo cáo dùng kiểu không gắn cứng độ dài hash. | Sửa ERD theo quyết định Identity đã chọn; không tự lưu/định dạng mật khẩu bằng logic riêng của ứng dụng. |
 | Chặn kiểm soát lịch | BR01 nói chỉ một booking PENDING/CONFIRMED được giữ giờ; BR02 nói PENDING hết hạn sau 10 phút. ERD có cả `booking.status` lẫn `booking_item.active`, nên trạng thái giữ giờ có thể bị biểu diễn hai lần. | Làm rõ nguồn trạng thái có thẩm quyền, cách cập nhật nguyên tử booking và các item, cùng cách xử lý booking đã quá hạn nhưng tác vụ nền chưa chạy. |
-| Ngoài phạm vi MVP? | UC05 hỗ trợ 1–4 giờ liên tiếp, voucher và màn hình ghi thông tin; workflow có hủy/hoàn tiền; ERD đã chứa payment/refund/voucher. | Giữ thanh toán, voucher và hủy/hoàn tiền ở thiết kế dài hạn/backlog; sơ đồ phải phân biệt rõ với phạm vi demo. |
+| Ngoài phạm vi MVP? | UC05 hỗ trợ 1–4 giờ liên tiếp, voucher và màn hình ghi thông tin; workflow có hủy/hoàn tiền; ERD đã chứa payment/refund/voucher. Voucher hiện đã được triển khai như phần mở rộng sau MVP. | Giữ thanh toán và hủy/hoàn tiền ở thiết kế dài hạn/backlog; sơ đồ phải phân biệt rõ MVP ban đầu với các phần mở rộng đã triển khai. |
 | Cần review prototype | Đã có wireframe ban đầu cho đăng ký, đăng nhập, tìm sân, lịch desktop/mobile, xác nhận và kết quả booking. | Đối chiếu với luồng MVP, xác nhận nội dung/trạng thái và phản hồi các màn hình cần chỉnh. |
 
 #### Các nội dung cần review kỹ thuật
@@ -77,10 +77,10 @@ Khách vãng lai/đặt hộ, thanh toán thật, voucher, hủy/hoàn tiền, t
 
 - [ ] Chỉ ra ràng buộc cơ sở dữ liệu ngăn các khoảng giờ chồng lấn trên cùng sân; kiểm tra có bao phủ cả booking đang giữ và booking đã xác nhận.
 - [ ] Các bản ghi booking_item phải được tạo, nhả hoặc hết hiệu lực cùng transaction với booking.
-- [ ] Kiểm tra unique cho mã booking, email/tài khoản và mã voucher theo phạm vi nghiệp vụ đã chọn.
+- [ ] Kiểm tra unique cho mã booking, email/tài khoản và mã voucher theo phạm vi nghiệp vụ đã chọn. Code hiện unique theo cặp chủ sân/mã voucher.
 - [ ] Xác định giá tại thời điểm đặt là snapshot; thay đổi bảng giá sau đó không làm đổi số tiền của booking cũ.
 - [ ] ERD có `customer_id` bắt buộc nhưng báo cáo cũng đề cập khách đến quầy; quyết định mô hình khách walk-in trước khi triển khai tính năng đó.
-- [ ] ERD có `voucher.used_count`; nếu nhiều booking PENDING cùng áp dụng voucher, cần chốt cách giữ quota nguyên tử. Nếu chưa xử lý được trong MVP, loại voucher khỏi phạm vi demo.
+- [ ] ERD đề xuất `voucher.used_count`; code hiện không lưu bộ đếm này mà đếm booking còn hiệu lực trong transaction, khóa theo voucher khi áp dụng để tránh vượt quota. Đơn đã hủy/hết hạn không tính; thời hạn mã tính theo ngày áp dụng.
 - [ ] Báo cáo dùng chính sách hủy theo cơ sở; quyết định booking cũ có giữ snapshot chính sách tại lúc đặt hay luôn dùng chính sách hiện hành.
 
 ### 5. Wireframe và nghiệm thu
@@ -113,7 +113,7 @@ Ghi ngay trong buổi họp. Không suy diễn quyết định từ nội dung �
 | Quy tắc chọn khung giờ | Đã chốt | Một khung 1 giờ; tối đa 4 khung liên tiếp trên cùng sân và ngày. |
 | Trạng thái booking và thời hạn giữ | Chờ review đề xuất | `PENDING` chưa xác nhận/thanh toán; thời hạn 10 phút là đề xuất trong tài liệu, cần rà soát. |
 | Chống đặt trùng và transaction | Chờ review schema | Làm rõ cơ chế PostgreSQL và nguồn trạng thái giữ giờ duy nhất. |
-| Voucher quota trong lúc PENDING | Ngoài MVP | Không triển khai voucher trong lát cắt đầu tiên. |
+| Voucher quota trong lúc PENDING | Đã triển khai sau MVP | Đếm booking còn hiệu lực dưới transaction/advisory lock; booking bị hủy hoặc hết hạn được nhả lượt. |
 | Chính sách hủy cho booking cũ | Ngoài MVP | Không triển khai hủy/hoàn tiền trong lát cắt đầu tiên. |
 | Wireframe màn hình MVP | Có prototype, chờ review | Đối chiếu với luồng MVP và thống nhất nội dung cần chỉnh. |
 | ERD và kiểu password_hash | Chờ review/cập nhật | ERD hiện ghi `VARCHAR(100)`; cần khớp lựa chọn ASP.NET Core Identity. |

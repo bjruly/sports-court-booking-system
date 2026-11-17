@@ -75,3 +75,13 @@ public interface IOwnerCourtService
     Task<(bool Success, string Message)> UpdateOwnerCourtAsync(int courtId, int ownerId, OwnerCourtRequest request);
     Task<(bool Success, string Message)> UpdateOwnerCourtStatusAsync(int courtId, int ownerId, CourtStatus status);
 }
+
+public interface IVoucherService
+{
+    Task<List<OwnerVoucherDto>> GetOwnerVouchersAsync(int ownerId);
+    Task<OwnerVoucherDto?> GetOwnerVoucherAsync(int voucherId, int ownerId);
+    Task<(bool Success, string Message)> CreateOwnerVoucherAsync(int ownerId, OwnerVoucherRequest request);
+    Task<(bool Success, string Message)> UpdateOwnerVoucherAsync(int voucherId, int ownerId, OwnerVoucherRequest request);
+    Task<(bool Success, string Message, bool? IsActive)> ToggleOwnerVoucherAsync(int voucherId, int ownerId);
+    Task<VoucherApplicationDto> ValidateForCourtAsync(int courtId, DateOnly applicationDate, decimal subtotal, string code);
+}

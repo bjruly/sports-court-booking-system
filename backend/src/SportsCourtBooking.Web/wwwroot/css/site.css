@@ -253,6 +253,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .review-summary .summary-line { padding: 13px 0; border-bottom: 1px solid #304b43; }
 .review-summary .summary-total { margin: 4px 0 14px; }
 .review-summary .notice { margin: 15px 0; }
+.voucher-apply-form { padding: 14px 0; border-bottom: 1px solid #304b43; }
+.voucher-apply-fields { display: flex; gap: 8px; }
+.voucher-apply-fields .filter-input { min-width: 0; flex: 1; padding: 0 10px; border: 1px solid #38514a; border-radius: 4px; color: var(--ink); background: #fff; font: inherit; font-size: 11px; }
+.voucher-apply-fields .button { flex: 0 0 auto; padding: 0 12px; }
+.review-summary .voucher-apply-form .field-validation-error { display: block; margin: 7px 0 0; color: #ffb8ae; font-size: 10px; }
 .prototype-disclaimer { margin: 12px 0 0; color: #afbeb4; font-size: 9px; line-height: 1.5; text-align: center; }
 
 .notice { display: flex; align-items: flex-start; gap: 9px; padding: 12px 13px; border: 1px solid transparent; border-radius: 5px; font-size: 10px; line-height: 1.55; }
@@ -552,6 +557,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-form-field--full { grid-column: 1 / -1; }
 .owner-form-field label { display: block; margin-bottom: 6px; color: var(--ink-soft); font-size: 11px; font-weight: 700; }
 .owner-form-field label span { color: var(--danger); }
+.owner-form-field small { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.owner-form-field .checkbox-field { display: flex; align-items: center; gap: 8px; }
+.owner-form-field .checkbox-field input { margin: 0; }
 .owner-form-field textarea.filter-input { height: auto; min-height: 100px; padding: 10px; resize: vertical; }
 .owner-form-field .field-validation-error { display: block; margin-top: 5px; color: var(--danger); font-size: 10px; }
 .owner-form-summary:empty { display: none; }

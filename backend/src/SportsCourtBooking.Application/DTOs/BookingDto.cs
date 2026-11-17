@@ -10,6 +10,7 @@ public class CreateBookingRequest
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
     public string? Note { get; set; }
+    public string? VoucherCode { get; set; }
 }
 
 public class OwnerWalkInBookingRequest
@@ -37,6 +38,8 @@ public class BookingDto
     public decimal TotalPrice { get; set; }
     public BookingStatus Status { get; set; }
     public DateTime? CheckInAt { get; set; }
+    public string? VoucherCode { get; set; }
+    public decimal DiscountAmount { get; set; }
 }
 
 public class BookingDetailDto : BookingDto

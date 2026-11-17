@@ -5,6 +5,7 @@
     var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
     var isCourtList = currentAction is "Courts" or "EditCourt";
     var isPricingManagement = currentAction is "Pricing" or "EditCourt";
+    var isVoucherManagement = currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher";
     var isTodayCheckInView = currentAction == "Bookings"
         && ViewContext.HttpContext.Request.Query["date"] == VietnamClock.Today.ToString("yyyy-MM-dd")
         && ViewContext.HttpContext.Request.Query["status"] == BookingStatus.Confirmed.ToString();
@@ -90,12 +91,15 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isVoucherManagement ? "open" : null)">
             <summary>Quản lý voucher</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Tạo voucher</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Sửa voucher</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Xóa voucher</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "Vouchers" || currentAction == "EditVoucher" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Vouchers"
+                   aria-current="@(currentAction == "Vouchers" ? "page" : null)">Danh sách voucher</a>
+                <a class="admin-menu-item @(currentAction == "CreateVoucher" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CreateVoucher"
+                   aria-current="@(currentAction == "CreateVoucher" ? "page" : null)">Tạo voucher</a>
             </div>
         </details>
 

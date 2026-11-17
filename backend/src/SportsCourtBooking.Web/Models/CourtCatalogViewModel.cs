@@ -70,7 +70,15 @@ public sealed class BookingReviewViewModel
 
     public IReadOnlyList<CourtSlotViewModel> Slots { get; init; } = [];
 
-    public decimal TotalPrice => Slots.Sum(slot => slot.Price);
+    public decimal Subtotal => Slots.Sum(slot => slot.Price);
+
+    public decimal DiscountAmount { get; init; }
+
+    public decimal TotalPrice => Subtotal - DiscountAmount;
+
+    public string? VoucherCode { get; init; }
+
+    public string? VoucherError { get; init; }
 
     public string ReturnUrl { get; init; } = string.Empty;
 }

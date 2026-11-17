@@ -57,7 +57,9 @@ public class BookingService : IBookingService
             StartTime = b.StartTime,
             EndTime = b.EndTime,
             TotalPrice = b.TotalPrice,
-            Status = b.Status
+            Status = b.Status,
+            VoucherCode = b.VoucherCode,
+            DiscountAmount = b.DiscountAmount
         }).ToListAsync();
     }
 
@@ -104,7 +106,9 @@ public class BookingService : IBookingService
                 EndTime = booking.EndTime,
                 TotalPrice = booking.TotalPrice,
                 Status = booking.Status,
-                CheckInAt = booking.CheckInAt
+                CheckInAt = booking.CheckInAt,
+                VoucherCode = booking.VoucherCode,
+                DiscountAmount = booking.DiscountAmount
             })
             .ToListAsync();
     }
@@ -145,7 +149,9 @@ public class BookingService : IBookingService
                 EndTime = booking.EndTime,
                 TotalPrice = booking.TotalPrice,
                 Status = booking.Status,
-                CheckInAt = booking.CheckInAt
+                CheckInAt = booking.CheckInAt,
+                VoucherCode = booking.VoucherCode,
+                DiscountAmount = booking.DiscountAmount
             })
             .ToListAsync();
     }
@@ -170,7 +176,9 @@ public class BookingService : IBookingService
                 StartTime = b.StartTime,
                 EndTime = b.EndTime,
                 TotalPrice = b.TotalPrice,
-                Status = b.Status
+                Status = b.Status,
+                VoucherCode = b.VoucherCode,
+                DiscountAmount = b.DiscountAmount
             }).ToListAsync();
     }
 
@@ -191,7 +199,8 @@ public class BookingService : IBookingService
             request.Note,
             guestName: null,
             guestPhone: null,
-            BookingStatus.Pending);
+            BookingStatus.Pending,
+            request.VoucherCode);
 
     public Task<(bool Success, string Message, BookingDto? Data)> CreateOwnerWalkInBookingAsync(
         int ownerId,
@@ -236,7 +245,8 @@ public class BookingService : IBookingService
         string? note,
         string? guestName,
         string? guestPhone,
-        BookingStatus status)
+        BookingStatus status,
+        string? voucherCode = null)
     {
         var rangeError = BookingRules.ValidateTimeRange(
             bookingDate, startTime, endTime, VietnamClock.Now);
@@ -285,6 +295,23 @@ public class BookingService : IBookingService
                 return (false, "Khung giờ này đã có người đặt. Vui lòng chọn khung giờ khác!", null);
 
             // 3. Giá = tổng giá từng khung giờ (đã gồm phụ thu giờ cao điểm), cùng công thức với giao diện
+            var subtotal = BookingRules.CalculateTotalPrice(
+                court.PricePerHour, startTime, endTime, court.PeakStartHour, court.PeakSurcharge);
+            Voucher? voucher = null;
+            var discountAmount = 0m;
+            if (!string.IsNullOrWhiteSpace(voucherCode))
+            {
+                var voucherResult = await GetVoucherForBookingAsync(
+                    court.OwnerId, voucherCode, VietnamClock.Today, subtotal);
+                if (voucherResult.Error is not null)
+                {
+                    return (false, voucherResult.Error, null);
+                }
+
+                voucher = voucherResult.Voucher;
+                discountAmount = voucherResult.DiscountAmount;
+            }
+
             var createdAt = DateTime.UtcNow;
             var booking = new Booking
             {
@@ -295,8 +322,10 @@ public class BookingService : IBookingService
                 BookingDate = bookingDate,
                 StartTime = startTime,
                 EndTime = endTime,
-                TotalPrice = BookingRules.CalculateTotalPrice(
-                    court.PricePerHour, startTime, endTime, court.PeakStartHour, court.PeakSurcharge),
+                TotalPrice = subtotal - discountAmount,
+                VoucherId = voucher?.Id,
+                VoucherCode = voucher?.Code,
+                DiscountAmount = discountAmount,
                 Note = note,
                 Status = status,
                 CreatedAt = createdAt,
@@ -325,7 +354,9 @@ public class BookingService : IBookingService
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
                 TotalPrice = booking.TotalPrice,
-                Status = booking.Status
+                Status = booking.Status,
+                VoucherCode = booking.VoucherCode,
+                DiscountAmount = booking.DiscountAmount
             });
         }
         catch (DbUpdateException ex) when (
@@ -343,6 +374,52 @@ public class BookingService : IBookingService
             _logger.LogError(ex, "Không thể tạo booking cho sân {CourtId} ngày {Date}", courtId, bookingDate);
             return (false, "Hệ thống đang bận hoặc gặp lỗi khi lưu đơn đặt sân. Vui lòng thử lại.", null);
         }
+    }
+
+    private async Task<(Voucher? Voucher, decimal DiscountAmount, string? Error)> GetVoucherForBookingAsync(
+        int ownerId,
+        string code,
+        DateOnly bookingDate,
+        decimal subtotal)
+    {
+        var normalizedCode = code.Trim().ToUpperInvariant();
+        var voucherId = await _context.Vouchers
+            .Where(voucher => voucher.OwnerId == ownerId && voucher.Code == normalizedCode)
+            .Select(voucher => (int?)voucher.Id)
+            .SingleOrDefaultAsync();
+        if (!voucherId.HasValue)
+        {
+            return (null, 0m, "Mã voucher không tồn tại hoặc không áp dụng cho sân này.");
+        }
+
+        if (_context.Database.IsNpgsql())
+        {
+            var lockKey = $"voucher:{voucherId.Value}";
+            await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT pg_advisory_xact_lock(hashtext({lockKey}))");
+        }
+
+        var voucher = await _context.Vouchers.SingleOrDefaultAsync(item => item.Id == voucherId.Value);
+        if (voucher is null || voucher.OwnerId != ownerId || voucher.Code != normalizedCode)
+        {
+            return (null, 0m, "Voucher đã thay đổi. Vui lòng kiểm tra lại mã.");
+        }
+
+        var now = DateTime.UtcNow;
+        var usedCount = await _context.Bookings.CountAsync(booking =>
+            booking.VoucherId == voucher.Id
+            && booking.Status != BookingStatus.Cancelled
+            && booking.Status != BookingStatus.Expired
+            && (booking.Status != BookingStatus.Pending
+                || !booking.ExpiresAt.HasValue
+                || booking.ExpiresAt.Value > now));
+        var validationError = VoucherRules.ValidateApplication(voucher, bookingDate, usedCount);
+        if (validationError is not null)
+        {
+            return (null, 0m, validationError);
+        }
+
+        return (voucher, VoucherRules.CalculateDiscount(subtotal, voucher), null);
     }
 
     private async Task<bool> IsTimeSlotAvailableCoreAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
@@ -579,6 +656,8 @@ public async Task<BookingDetailDto?> GetOwnBookingAsync(
             EndTime = b.EndTime,
             TotalPrice = b.TotalPrice,
             Status = b.Status,
+            VoucherCode = b.VoucherCode,
+            DiscountAmount = b.DiscountAmount,
             Note = b.Note,
             CreatedAt = b.CreatedAt,
             ExpiresAt = b.ExpiresAt,

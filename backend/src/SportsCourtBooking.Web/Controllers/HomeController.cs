@@ -15,15 +15,18 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
     private readonly ICourtService _courtService;
     private readonly IBookingService _bookingService;
+    private readonly IVoucherService _voucherService;
 
     public HomeController(
         ILogger<HomeController> logger,
         ICourtService courtService,
-        IBookingService bookingService)
+        IBookingService bookingService,
+        IVoucherService voucherService)
     {
         _logger = logger;
         _courtService = courtService;
         _bookingService = bookingService;
+        _voucherService = voucherService;
     }
 
     public async Task<IActionResult> Index(string? sport, string? area, DateOnly? date)
@@ -64,7 +67,7 @@ public class HomeController : Controller
         return View(schedule);
     }
 
-    public async Task<IActionResult> Review(int id, DateOnly? date, int[]? selectedHours)
+    public async Task<IActionResult> Review(int id, DateOnly? date, int[]? selectedHours, string? voucherCode)
     {
         var allCourts = await LoadCourtCardsFromDbAsync();
         var court = allCourts.SingleOrDefault(item => item.Id == id);
@@ -102,15 +105,24 @@ public class HomeController : Controller
         {
             id,
             date = playDate.ToString("yyyy-MM-dd"),
-            selectedHours = hours
+            selectedHours = hours,
+            voucherCode
         }) ?? Url.Action(nameof(Index))!;
+
+        var voucher = string.IsNullOrWhiteSpace(voucherCode)
+            ? null
+            : await _voucherService.ValidateForCourtAsync(
+                id, VietnamClock.Today, selectedSlots.Sum(slot => slot.Price), voucherCode);
 
         return View(new BookingReviewViewModel
         {
             Court = court,
             PlayDate = playDate,
             Slots = selectedSlots,
-            ReturnUrl = returnUrl
+            ReturnUrl = returnUrl,
+            VoucherCode = voucher?.Code,
+            VoucherError = voucher is { Success: false } ? voucher.Message : null,
+            DiscountAmount = voucher is { Success: true } ? voucher.DiscountAmount : 0m
         });
     }
 
@@ -127,7 +139,12 @@ public class HomeController : Controller
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ConfirmBooking(int id, DateOnly date, int[]? selectedHours, string? note)
+    public async Task<IActionResult> ConfirmBooking(
+        int id,
+        DateOnly date,
+        int[]? selectedHours,
+        string? note,
+        string? voucherCode)
     {
         // Kiểm tra phía server: gửi thẳng request (bỏ qua giao diện) cũng không thể đặt giờ sai quy tắc.
         if (!BookingRules.TryNormalizeHours(selectedHours, out var hours, out var hoursError))
@@ -153,13 +170,20 @@ public class HomeController : Controller
             BookingDate = date,
             StartTime = startTime,
             EndTime = endTime,
-            Note = note
+            Note = note,
+            VoucherCode = voucherCode
         });
 
         if (!result.Success)
         {
             TempData["ErrorMessage"] = result.Message;
-            return RedirectToAction(nameof(Schedule), new { id, date = date.ToString("yyyy-MM-dd") });
+            return RedirectToAction(nameof(Review), new
+            {
+                id,
+                date = date.ToString("yyyy-MM-dd"),
+                selectedHours = hours,
+                voucherCode
+            });
         }
 
         TempData["SuccessMessage"] =

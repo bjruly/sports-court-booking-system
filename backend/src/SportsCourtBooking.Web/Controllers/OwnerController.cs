@@ -17,15 +17,18 @@ public class OwnerController : Controller
     private readonly IOwnerDashboardService _dashboardService;
     private readonly IOwnerCourtService _courtService;
     private readonly IBookingService _bookingService;
+    private readonly IVoucherService _voucherService;
 
     public OwnerController(
         IOwnerDashboardService dashboardService,
         IOwnerCourtService courtService,
-        IBookingService bookingService)
+        IBookingService bookingService,
+        IVoucherService voucherService)
     {
         _dashboardService = dashboardService;
         _courtService = courtService;
         _bookingService = bookingService;
+        _voucherService = voucherService;
     }
 
     [HttpGet]
@@ -63,6 +66,121 @@ public class OwnerController : Controller
         }
 
         return View(await _courtService.GetOwnerCourtsAsync(ownerId.Value));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Vouchers()
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        return View(await _voucherService.GetOwnerVouchersAsync(ownerId.Value));
+    }
+
+    [HttpGet]
+    public IActionResult CreateVoucher()
+        => View(new OwnerVoucherFormViewModel
+        {
+            StartDate = VietnamClock.Today,
+            EndDate = VietnamClock.Today.AddDays(30)
+        });
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateVoucher(OwnerVoucherFormViewModel model)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _voucherService.CreateOwnerVoucherAsync(ownerId.Value, model);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Vouchers));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditVoucher(int id)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var voucher = await _voucherService.GetOwnerVoucherAsync(id, ownerId.Value);
+        if (voucher is null)
+        {
+            return NotFound();
+        }
+
+        return View(new OwnerVoucherFormViewModel
+        {
+            Id = voucher.Id,
+            Code = voucher.Code,
+            DiscountType = voucher.DiscountType,
+            DiscountValue = voucher.DiscountValue,
+            StartDate = voucher.StartDate,
+            EndDate = voucher.EndDate,
+            UsageLimit = voucher.UsageLimit,
+            IsActive = voucher.IsActive
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditVoucher(int id, OwnerVoucherFormViewModel model)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _voucherService.UpdateOwnerVoucherAsync(id, ownerId.Value, model);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Vouchers));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleVoucherStatus(int id)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _voucherService.ToggleOwnerVoucherAsync(id, ownerId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Vouchers));
     }
 
     [HttpGet]

@@ -64,7 +64,9 @@ Các màn hình có thể được nhóm thành cùng một trang Razor nếu ph
 ### UI-05 — Xác nhận đặt sân
 
 - Tóm tắt cơ sở/sân, ngày, các khung giờ, giá từng khung và tổng tiền.
-- Mã voucher, thanh toán và hủy không xuất hiện trong luồng MVP.
+- Trong phạm vi MVP ban đầu, mã voucher, thanh toán và hủy không xuất hiện.
+- Phần mở rộng voucher hiện có trên trang xem lại: nhập mã, kiểm tra theo chủ sân/ngày áp dụng/lượt dùng và hiển thị tạm tính, tiền giảm, tổng tiền; server kiểm tra lại mã khi tạo booking.
+- Áp dụng voucher không đồng nghĩa thanh toán; booking vẫn ở trạng thái `PENDING`.
 - Nút chính: **Tạo booking**; nút phụ quay lại lịch.
 - Trạng thái: mặc định; đang gửi (khóa nút để tránh gửi lặp); tạo thành công; giờ không còn trống; dữ liệu không hợp lệ; lỗi hệ thống.
 - Nếu người dùng chưa đăng nhập, chuyển sang UI-02/UI-01; quay lại phải kiểm tra lại lịch.
