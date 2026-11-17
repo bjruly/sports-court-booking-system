@@ -26,26 +26,96 @@ public class HomeController : Controller
         _bookingService = bookingService;
     }
 
-    public async Task<IActionResult> Index(string? sport, string? area, DateOnly? date)
-    {
-        var allCourts = await LoadCourtCardsFromDbAsync();
-
-        var courts = allCourts
-            .Where(court => string.IsNullOrWhiteSpace(sport)
-                || court.Sport.Contains(sport, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(court.Sport, sport, StringComparison.OrdinalIgnoreCase))
-            .Where(court => string.IsNullOrWhiteSpace(area)
-                || court.District.Contains(area, StringComparison.OrdinalIgnoreCase)
-                || court.City.Contains(area, StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-
-        return View(new CourtCatalogViewModel
+    public async Task<IActionResult> Index(string? sport, string? area, DateOnly? date, decimal? minPrice, decimal? maxPrice, string? sortBy)
+   {
+    if (!ModelState.IsValid)
         {
-            Sport = sport,
-            Area = area,
-            PlayDate = date ?? VietnamClock.Today.AddDays(1),
-            Courts = courts
-        });
+        TempData["ErrorMessage"] =
+            "Dữ liệu tìm kiếm không hợp lệ. Vui lòng chọn lại.";
+
+        return RedirectToAction(nameof(Index));
+        }
+
+    if ((minPrice.HasValue && minPrice.Value < 0)
+        || (maxPrice.HasValue && maxPrice.Value < 0))
+        {
+        TempData["ErrorMessage"] =
+            "Giá tìm kiếm không được là số âm.";
+
+        return RedirectToAction(nameof(Index));
+       }
+
+    if (minPrice.HasValue
+        && maxPrice.HasValue
+        && minPrice.Value > maxPrice.Value)
+       {
+        TempData["ErrorMessage"] =
+            "Giá thấp nhất phải nhỏ hơn hoặc bằng giá cao nhất.";
+
+        return RedirectToAction(nameof(Index));
+       }
+
+    var allCourts = await LoadCourtCardsFromDbAsync();
+
+    var courts = allCourts
+        .Where(court =>
+            string.IsNullOrWhiteSpace(sport)
+            || court.Sport.Contains(
+                sport,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+        .Where(court =>
+            string.IsNullOrWhiteSpace(area)
+            || court.District.Contains(
+                area,
+                StringComparison.OrdinalIgnoreCase
+            )
+            || court.City.Contains(
+                area,
+                StringComparison.OrdinalIgnoreCase
+            )
+        );
+
+    if (minPrice.HasValue)
+       {
+        courts = courts.Where(court =>
+            court.StartingPrice >= minPrice.Value
+        );
+       }
+
+    if (maxPrice.HasValue)
+    {
+        courts = courts.Where(court =>
+            court.StartingPrice <= maxPrice.Value
+        );
+    }
+
+    var selectedSort = "default";
+
+    if (sortBy == "price_asc")
+    {
+        courts = courts.OrderBy(court => court.StartingPrice);
+        selectedSort = "price_asc";
+    }
+    else if (sortBy == "price_desc")
+    {
+        courts = courts.OrderByDescending(court => court.StartingPrice);
+        selectedSort = "price_desc";
+    }
+
+    var viewModel = new CourtCatalogViewModel
+    {
+        Sport = sport,
+        Area = area,
+        PlayDate = date ?? VietnamClock.Today.AddDays(1),
+        MinPrice = minPrice,
+        MaxPrice = maxPrice,
+        SortBy = selectedSort,
+        Courts = courts.ToArray()
+    };
+
+    return View(viewModel);
     }
 
     public async Task<IActionResult> Schedule(int id, DateOnly? date)

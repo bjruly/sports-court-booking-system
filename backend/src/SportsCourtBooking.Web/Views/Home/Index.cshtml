@@ -59,6 +59,29 @@
                 <span>NGÀY CHƠI</span>
                 <input type="date" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" />
             </label>
+            <label class="filter-field">
+            <span>GIÁ TỪ (Đ/GIỜ)</span>
+
+            <input type="number" name="minPrice" min="0" step="any" value="@(Model.MinPrice?.ToString(CultureInfo.InvariantCulture))" placeholder="Ví dụ: 80000" />
+            </label>
+
+            <label class="filter-field">
+            <span>GIÁ ĐẾN (Đ/GIỜ)</span>
+
+            <input type="number" name="maxPrice" min="0" step="any" value="@(Model.MaxPrice?.ToString(CultureInfo.InvariantCulture))" placeholder="Ví dụ: 150000" />
+            </label>
+
+            <label class="filter-field">
+            <span>SẮP XẾP</span>
+
+            <select name="sortBy">
+            <option value="default" selected="@(Model.SortBy == "default")">Mặc định</option>
+
+            <option value="price_asc" selected="@(Model.SortBy == "price_asc")">Giá thấp đến cao</option>
+
+            <option value="price_desc" selected="@(Model.SortBy == "price_desc")">Giá cao đến thấp</option>
+            </select>
+            </label>
             <button class="button button--search" type="submit">Tìm sân <span aria-hidden="true">↗</span></button>
         </form>
 

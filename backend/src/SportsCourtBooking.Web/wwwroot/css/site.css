@@ -566,3 +566,55 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .button--danger  { background: #c0392b; border-color: #c0392b; color: #fff; }
 .button--danger:hover  { background: #a53223; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+/* Bộ lọc tìm sân: môn, khu vực, ngày, giá và sắp xếp */
+.search-panel {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+    gap: 18px;
+}
+
+.search-panel .search-intro {
+    grid-column: 1 / -1;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.search-panel .filter-field {
+    min-width: 0;
+    padding-left: 0;
+    border-left: 0;
+}
+
+.search-panel .filter-field--date {
+    grid-column: auto;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.search-panel .filter-field input,
+.search-panel .filter-field select {
+    width: 100%;
+    height: 40px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--white);
+}
+
+.search-panel .button--search {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+@media (max-width: 720px) {
+    .search-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .search-panel {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
