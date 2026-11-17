@@ -8,6 +8,10 @@ public sealed class CourtCatalogViewModel
 
     public DateOnly PlayDate { get; init; }
 
+    public int? StartHour { get; init; }
+
+    public int? EndHour { get; init; }
+
     public IReadOnlyList<CourtCardViewModel> Courts { get; init; } = [];
 
     public decimal? MinPrice { get; init; }

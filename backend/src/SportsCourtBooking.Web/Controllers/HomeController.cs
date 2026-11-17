@@ -26,8 +26,8 @@ public class HomeController : Controller
         _bookingService = bookingService;
     }
 
-    public async Task<IActionResult> Index(string? sport, string? area, DateOnly? date, decimal? minPrice, decimal? maxPrice, string? sortBy)
-   {
+    public async Task<IActionResult> Index(string? sport, string? area, DateOnly? date, decimal? minPrice, decimal? maxPrice, string? sortBy, int? startHour, int? endHour)
+    {
     if (!ModelState.IsValid)
         {
         TempData["ErrorMessage"] =
@@ -54,6 +54,50 @@ public class HomeController : Controller
 
         return RedirectToAction(nameof(Index));
        }
+
+    var playDate = date ?? VietnamClock.Today.AddDays(1);
+
+    TimeOnly? searchStartTime = null;
+    TimeOnly? searchEndTime = null;
+
+    if (startHour.HasValue != endHour.HasValue)
+    {
+    TempData["ErrorMessage"] =
+        "Vui lòng chọn đủ giờ bắt đầu và giờ kết thúc.";
+
+    return RedirectToAction(nameof(Index));
+    }
+
+    if (startHour.HasValue && endHour.HasValue)
+    {
+    if (startHour.Value < BookingRules.OpeningHour
+        || startHour.Value >= BookingRules.ClosingHour
+        || endHour.Value <= BookingRules.OpeningHour
+        || endHour.Value > BookingRules.ClosingHour)
+    {
+        TempData["ErrorMessage"] =
+            "Vui lòng chọn giờ chơi trong khoảng 06:00–22:00.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    searchStartTime = new TimeOnly(startHour.Value, 0);
+    searchEndTime = new TimeOnly(endHour.Value, 0);
+
+    var timeError = BookingRules.ValidateTimeRange(
+        playDate,
+        searchStartTime.Value,
+        searchEndTime.Value,
+        VietnamClock.Now
+    );
+
+    if (timeError != null)
+    {
+        TempData["ErrorMessage"] = timeError;
+
+        return RedirectToAction(nameof(Index));
+    }
+    }
 
     var allCourts = await LoadCourtCardsFromDbAsync();
 
@@ -89,6 +133,25 @@ public class HomeController : Controller
         courts = courts.Where(court =>
             court.StartingPrice <= maxPrice.Value
         );
+    }
+
+    if (searchStartTime.HasValue && searchEndTime.HasValue)
+    {
+    var bookings = await _bookingService.GetBookingsByDateAsync(
+        playDate
+    );
+
+    var busyCourtIds = bookings
+        .Where(booking =>
+            searchStartTime.Value < booking.EndTime
+            && searchEndTime.Value > booking.StartTime
+        )
+        .Select(booking => booking.CourtId)
+        .ToHashSet();
+
+    courts = courts.Where(court =>
+        !busyCourtIds.Contains(court.Id)
+    );
     }
 
     var selectedSort = "default";

@@ -1,5 +1,6 @@
 @using System.Globalization
 @model CourtCatalogViewModel
+@using SportsCourtBooking.Application.Rules
 
 @{
     ViewData["Title"] = "Tìm sân thể thao";
@@ -36,6 +37,41 @@
 
 <section class="search-section" id="court-search">
     <div class="shell">
+        <details class="court-search-collapse">
+        <summary class="court-search-toggle">
+    <span class="court-search-heading">
+        <span class="court-search-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="1.7" stroke-linecap="round">
+                <path d="M4 7h16M4 17h16" />
+                <circle cx="9" cy="7" r="3" fill="currentColor"
+                        stroke="none" />
+                <circle cx="15" cy="17" r="3" fill="currentColor"
+                        stroke="none" />
+            </svg>
+        </span>
+
+        <span class="court-search-copy">
+            <strong>Tìm sân theo ý bạn</strong>
+            <small>Chọn môn, khu vực, giờ chơi và mức giá</small>
+        </span>
+    </span>
+
+    <span class="court-search-action">
+        <span class="court-search-closed">Mở bộ lọc</span>
+        <span class="court-search-open">Thu gọn</span>
+
+        <span class="court-search-arrow" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6" />
+            </svg>
+        </span>
+    </span>
+</summary>
         <form class="search-panel" asp-controller="Home" asp-action="Index" method="get">
             <div class="search-intro">
                 <span class="search-icon" aria-hidden="true">⌕</span>
@@ -60,6 +96,41 @@
                 <input type="date" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" />
             </label>
             <label class="filter-field">
+            <label class="filter-field">
+            <span>GIỜ BẮT ĐẦU</span>
+
+            <select name="startHour">
+            <option value="">Chưa chọn</option>
+
+            @foreach (var hour in Enumerable.Range(
+            BookingRules.OpeningHour,
+            BookingRules.ClosingHour - BookingRules.OpeningHour))
+            {
+            <option value="@hour"
+                    selected="@(Model.StartHour == hour)">
+                @($"{hour:00}:00")
+            </option>
+           }
+           </select>
+           </label>
+
+           <label class="filter-field">
+           <span>GIỜ KẾT THÚC</span>
+
+           <select name="endHour">
+           <option value="">Chưa chọn</option>
+
+           @foreach (var hour in Enumerable.Range(
+            BookingRules.OpeningHour + 1,
+            BookingRules.ClosingHour - BookingRules.OpeningHour))
+           {
+            <option value="@hour"
+                    selected="@(Model.EndHour == hour)">
+                @($"{hour:00}:00")
+            </option>
+         }
+            </select>
+            </label>
             <span>GIÁ TỪ (Đ/GIỜ)</span>
 
             <input type="number" name="minPrice" min="0" step="any" value="@(Model.MinPrice?.ToString(CultureInfo.InvariantCulture))" placeholder="Ví dụ: 80000" />
@@ -84,6 +155,7 @@
             </label>
             <button class="button button--search" type="submit">Tìm sân <span aria-hidden="true">↗</span></button>
         </form>
+        </details>
 
         <div class="section-heading">
             <div>
