@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
+using SportsCourtBooking.Application.Rules;
 using SportsCourtBooking.Domain.Entities;
 using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
@@ -32,6 +33,8 @@ public class OwnerCourtService : IOwnerCourtService
                 Description = court.Description,
                 ImageUrl = court.ImageUrl,
                 PricePerHour = court.PricePerHour,
+                PeakStartHour = court.PeakStartHour,
+                PeakSurcharge = court.PeakSurcharge,
                 Status = court.Status
             })
             .ToListAsync();
@@ -65,6 +68,8 @@ public class OwnerCourtService : IOwnerCourtService
                 Description = court.Description,
                 ImageUrl = court.ImageUrl,
                 PricePerHour = court.PricePerHour,
+                PeakStartHour = court.PeakStartHour,
+                PeakSurcharge = court.PeakSurcharge,
                 Status = court.Status
             })
             .SingleOrDefaultAsync();
@@ -86,6 +91,8 @@ public class OwnerCourtService : IOwnerCourtService
             Description = NormalizeOptional(request.Description),
             ImageUrl = NormalizeOptional(request.ImageUrl),
             PricePerHour = pricePerHour,
+            PeakStartHour = request.PeakStartHour,
+            PeakSurcharge = request.PeakSurcharge,
             Status = request.Status
         });
 
@@ -138,6 +145,9 @@ public class OwnerCourtService : IOwnerCourtService
         return Enum.IsDefined(request.Status)
             && request.PricePerHour.HasValue
             && request.PricePerHour.Value > 0
+            && request.PeakStartHour >= BookingRules.OpeningHour
+            && request.PeakStartHour < BookingRules.ClosingHour
+            && request.PeakSurcharge >= 0
             && await _context.CourtTypes.AnyAsync(courtType => courtType.Id == request.CourtTypeId);
     }
 
@@ -149,6 +159,8 @@ public class OwnerCourtService : IOwnerCourtService
         court.Description = NormalizeOptional(request.Description);
         court.ImageUrl = NormalizeOptional(request.ImageUrl);
         court.PricePerHour = pricePerHour;
+        court.PeakStartHour = request.PeakStartHour;
+        court.PeakSurcharge = request.PeakSurcharge;
         court.Status = request.Status;
     }
 

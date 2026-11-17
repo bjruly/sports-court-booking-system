@@ -39,6 +39,8 @@ public class CourtService : ICourtService
             Description = c.Description,
             ImageUrl = c.ImageUrl,
             PricePerHour = c.PricePerHour,
+            PeakStartHour = c.PeakStartHour,
+            PeakSurcharge = c.PeakSurcharge,
             Status = c.Status
         }).ToListAsync();
     }
@@ -58,6 +60,8 @@ public class CourtService : ICourtService
             Description = c.Description,
             ImageUrl = c.ImageUrl,
             PricePerHour = c.PricePerHour,
+            PeakStartHour = c.PeakStartHour,
+            PeakSurcharge = c.PeakSurcharge,
             Status = c.Status
         };
     }

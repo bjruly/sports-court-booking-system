@@ -71,6 +71,30 @@ public class OwnerCourtServiceTests
         Assert.Equal(4, createdCourt.OwnerId);
     }
 
+    [Fact]
+    public async Task UpdateOwnerCourtAsync_SavesPerCourtPeakPricing()
+    {
+        await using var context = CreateContext();
+        context.Database.EnsureCreated();
+        var service = new OwnerCourtService(context);
+
+        var result = await service.UpdateOwnerCourtAsync(1, 3, new OwnerCourtRequest
+        {
+            Name = "Sân Cầu Lông VIP 1",
+            CourtTypeId = 1,
+            Location = "Khu A - Tầng 1",
+            PricePerHour = 80_000,
+            PeakStartHour = 18,
+            PeakSurcharge = 25_000,
+            Status = CourtStatus.Active
+        });
+
+        Assert.True(result.Success);
+        var updatedCourt = await context.Courts.SingleAsync(court => court.Id == 1);
+        Assert.Equal(18, updatedCourt.PeakStartHour);
+        Assert.Equal(25_000m, updatedCourt.PeakSurcharge);
+    }
+
     private static AppDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

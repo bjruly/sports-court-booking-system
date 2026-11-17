@@ -4,6 +4,7 @@
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
     var isCourtList = currentAction is "Courts" or "EditCourt";
+    var isPricingManagement = currentAction is "Pricing" or "EditCourt";
     var isTodayCheckInView = currentAction == "Bookings"
         && ViewContext.HttpContext.Request.Query["date"] == VietnamClock.Today.ToString("yyyy-MM-dd")
         && ViewContext.HttpContext.Request.Query["status"] == BookingStatus.Confirmed.ToString();
@@ -80,10 +81,12 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isPricingManagement ? "open" : null)">
             <summary>Quản lý bảng giá</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Thiết lập giá theo khung giờ</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "Pricing" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Pricing"
+                   aria-current="@(currentAction == "Pricing" ? "page" : null)">Giá theo khung giờ</a>
             </div>
         </details>
 

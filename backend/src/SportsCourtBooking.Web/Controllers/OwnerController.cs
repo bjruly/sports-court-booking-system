@@ -54,6 +54,18 @@ public class OwnerController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> Pricing()
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        return View(await _courtService.GetOwnerCourtsAsync(ownerId.Value));
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Bookings(DateOnly? date, int? courtId, BookingStatus? status)
     {
         var ownerId = User.GetUserId();
@@ -321,6 +333,8 @@ public class OwnerController : Controller
             Description = court.Description,
             ImageUrl = court.ImageUrl,
             PricePerHour = court.PricePerHour,
+            PeakStartHour = court.PeakStartHour,
+            PeakSurcharge = court.PeakSurcharge,
             Status = court.Status
         };
         await PopulateCourtTypesAsync(model);

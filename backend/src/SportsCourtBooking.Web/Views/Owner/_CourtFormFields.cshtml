@@ -27,6 +27,21 @@
         <span asp-validation-for="PricePerHour" class="field-validation-error"></span>
     </div>
     <div class="owner-form-field">
+        <label asp-for="PeakStartHour">Bắt đầu giờ cao điểm</label>
+        <select asp-for="PeakStartHour" class="filter-input">
+            @for (var hour = 6; hour < 22; hour++)
+            {
+                <option value="@hour">@($"{hour:00}:00")</option>
+            }
+        </select>
+        <span asp-validation-for="PeakStartHour" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="PeakSurcharge">Phụ thu cao điểm / giờ (đ)</label>
+        <input asp-for="PeakSurcharge" class="filter-input" type="number" min="0" step="1000" />
+        <span asp-validation-for="PeakSurcharge" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
         <label asp-for="Status">Trạng thái</label>
         <select asp-for="Status" class="filter-input">
             @foreach (var status in Enum.GetValues<CourtStatus>())

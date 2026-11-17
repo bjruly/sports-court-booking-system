@@ -31,6 +31,19 @@ public class BookingRulesTests
         Assert.Equal(340_000m, total);
     }
 
+    [Fact]
+    public void CalculateTotalPrice_UsesConfiguredPeakHourAndSurcharge()
+    {
+        var total = BookingRules.CalculateTotalPrice(
+            80_000m,
+            new TimeOnly(16, 0),
+            new TimeOnly(19, 0),
+            peakStartHour: 18,
+            peakSurcharge: 25_000m);
+
+        Assert.Equal(265_000m, total);
+    }
+
     // ---------- Chọn giờ ----------
 
     [Fact]

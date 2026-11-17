@@ -222,6 +222,8 @@ public class HomeController : Controller
             City = "TP. Hồ Chí Minh",
             OpeningHours = $"{BookingRules.OpeningHour:00}:00–{BookingRules.ClosingHour:00}:00",
             StartingPrice = c.PricePerHour,
+            PeakStartHour = c.PeakStartHour,
+            PeakSurcharge = c.PeakSurcharge,
             Description = c.Description ?? "Không gian thoáng, sân đạt chuẩn thi đấu.",
             VisualClass = visualClasses[index % visualClasses.Length]
         }).ToArray();
@@ -248,7 +250,8 @@ public class HomeController : Controller
                 {
                     StartHour = hour,
                     // Cùng công thức giá với BookingService nên giá hiển thị luôn khớp giá lưu trong database
-                    Price = BookingRules.GetSlotPrice(court.StartingPrice, hour),
+                    Price = BookingRules.GetSlotPrice(
+                        court.StartingPrice, hour, court.PeakStartHour, court.PeakSurcharge),
                     IsAvailable = !isBookedInDb && !isPast,
                     StatusLabel = isBookedInDb ? "Đã có người đặt" : isPast ? "Đã qua" : "Còn trống"
                 };

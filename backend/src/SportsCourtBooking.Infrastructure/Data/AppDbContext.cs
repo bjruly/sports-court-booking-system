@@ -45,6 +45,10 @@ public class AppDbContext : DbContext
             entity.Property(c => c.Name).IsRequired().HasMaxLength(150);
             entity.Property(c => c.Location).IsRequired().HasMaxLength(255);
             entity.Property(c => c.PricePerHour).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.PeakSurcharge).HasColumnType("decimal(18,2)");
+            entity.ToTable(table => table.HasCheckConstraint(
+                "ck_courts_peak_pricing",
+                "\"PeakStartHour\" >= 6 AND \"PeakStartHour\" < 22 AND \"PeakSurcharge\" >= 0"));
 
             entity.HasIndex(c => c.OwnerId);
 

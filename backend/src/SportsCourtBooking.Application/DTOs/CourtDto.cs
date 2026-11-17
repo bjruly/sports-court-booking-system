@@ -12,5 +12,7 @@ public class CourtDto
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
     public decimal PricePerHour { get; set; }
+    public int PeakStartHour { get; set; } = 17;
+    public decimal PeakSurcharge { get; set; } = 50_000m;
     public CourtStatus Status { get; set; }
 }

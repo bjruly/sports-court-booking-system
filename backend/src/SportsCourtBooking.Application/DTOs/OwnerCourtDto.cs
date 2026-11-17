@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SportsCourtBooking.Application.Rules;
 using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Application.DTOs;
@@ -26,6 +27,12 @@ public class OwnerCourtRequest
     [Required(ErrorMessage = "Vui lòng nhập giá mỗi giờ.")]
     [Range(typeof(decimal), "1", "9999999999999999", ErrorMessage = "Giá mỗi giờ phải lớn hơn 0.")]
     public decimal? PricePerHour { get; set; }
+
+    [Range(BookingRules.OpeningHour, BookingRules.ClosingHour - 1, ErrorMessage = "Giờ bắt đầu cao điểm phải từ 06:00 đến 21:00.")]
+    public int PeakStartHour { get; set; } = BookingRules.PeakStartHour;
+
+    [Range(typeof(decimal), "0", "9999999999999999", ErrorMessage = "Phụ thu cao điểm không được âm.")]
+    public decimal PeakSurcharge { get; set; } = BookingRules.PeakSurcharge;
 
     [EnumDataType(typeof(CourtStatus), ErrorMessage = "Trạng thái sân không hợp lệ.")]
     public CourtStatus Status { get; set; } = CourtStatus.Active;

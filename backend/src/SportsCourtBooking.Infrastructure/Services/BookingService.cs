@@ -295,7 +295,8 @@ public class BookingService : IBookingService
                 BookingDate = bookingDate,
                 StartTime = startTime,
                 EndTime = endTime,
-                TotalPrice = BookingRules.CalculateTotalPrice(court.PricePerHour, startTime, endTime),
+                TotalPrice = BookingRules.CalculateTotalPrice(
+                    court.PricePerHour, startTime, endTime, court.PeakStartHour, court.PeakSurcharge),
                 Note = note,
                 Status = status,
                 CreatedAt = createdAt,

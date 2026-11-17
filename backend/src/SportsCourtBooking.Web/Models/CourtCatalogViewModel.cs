@@ -1,3 +1,5 @@
+using SportsCourtBooking.Application.Rules;
+
 namespace SportsCourtBooking.Web.Models;
 
 public sealed class CourtCatalogViewModel
@@ -28,6 +30,10 @@ public sealed class CourtCardViewModel
     public string OpeningHours { get; init; } = string.Empty;
 
     public decimal StartingPrice { get; init; }
+
+    public int PeakStartHour { get; init; } = BookingRules.PeakStartHour;
+
+    public decimal PeakSurcharge { get; init; } = BookingRules.PeakSurcharge;
 
     public string Description { get; init; } = string.Empty;
 
