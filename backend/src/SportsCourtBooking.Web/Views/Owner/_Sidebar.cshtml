@@ -132,7 +132,9 @@
                 <a class="admin-menu-item @(currentAction == "Profile" ? "admin-menu-item--active" : string.Empty)"
                    asp-controller="Owner" asp-action="Profile"
                    aria-current="@(currentAction == "Profile" ? "page" : null)">Hồ sơ cá nhân</a>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Đổi mật khẩu</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "ChangePassword" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="ChangePassword"
+                   aria-current="@(currentAction == "ChangePassword" ? "page" : null)">Đổi mật khẩu</a>
             </div>
         </details>
     </nav>

@@ -10,10 +10,12 @@ namespace SportsCourtBooking.Infrastructure.Services;
 public class UserService : IUserService
 {
     private readonly AppDbContext _context;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public UserService(AppDbContext context)
+    public UserService(AppDbContext context, IPasswordHasher passwordHasher)
     {
         _context = context;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<List<UserDto>> GetCustomersAsync(string? search = null)
@@ -109,5 +111,50 @@ public class UserService : IUserService
             PhoneNumber = user.PhoneNumber,
             CreatedAt = user.CreatedAt
         });
+    }
+
+    public async Task<(bool Success, string Message)> ChangeOwnerPasswordAsync(
+        int ownerId,
+        OwnerChangePasswordRequest request)
+    {
+        var currentPassword = request.CurrentPassword ?? string.Empty;
+        var newPassword = request.NewPassword ?? string.Empty;
+        if (currentPassword.Length is 0 or > 100)
+        {
+            return (false, "Mật khẩu hiện tại không hợp lệ.");
+        }
+
+        if (newPassword.Length is < 8 or > 100)
+        {
+            return (false, "Mật khẩu mới phải từ 8 đến 100 ký tự.");
+        }
+
+        if (!string.Equals(newPassword, request.ConfirmPassword, StringComparison.Ordinal))
+        {
+            return (false, "Mật khẩu xác nhận không khớp.");
+        }
+
+        var user = await _context.Users
+            .SingleOrDefaultAsync(item => item.Id == ownerId && item.Role == UserRole.CourtOwner);
+        if (user is null)
+        {
+            return (false, "Không tìm thấy tài khoản Chủ sân.");
+        }
+
+        if (!_passwordHasher.Verify(currentPassword, user.PasswordHash))
+        {
+            return (false, "Mật khẩu hiện tại không chính xác.");
+        }
+
+        if (string.Equals(currentPassword, newPassword, StringComparison.Ordinal))
+        {
+            return (false, "Mật khẩu mới phải khác mật khẩu hiện tại.");
+        }
+
+        user.PasswordHash = _passwordHasher.Hash(newPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return (true, "Đổi mật khẩu thành công.");
     }
 }

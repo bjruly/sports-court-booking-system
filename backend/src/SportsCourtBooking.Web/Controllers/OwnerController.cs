@@ -116,6 +116,45 @@ public class OwnerController : Controller
     }
 
     [HttpGet]
+    public IActionResult ChangePassword()
+    {
+        if (User.GetUserId() is null)
+        {
+            return Forbid();
+        }
+
+        return View(new OwnerChangePasswordViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(OwnerChangePasswordViewModel model)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            ClearPasswordFormInputs(model);
+            return View(model);
+        }
+
+        var result = await _userService.ChangeOwnerPasswordAsync(ownerId.Value, model);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            ClearPasswordFormInputs(model);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(ChangePassword));
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Courts()
     {
         var ownerId = User.GetUserId();
@@ -677,6 +716,24 @@ public class OwnerController : Controller
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(identity));
+    }
+
+    private void ClearPasswordFormInputs(OwnerChangePasswordViewModel model)
+    {
+        var errorMessages = ModelState.Values
+            .SelectMany(entry => entry.Errors)
+            .Select(error => error.ErrorMessage)
+            .Where(message => !string.IsNullOrWhiteSpace(message))
+            .ToArray();
+
+        model.CurrentPassword = string.Empty;
+        model.NewPassword = string.Empty;
+        model.ConfirmPassword = string.Empty;
+        ModelState.Clear();
+        foreach (var errorMessage in errorMessages)
+        {
+            ModelState.AddModelError(string.Empty, errorMessage);
+        }
     }
 
     private async Task<List<CourtDto>> GetActiveOwnerCourtsAsync(int ownerId)

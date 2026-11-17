@@ -57,6 +57,7 @@ public interface IUserService
     Task<(bool Success, string Message, OwnerProfileDto? Profile)> UpdateOwnerProfileAsync(
         int ownerId,
         OwnerProfileUpdateRequest request);
+    Task<(bool Success, string Message)> ChangeOwnerPasswordAsync(int ownerId, OwnerChangePasswordRequest request);
 }
 
 public interface IReportService

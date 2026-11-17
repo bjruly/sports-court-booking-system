@@ -483,7 +483,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-profile-form input:focus { border-color: #92aa68; outline: none; }
 .owner-profile-form input[readonly] { padding-right: 8px; padding-left: 8px; border-color: #e5e9e3; background: #f0f3ef; color: #647067; font-size: .7rem; }
 .owner-profile-hint { margin: 0; color: #647067; font-size: .9rem; }
-.owner-profile-actions { display: flex; justify-content: flex-end; }
+.owner-profile-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
 @media (max-width: 640px) {
   .booking-history-table-wrap { overflow: visible; border: 0; background: transparent; }

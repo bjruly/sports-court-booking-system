@@ -3,6 +3,7 @@ using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Domain.Entities;
 using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
+using SportsCourtBooking.Infrastructure.Security;
 using SportsCourtBooking.Infrastructure.Services;
 
 namespace SportsCourtBooking.Tests;
@@ -24,7 +25,7 @@ public class OwnerProfileServiceTests
         });
         await context.SaveChangesAsync();
 
-        var result = await new UserService(context).UpdateOwnerProfileAsync(3, new OwnerProfileUpdateRequest
+        var result = await new UserService(context, new Pbkdf2PasswordHasher()).UpdateOwnerProfileAsync(3, new OwnerProfileUpdateRequest
         {
             FullName = "  Chủ Sân Mới  ",
             PhoneNumber = "  +84901234567 "
@@ -61,7 +62,7 @@ public class OwnerProfileServiceTests
                 Role = UserRole.CourtOwner
             });
         await context.SaveChangesAsync();
-        var service = new UserService(context);
+        var service = new UserService(context, new Pbkdf2PasswordHasher());
 
         var nonOwnerResult = await service.UpdateOwnerProfileAsync(2, new OwnerProfileUpdateRequest
         {
