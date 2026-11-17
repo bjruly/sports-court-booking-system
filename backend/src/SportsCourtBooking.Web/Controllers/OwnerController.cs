@@ -14,11 +14,16 @@ public class OwnerController : Controller
 {
     private readonly IOwnerDashboardService _dashboardService;
     private readonly IOwnerCourtService _courtService;
+    private readonly IBookingService _bookingService;
 
-    public OwnerController(IOwnerDashboardService dashboardService, IOwnerCourtService courtService)
+    public OwnerController(
+        IOwnerDashboardService dashboardService,
+        IOwnerCourtService courtService,
+        IBookingService bookingService)
     {
         _dashboardService = dashboardService;
         _courtService = courtService;
+        _bookingService = bookingService;
     }
 
     [HttpGet]
@@ -44,6 +49,70 @@ public class OwnerController : Controller
         }
 
         return View(await _courtService.GetOwnerCourtsAsync(ownerId.Value));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Bookings(DateOnly? date, int? courtId, BookingStatus? status)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid || (status.HasValue && !Enum.IsDefined(status.Value)))
+        {
+            return BadRequest();
+        }
+
+        return View(new OwnerBookingsViewModel
+        {
+            Courts = await _courtService.GetOwnerCourtsAsync(ownerId.Value),
+            Bookings = await _bookingService.GetOwnerBookingsAsync(ownerId.Value, date, courtId, status),
+            SelectedDate = date,
+            SelectedCourtId = courtId,
+            SelectedStatus = status
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmBooking(int id, DateOnly? date, int? courtId, BookingStatus? status)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _bookingService.ConfirmOwnerBookingAsync(id, ownerId.Value, ownerId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Bookings), new
+        {
+            date = date?.ToString("yyyy-MM-dd"),
+            courtId,
+            status = status?.ToString()
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelBooking(int id, DateOnly? date, int? courtId, BookingStatus? status)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _bookingService.CancelOwnerBookingAsync(id, ownerId.Value, ownerId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Bookings), new
+        {
+            date = date?.ToString("yyyy-MM-dd"),
+            courtId,
+            status = status?.ToString()
+        });
     }
 
     [HttpGet]

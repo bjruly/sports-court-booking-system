@@ -15,6 +15,7 @@ public interface IBookingService
     /// <param name="includeInactive">false: chỉ lấy đơn đang giữ giờ (Pending/Confirmed/Completed), dùng cho lưới lịch của khách.
     /// true: lấy cả đơn đã hủy/hết hạn, dùng cho trang quản trị.</param>
     Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null, bool includeInactive = false);
+    Task<List<BookingDto>> GetOwnerBookingsAsync(int ownerId, DateOnly? date = null, int? courtId = null, BookingStatus? status = null);
     Task<List<BookingDto>> GetBookingsByUserAsync(int userId);
     Task<BookingDetailDto?> GetOwnBookingAsync(int bookingId, int userId);
     Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime);
@@ -22,9 +23,11 @@ public interface IBookingService
 
     /// <summary>Admin/Staff xác nhận đơn Pending còn hạn giữ chỗ.</summary>
     Task<(bool Success, string Message)> ConfirmBookingAsync(int bookingId, int actorUserId);
+    Task<(bool Success, string Message)> ConfirmOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
 
     /// <summary>Admin/Staff hủy đơn Pending hoặc Confirmed; khung giờ được nhả ngay.</summary>
     Task<(bool Success, string Message)> CancelBookingAsync(int bookingId, int actorUserId);
+    Task<(bool Success, string Message)> CancelOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
 }
 
 public interface IAuthService

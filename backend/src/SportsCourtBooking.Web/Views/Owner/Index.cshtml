@@ -79,7 +79,7 @@
                             <p class="admin-section-label">HOẠT ĐỘNG</p>
                             <h2>Đơn đặt gần đây</h2>
                         </div>
-                        <span class="owner-panel-status">@Model.RecentBookings.Count đơn gần đây</span>
+                        <a class="text-link" asp-action="Bookings">Xem tất cả <span aria-hidden="true">↗</span></a>
                     </header>
                     @if (Model.RecentBookings.Count == 0)
                     {
@@ -142,7 +142,7 @@
                 </article>
             </section>
 
-            <p class="owner-preview-note" role="note">Số liệu được lọc theo các sân thuộc tài khoản chủ sân này. Chức năng thêm/sửa sân và xử lý đơn đặt chưa được triển khai.</p>
+            <p class="owner-preview-note" role="note">Số liệu và đơn đặt chỉ bao gồm các sân thuộc tài khoản chủ sân này.</p>
         </div>
     </div>
 </section>

@@ -2,6 +2,7 @@
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
     var isCourtList = currentAction is "Courts" or "EditCourt";
+    var isBookingManagement = currentAction == "Bookings";
 }
 
 <aside class="admin-sidebar" aria-label="Menu Chủ Sân">
@@ -18,7 +19,9 @@
                    asp-controller="Owner" asp-action="Index"
                    aria-current="@(currentAction == "Index" ? "page" : null)">Bảng điều khiển</a>
                 <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Thống kê sân</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Đơn đặt</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isBookingManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Bookings"
+                   aria-current="@(isBookingManagement ? "page" : null)">Đơn đặt</a>
                 <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Doanh thu</span><small>Chưa triển khai</small></span>
             </div>
         </details>
@@ -44,12 +47,13 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isBookingManagement ? "open" : null)">
             <summary>Quản lý đặt sân</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Danh sách đơn</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Xác nhận đơn</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Hủy đơn</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isBookingManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Bookings"
+                   aria-current="@(isBookingManagement ? "page" : null)">Danh sách đơn</a>
+                <span class="admin-menu-item admin-menu-item--disabled"><span>Xác nhận / hủy đơn</span><small>Trong danh sách</small></span>
             </div>
         </details>
 
