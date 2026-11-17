@@ -1,4 +1,6 @@
 @using System.Globalization
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Application.Rules
 @using SportsCourtBooking.Domain.Enums
 @using SportsCourtBooking.Web.Models
 @model OwnerCalendarViewModel
@@ -106,7 +108,21 @@
                                                 {
                                                     <small>@booking.CustomerPhone</small>
                                                 }
+                                                @if (booking.CheckInAt.HasValue)
+                                                {
+                                                    <small>Check-in lúc @VietnamClock.ToVietnamTime(booking.CheckInAt.Value).ToString("HH:mm")</small>
+                                                }
                                                 <span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span>
+                                                @if (BookingRules.CanCheckIn(
+                                                    booking.Status, booking.BookingDate, booking.CheckInAt, VietnamClock.Today))
+                                                {
+                                                    <form class="owner-calendar-checkin" method="post" asp-action="CheckInBooking"
+                                                          asp-route-id="@booking.Id" asp-route-date="@day.ToString("yyyy-MM-dd")"
+                                                          asp-route-courtId="@Model.SelectedCourtId" asp-route-returnToCalendar="true"
+                                                          onsubmit="return confirm('Xác nhận khách đã đến sân?');">
+                                                        <button class="button button--small button--primary" type="submit">Check-in</button>
+                                                    </form>
+                                                }
                                             </div>
                                         }
                                     }

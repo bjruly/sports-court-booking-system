@@ -32,13 +32,13 @@ Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`,
 - Booking `Pending` giữ khung giờ tối đa 10 phút; tác vụ nền quét mỗi 15 giây và chuyển đơn quá hạn sang `Expired`. Các lần kiểm tra lịch cũng hết hạn đơn cũ trước khi xác định tình trạng khung giờ. PostgreSQL dùng ràng buộc `EXCLUDE` với khoảng thời gian nửa mở `[bắt đầu, kết thúc)` để chặn booking `Pending`/`Confirmed` bị trùng trên cùng sân. Khởi động ứng dụng cài `btree_gist` và áp dụng schema theo cách idempotent.
 - Đã có: Admin/Staff xem, xác nhận và hủy đơn tại trang "Quản lý lịch đặt" (hủy thì nhả khung giờ ngay); lưới lịch của khách không còn hiện đơn đã hủy hoặc hết hạn là "đã đặt".
 - Đã có dashboard `/Admin` cho tài khoản Admin với menu bên trái theo các phân hệ; hiện chỉ mục theo dõi đơn đặt liên kết tới chức năng đang có, các mục còn lại được đánh dấu chưa triển khai.
-- Đã có dashboard `/Owner`, quản lý sân và đơn đặt; Chủ sân có thể xem lịch tuần và tạo đơn đã xác nhận cho khách vãng lai bằng tên/số điện thoại. Các mục quản lý cơ sở, giá, voucher, đánh giá, báo cáo và tài khoản hiện chưa triển khai. Có sẵn tài khoản Chủ Sân mẫu để đăng nhập thử.
+- Đã có dashboard `/Owner`, quản lý sân/đơn, lịch tuần và đặt hộ khách vãng lai. Chủ sân có thể check-in đơn đã xác nhận trong ngày đặt; hệ thống lưu thời điểm check-in riêng mà không đổi trạng thái booking. Các mục quản lý cơ sở, giá, voucher, đánh giá, báo cáo và tài khoản hiện chưa triển khai. Có sẵn tài khoản Chủ Sân mẫu để đăng nhập thử.
 - Chưa làm: thanh toán, đánh giá, hoàn tiền và hủy đơn do khách tự thực hiện, dashboard quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
 
 ## Tính năng mục tiêu
 
 - Khách hàng tìm kiếm cơ sở và sân, xem lịch trống, đặt sân, thanh toán, hủy đặt và đánh giá.
-- Chủ sân quản lý cơ sở, sân, giá, lịch đặt, voucher và doanh thu.
+- Chủ sân quản lý cơ sở, sân, giá, lịch đặt, check-in, voucher và doanh thu.
 - Quản trị viên duyệt cơ sở, quản lý người dùng/danh mục và theo dõi thống kê.
 - Đơn đặt có cơ chế giữ chỗ tạm thời; thanh toán và trạng thái đơn được đồng bộ theo quy trình nghiệp vụ.
 

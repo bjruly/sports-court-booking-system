@@ -26,6 +26,7 @@ public interface IBookingService
     /// <summary>Admin/Staff xác nhận đơn Pending còn hạn giữ chỗ.</summary>
     Task<(bool Success, string Message)> ConfirmBookingAsync(int bookingId, int actorUserId);
     Task<(bool Success, string Message)> ConfirmOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
+    Task<(bool Success, string Message)> CheckInOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
 
     /// <summary>Admin/Staff hủy đơn Pending hoặc Confirmed; khung giờ được nhả ngay.</summary>
     Task<(bool Success, string Message)> CancelBookingAsync(int bookingId, int actorUserId);

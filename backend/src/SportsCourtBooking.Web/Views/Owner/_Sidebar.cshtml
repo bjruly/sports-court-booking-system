@@ -1,9 +1,14 @@
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Domain.Enums
 @{
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
     var isCourtList = currentAction is "Courts" or "EditCourt";
-    var isBookingManagement = currentAction == "Bookings";
-    var isCalendarManagement = currentAction is "Calendar" or "CreateWalkInBooking";
+    var isTodayCheckInView = currentAction == "Bookings"
+        && ViewContext.HttpContext.Request.Query["date"] == VietnamClock.Today.ToString("yyyy-MM-dd")
+        && ViewContext.HttpContext.Request.Query["status"] == BookingStatus.Confirmed.ToString();
+    var isBookingManagement = currentAction == "Bookings" && !isTodayCheckInView;
+    var isCalendarManagement = currentAction is "Calendar" or "CreateWalkInBooking" || isTodayCheckInView;
 }
 
 <aside class="admin-sidebar" aria-label="Menu Chủ Sân">
@@ -67,7 +72,11 @@
                 <a class="admin-menu-item @(currentAction == "CreateWalkInBooking" ? "admin-menu-item--active" : string.Empty)"
                    asp-controller="Owner" asp-action="CreateWalkInBooking"
                    aria-current="@(currentAction == "CreateWalkInBooking" ? "page" : null)">Đặt hộ khách</a>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Check-in</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isTodayCheckInView ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Bookings"
+                   asp-route-date="@VietnamClock.Today.ToString("yyyy-MM-dd")"
+                   asp-route-status="@BookingStatus.Confirmed"
+                   aria-current="@(isTodayCheckInView ? "page" : null)">Check-in hôm nay</a>
             </div>
         </details>
 

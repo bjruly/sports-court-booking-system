@@ -103,7 +103,8 @@ public class BookingService : IBookingService
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
                 TotalPrice = booking.TotalPrice,
-                Status = booking.Status
+                Status = booking.Status,
+                CheckInAt = booking.CheckInAt
             })
             .ToListAsync();
     }
@@ -143,7 +144,8 @@ public class BookingService : IBookingService
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
                 TotalPrice = booking.TotalPrice,
-                Status = booking.Status
+                Status = booking.Status,
+                CheckInAt = booking.CheckInAt
             })
             .ToListAsync();
     }
@@ -359,6 +361,96 @@ public class BookingService : IBookingService
 
     public Task<(bool Success, string Message)> ConfirmOwnerBookingAsync(int bookingId, int ownerId, int actorUserId)
         => ConfirmBookingScopedAsync(bookingId, actorUserId, ownerId);
+
+    public async Task<(bool Success, string Message)> CheckInOwnerBookingAsync(
+        int bookingId,
+        int ownerId,
+        int actorUserId)
+    {
+        await _expirationService.ExpireOverdueAsync();
+
+        var bookingScope = GetBookingScope(bookingId, ownerId);
+        var now = DateTime.UtcNow;
+        var today = VietnamClock.Today;
+
+        if (!_context.Database.IsRelational())
+        {
+            var booking = await bookingScope.SingleOrDefaultAsync();
+            if (booking is null)
+            {
+                return (false, "Không tìm thấy đơn đặt sân thuộc sân của bạn.");
+            }
+
+            var failureMessage = GetCheckInFailureMessage(booking.Status, booking.BookingDate, booking.CheckInAt, today);
+            if (failureMessage is not null)
+            {
+                return (false, failureMessage);
+            }
+
+            booking.CheckInAt = now;
+            booking.UpdatedAt = now;
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            var updated = await bookingScope
+                .Where(booking =>
+                    booking.Status == BookingStatus.Confirmed &&
+                    booking.BookingDate == today &&
+                    booking.CheckInAt == null)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(booking => booking.CheckInAt, now)
+                    .SetProperty(booking => booking.UpdatedAt, now));
+
+            if (updated == 0)
+            {
+                var current = await bookingScope
+                    .Select(booking => new
+                    {
+                        booking.Status,
+                        booking.BookingDate,
+                        booking.CheckInAt
+                    })
+                    .SingleOrDefaultAsync();
+
+                if (current is null)
+                {
+                    return (false, "Không tìm thấy đơn đặt sân thuộc sân của bạn.");
+                }
+
+                var failureMessage = GetCheckInFailureMessage(
+                    current.Status, current.BookingDate, current.CheckInAt, today);
+                return (false, failureMessage ?? "Không thể check-in đơn đặt sân lúc này.");
+            }
+        }
+
+        _logger.LogInformation("Chủ sân {ActorUserId} đã check-in đơn {BookingId}", actorUserId, bookingId);
+        return (true, "Đã ghi nhận khách check-in.");
+    }
+
+    private static string? GetCheckInFailureMessage(
+        BookingStatus status,
+        DateOnly bookingDate,
+        DateTime? checkInAt,
+        DateOnly today)
+    {
+        if (checkInAt.HasValue)
+        {
+            return "Đơn này đã được check-in trước đó.";
+        }
+
+        if (status != BookingStatus.Confirmed)
+        {
+            return "Chỉ đơn đã xác nhận mới có thể check-in.";
+        }
+
+        if (bookingDate != today)
+        {
+            return "Chỉ có thể check-in vào ngày đặt sân.";
+        }
+
+        return null;
+    }
 
     private async Task<(bool Success, string Message)> ConfirmBookingScopedAsync(
         int bookingId,

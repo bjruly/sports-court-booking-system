@@ -36,6 +36,7 @@ public class BookingDto
     public TimeOnly EndTime { get; set; }
     public decimal TotalPrice { get; set; }
     public BookingStatus Status { get; set; }
+    public DateTime? CheckInAt { get; set; }
 }
 
 public class BookingDetailDto : BookingDto

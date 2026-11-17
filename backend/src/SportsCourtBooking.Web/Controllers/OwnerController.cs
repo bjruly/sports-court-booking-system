@@ -209,6 +209,41 @@ public class OwnerController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CheckInBooking(
+        int id,
+        DateOnly? date,
+        int? courtId,
+        BookingStatus? status,
+        bool returnToCalendar = false)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _bookingService.CheckInOwnerBookingAsync(id, ownerId.Value, ownerId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+
+        if (returnToCalendar)
+        {
+            return RedirectToAction(nameof(Calendar), new
+            {
+                date = date?.ToString("yyyy-MM-dd"),
+                courtId
+            });
+        }
+
+        return RedirectToAction(nameof(Bookings), new
+        {
+            date = date?.ToString("yyyy-MM-dd"),
+            courtId,
+            status = status?.ToString()
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelBooking(int id, DateOnly? date, int? courtId, BookingStatus? status)
     {
         var ownerId = User.GetUserId();

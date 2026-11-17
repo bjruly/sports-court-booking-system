@@ -66,6 +66,7 @@ public class AppDbContext : DbContext
             entity.Property(b => b.TotalPrice).HasColumnType("decimal(18,2)");
             entity.Property(b => b.GuestName).HasMaxLength(100);
             entity.Property(b => b.GuestPhone).HasMaxLength(20);
+            entity.Property(b => b.CheckInAt).HasColumnType("timestamp with time zone");
             entity.ToTable(table => table.HasCheckConstraint(
                 "ck_bookings_customer_identity",
                 "\"UserId\" IS NOT NULL OR (\"GuestName\" IS NOT NULL AND \"GuestPhone\" IS NOT NULL)"));

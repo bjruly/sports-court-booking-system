@@ -10,6 +10,7 @@ public class Booking : BaseEntity
     public int CourtId { get; set; }
     public string? GuestName { get; set; }
     public string? GuestPhone { get; set; }
+    public DateTime? CheckInAt { get; set; }
     
     public DateOnly BookingDate { get; set; }      // Ngày đặt sân
     public TimeOnly StartTime { get; set; }        // Giờ bắt đầu (VD: 17:00)

@@ -17,6 +17,9 @@ public static class BookingSchemaExtensions
             ADD COLUMN IF NOT EXISTS "GuestPhone" character varying(20) NULL;
 
         ALTER TABLE "Bookings"
+            ADD COLUMN IF NOT EXISTS "CheckInAt" timestamp with time zone NULL;
+
+        ALTER TABLE "Bookings"
             ALTER COLUMN "UserId" DROP NOT NULL;
 
         DO $$

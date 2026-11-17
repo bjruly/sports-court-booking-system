@@ -591,6 +591,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-calendar-booking > strong { font-size: 11px; }
 .owner-calendar-booking > small { color: var(--muted); }
 .owner-calendar-booking .status-badge { width: fit-content; margin-top: 3px; }
+.owner-calendar-checkin { margin-top: 2px; }
+.owner-checkin-time { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
 .owner-calendar-booking.status-badge--cancelled, .owner-calendar-booking.status-badge--expired { border-left-color: #9ca3af; background: #f4f5f6; }
 .owner-walkin-panel { padding: 24px; }
 .owner-walkin-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }

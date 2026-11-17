@@ -27,6 +27,13 @@ public static class BookingRules
     /// <summary>Chỉ đơn đang chờ xác nhận (Pending) mới được xác nhận.</summary>
     public static bool CanConfirm(BookingStatus status) => status == BookingStatus.Pending;
 
+    public static bool CanCheckIn(
+        BookingStatus status,
+        DateOnly bookingDate,
+        DateTime? checkInAt,
+        DateOnly today)
+        => status == BookingStatus.Confirmed && bookingDate == today && !checkInAt.HasValue;
+
     /// <summary>Đơn Pending hoặc Confirmed mới được hủy; đơn đã hủy, hết hạn, hoàn thành thì không.</summary>
     public static bool CanCancel(BookingStatus status)
         => status == BookingStatus.Pending || status == BookingStatus.Confirmed;

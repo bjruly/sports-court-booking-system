@@ -158,6 +158,25 @@ public class BookingRulesTests
     }
 
     [Theory]
+    [InlineData(BookingStatus.Confirmed, true, false, true)]
+    [InlineData(BookingStatus.Pending, true, false, false)]
+    [InlineData(BookingStatus.Cancelled, true, false, false)]
+    [InlineData(BookingStatus.Completed, true, false, false)]
+    [InlineData(BookingStatus.Confirmed, false, false, false)]
+    [InlineData(BookingStatus.Confirmed, true, true, false)]
+    public void CanCheckIn_RequiresConfirmedBookingForTodayNotPreviouslyCheckedIn(
+        BookingStatus status,
+        bool isToday,
+        bool alreadyCheckedIn,
+        bool expected)
+    {
+        var bookingDate = isToday ? Today : Tomorrow;
+        DateTime? checkedInAt = alreadyCheckedIn ? Now : null;
+
+        Assert.Equal(expected, BookingRules.CanCheckIn(status, bookingDate, checkedInAt, Today));
+    }
+
+    [Theory]
     [InlineData(BookingStatus.Pending, true)]
     [InlineData(BookingStatus.Confirmed, true)]
     [InlineData(BookingStatus.Cancelled, false)]

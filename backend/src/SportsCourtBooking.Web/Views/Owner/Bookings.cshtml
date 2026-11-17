@@ -1,4 +1,5 @@
 @using System.Globalization
+@using SportsCourtBooking.Application.Common
 @using SportsCourtBooking.Application.Rules
 @using SportsCourtBooking.Domain.Enums
 @using SportsCourtBooking.Web.Models
@@ -106,9 +107,24 @@
                                             }
                                         </td>
                                         <td>@booking.TotalPrice.ToString("N0", culture) đ</td>
-                                        <td><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
+                                        <td>
+                                            <span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span>
+                                            @if (booking.CheckInAt.HasValue)
+                                            {
+                                                <small class="owner-checkin-time">Check-in lúc @VietnamClock.ToVietnamTime(booking.CheckInAt.Value).ToString("HH:mm")</small>
+                                            }
+                                        </td>
                                         <td>
                                             <div class="booking-actions">
+                                                @if (BookingRules.CanCheckIn(booking.Status, booking.BookingDate, booking.CheckInAt, VietnamClock.Today))
+                                                {
+                                                    <form class="inline-form" method="post" asp-action="CheckInBooking"
+                                                          asp-route-id="@booking.Id" asp-route-date="@selectedDate"
+                                                          asp-route-courtId="@Model.SelectedCourtId" asp-route-status="@selectedStatus"
+                                                          onsubmit="return confirm('Xác nhận khách đã đến sân?');">
+                                                        <button class="button button--small button--primary" type="submit">Check-in</button>
+                                                    </form>
+                                                }
                                                 @if (BookingRules.CanConfirm(booking.Status))
                                                 {
                                                     <form class="inline-form" method="post" asp-action="ConfirmBooking"
