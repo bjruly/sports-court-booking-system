@@ -53,3 +53,8 @@ public interface IReportService
     /// <summary>Lấy số liệu báo cáo tổng hợp toàn hệ thống cho Admin.</summary>
     Task<AdminReportDto> GetAdminReportAsync();
 }
+
+public interface IOwnerDashboardService
+{
+    Task<OwnerDashboardDto> GetDashboardAsync(int ownerId);
+}

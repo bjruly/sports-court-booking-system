@@ -517,6 +517,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-stat-card { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 .owner-stat-card .admin-section-label { margin-bottom: 10px; }
 .owner-stat-value { color: var(--ink); font: 800 28px/1.1 "Manrope", sans-serif; letter-spacing: -.04em; }
+.owner-stat-value--currency { font-size: 23px; }
+.owner-stat-value--currency span { font-size: 13px; letter-spacing: 0; }
 .owner-stat-caption { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .owner-panel-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: 14px; margin-top: 18px; }
 .owner-panel { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
@@ -527,12 +529,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-empty-state { display: flex; min-height: 210px; flex-direction: column; justify-content: center; align-items: center; padding: 22px 10px; text-align: center; }
 .owner-empty-icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; color: var(--green-dark); background: #edf4e5; font-size: 19px; font-weight: 700; }
 .owner-empty-state h3 { margin: 13px 0 5px; font: 700 13px/1.4 "Manrope", sans-serif; }
-.owner-empty-state p, .owner-setup-copy { max-width: 330px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
-.owner-setup-copy { margin-top: 12px; }
-.owner-setup-list { display: grid; gap: 0; margin: 14px 0 0; padding: 0; list-style: none; }
-.owner-setup-list li { display: grid; grid-template-columns: 27px minmax(0, 1fr); align-items: center; gap: 0 9px; padding: 12px 0; border-top: 1px solid #edf0ea; color: var(--ink-soft); font-size: 11px; font-weight: 650; }
-.owner-setup-number { display: grid; width: 25px; height: 25px; grid-row: span 2; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); font-size: 10px; }
-.owner-setup-list small { grid-column: 2; margin-top: 3px; color: var(--muted); font-size: 9px; font-weight: 400; }
+.owner-empty-state p { max-width: 330px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
+.owner-bookings-table { margin-top: 16px; }
+.owner-bookings-table .data-table { min-width: 620px; }
+.owner-court-status { margin-top: 24px; }
+.owner-status-line { display: flex; justify-content: space-between; gap: 12px; margin-top: 15px; color: var(--ink-soft); font-size: 11px; }
+.owner-status-line strong { color: var(--ink); }
+.owner-status-track { height: 7px; overflow: hidden; margin-top: 10px; border-radius: 999px; background: #edf0ea; }
+.owner-status-track span { display: block; height: 100%; border-radius: inherit; background: var(--green-dark); }
+.owner-status-caption, .owner-status-empty { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .owner-preview-note { margin: 14px 2px 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
 
 @media (max-width: 1000px) {
