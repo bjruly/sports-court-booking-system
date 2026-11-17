@@ -24,7 +24,7 @@
                 <nav class="main-nav" aria-label="Điều hướng chính">
                     @if (User.IsInRole("Admin") || User.IsInRole("CourtOwner"))
                     {
-                        <a asp-controller="Home" asp-action="Index">Về trang chính</a>
+                        <a asp-controller="Home" asp-action="Index" target="_blank" rel="noopener noreferrer">Về trang chính</a>
                     }
                     else
                     {
