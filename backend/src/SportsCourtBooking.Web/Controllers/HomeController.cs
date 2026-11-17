@@ -171,7 +171,7 @@ public class HomeController : Controller
     {
         return View(new AccountPrototypeViewModel
         {
-            ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : Url.Action(nameof(Index))
+            ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null
         });
     }
 

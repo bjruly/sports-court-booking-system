@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
+using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Web.Controllers;
 
@@ -46,10 +47,20 @@ public class AuthController : Controller
 
         TempData["SuccessMessage"] = $"Xin chào {user.FullName}!";
 
+        if (user.Role == UserRole.Admin)
+        {
+            return RedirectToAction("Index", "Admin");
+        }
+
         // Chỉ cho phép quay lại địa chỉ nội bộ của website (chống open redirect)
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
         {
             return Redirect(returnUrl);
+        }
+
+        if (user.Role == UserRole.CourtOwner)
+        {
+            return RedirectToAction("Index", "Owner");
         }
 
         return RedirectToAction("Index", "Home");

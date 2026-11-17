@@ -123,10 +123,11 @@ public class AppDbContext : DbContext
             new Court { Id = 4, Name = "Sân Pickleball Số 1", CourtTypeId = 3, Location = "Khu C - Có mái che", PricePerHour = 120000, Status = CourtStatus.Active, Description = "Mặt sân Acrylic chuẩn thi đấu", CreatedAt = seedDate }
         );
 
-        // Seed Users (Admin & Khách hàng mẫu)
+        // Seed Users (Admin, Chủ Sân & Khách hàng mẫu)
         modelBuilder.Entity<User>().HasData(
             new User { Id = 1, FullName = "Quản Trị Viên", Email = "admin@sportscourt.vn", PhoneNumber = "0901234567", PasswordHash = SeedCredentials.AdminPasswordHash, Role = UserRole.Admin, IsActive = true, CreatedAt = seedDate },
-            new User { Id = 2, FullName = "Nguyễn Văn Khách", Email = "khachhang@gmail.com", PhoneNumber = "0987654321", PasswordHash = SeedCredentials.CustomerPasswordHash, Role = UserRole.Customer, IsActive = true, CreatedAt = seedDate }
+            new User { Id = 2, FullName = "Nguyễn Văn Khách", Email = "khachhang@gmail.com", PhoneNumber = "0987654321", PasswordHash = SeedCredentials.CustomerPasswordHash, Role = UserRole.Customer, IsActive = true, CreatedAt = seedDate },
+            new User { Id = 3, FullName = "Chủ Sân Demo", Email = SeedCredentials.OwnerEmail, PhoneNumber = "0901111111", PasswordHash = SeedCredentials.OwnerPasswordHash, Role = UserRole.CourtOwner, IsActive = true, CreatedAt = seedDate }
         );
     }
 }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using SportsCourtBooking.Application.Interfaces;
+using SportsCourtBooking.Domain.Entities;
+using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
 using SportsCourtBooking.Infrastructure.Security;
 using SportsCourtBooking.Infrastructure.Services;
@@ -57,6 +59,20 @@ using (var scope = app.Services.CreateScope())
                 db.Database.Migrate();
             else
                 db.Database.EnsureCreated();
+
+            if (!await db.Users.AnyAsync(user => user.Email == SeedCredentials.OwnerEmail))
+            {
+                db.Users.Add(new User
+                {
+                    FullName = "Chủ Sân Demo",
+                    Email = SeedCredentials.OwnerEmail,
+                    PhoneNumber = "0901111111",
+                    PasswordHash = SeedCredentials.OwnerPasswordHash,
+                    Role = UserRole.CourtOwner,
+                    IsActive = true
+                });
+                await db.SaveChangesAsync();
+            }
 
             await db.EnsureBookingSchemaAsync();
 

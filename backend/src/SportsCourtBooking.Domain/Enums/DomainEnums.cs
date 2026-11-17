@@ -4,7 +4,8 @@ public enum UserRole
 {
     Customer = 1,
     Staff = 2,
-    Admin = 3
+    Admin = 3,
+    CourtOwner = 4
 }
 
 public enum CourtStatus
