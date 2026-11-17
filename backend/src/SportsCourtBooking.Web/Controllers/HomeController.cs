@@ -7,6 +7,7 @@ using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Application.Rules;
 using SportsCourtBooking.Web.Extensions;
 using SportsCourtBooking.Web.Models;
+using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Web.Controllers;
 
@@ -26,26 +27,159 @@ public class HomeController : Controller
         _bookingService = bookingService;
     }
 
-    public async Task<IActionResult> Index(string? sport, string? area, DateOnly? date)
+    public async Task<IActionResult> Index(string? sport, string? area, DateOnly? date, decimal? minPrice, decimal? maxPrice, string? sortBy, int? startHour, int? endHour)
     {
-        var allCourts = await LoadCourtCardsFromDbAsync();
-
-        var courts = allCourts
-            .Where(court => string.IsNullOrWhiteSpace(sport)
-                || court.Sport.Contains(sport, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(court.Sport, sport, StringComparison.OrdinalIgnoreCase))
-            .Where(court => string.IsNullOrWhiteSpace(area)
-                || court.District.Contains(area, StringComparison.OrdinalIgnoreCase)
-                || court.City.Contains(area, StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-
-        return View(new CourtCatalogViewModel
+    if (!ModelState.IsValid)
         {
-            Sport = sport,
-            Area = area,
-            PlayDate = date ?? VietnamClock.Today.AddDays(1),
-            Courts = courts
-        });
+        TempData["ErrorMessage"] =
+            "Dữ liệu tìm kiếm không hợp lệ. Vui lòng chọn lại.";
+
+        return RedirectToAction(nameof(Index));
+        }
+
+    if ((minPrice.HasValue && minPrice.Value < 0)
+        || (maxPrice.HasValue && maxPrice.Value < 0))
+        {
+        TempData["ErrorMessage"] =
+            "Giá tìm kiếm không được là số âm.";
+
+        return RedirectToAction(nameof(Index));
+       }
+
+    if (minPrice.HasValue
+        && maxPrice.HasValue
+        && minPrice.Value > maxPrice.Value)
+       {
+        TempData["ErrorMessage"] =
+            "Giá thấp nhất phải nhỏ hơn hoặc bằng giá cao nhất.";
+
+        return RedirectToAction(nameof(Index));
+       }
+
+    var playDate = date ?? VietnamClock.Today.AddDays(1);
+
+    TimeOnly? searchStartTime = null;
+    TimeOnly? searchEndTime = null;
+
+    if (startHour.HasValue != endHour.HasValue)
+    {
+    TempData["ErrorMessage"] =
+        "Vui lòng chọn đủ giờ bắt đầu và giờ kết thúc.";
+
+    return RedirectToAction(nameof(Index));
+    }
+
+    if (startHour.HasValue && endHour.HasValue)
+    {
+    if (startHour.Value < BookingRules.OpeningHour
+        || startHour.Value >= BookingRules.ClosingHour
+        || endHour.Value <= BookingRules.OpeningHour
+        || endHour.Value > BookingRules.ClosingHour)
+    {
+        TempData["ErrorMessage"] =
+            "Vui lòng chọn giờ chơi trong khoảng 06:00–22:00.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    searchStartTime = new TimeOnly(startHour.Value, 0);
+    searchEndTime = new TimeOnly(endHour.Value, 0);
+
+    var timeError = BookingRules.ValidateTimeRange(
+        playDate,
+        searchStartTime.Value,
+        searchEndTime.Value,
+        VietnamClock.Now
+    );
+
+    if (timeError != null)
+    {
+        TempData["ErrorMessage"] = timeError;
+
+        return RedirectToAction(nameof(Index));
+    }
+    }
+
+    var allCourts = await LoadCourtCardsFromDbAsync();
+
+    var courts = allCourts
+        .Where(court =>
+            string.IsNullOrWhiteSpace(sport)
+            || court.Sport.Contains(
+                sport,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+        .Where(court =>
+            string.IsNullOrWhiteSpace(area)
+            || court.District.Contains(
+                area,
+                StringComparison.OrdinalIgnoreCase
+            )
+            || court.City.Contains(
+                area,
+                StringComparison.OrdinalIgnoreCase
+            )
+        );
+
+    if (minPrice.HasValue)
+       {
+        courts = courts.Where(court =>
+            court.StartingPrice >= minPrice.Value
+        );
+       }
+
+    if (maxPrice.HasValue)
+    {
+        courts = courts.Where(court =>
+            court.StartingPrice <= maxPrice.Value
+        );
+    }
+
+    if (searchStartTime.HasValue && searchEndTime.HasValue)
+    {
+    var bookings = await _bookingService.GetBookingsByDateAsync(
+        playDate
+    );
+
+    var busyCourtIds = bookings
+        .Where(booking =>
+            searchStartTime.Value < booking.EndTime
+            && searchEndTime.Value > booking.StartTime
+        )
+        .Select(booking => booking.CourtId)
+        .ToHashSet();
+
+    courts = courts.Where(court =>
+        !busyCourtIds.Contains(court.Id)
+    );
+    }
+
+    var selectedSort = "default";
+
+    if (sortBy == "price_asc")
+    {
+        courts = courts.OrderBy(court => court.StartingPrice);
+        selectedSort = "price_asc";
+    }
+    else if (sortBy == "price_desc")
+    {
+        courts = courts.OrderByDescending(court => court.StartingPrice);
+        selectedSort = "price_desc";
+    }
+
+    var viewModel = new CourtCatalogViewModel
+    {
+        Sport = sport,
+        Area = area,
+        PlayDate = date ?? VietnamClock.Today.AddDays(1),
+        MinPrice = minPrice,
+        MaxPrice = maxPrice,
+        SortBy = selectedSort,
+        Courts = courts.ToArray()
+    };
+
+    return View(viewModel);
     }
 
     public async Task<IActionResult> Schedule(int id, DateOnly? date)
@@ -63,6 +197,32 @@ public class HomeController : Controller
         // Thông báo thành công/lỗi sau khi đặt sân (TempData) được _Layout hiển thị chung cho mọi trang.
         return View(schedule);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> CourtDetails(
+    int id,
+    DateOnly? date)
+    {
+    if (!ModelState.IsValid)
+    {
+        return BadRequest("Thông tin sân hoặc ngày chơi không hợp lệ.");
+    }
+
+    var court = await _courtService.GetCourtByIdAsync(id);
+
+    if (court is null || court.Status != CourtStatus.Active)
+    {
+        return NotFound();
+    }
+
+    var viewModel = new CourtDetailsViewModel
+    {
+        Court = court,
+        PlayDate = date ?? VietnamClock.Today.AddDays(1)
+    };
+
+    return View(viewModel);
+  }
 
     public async Task<IActionResult> Review(int id, DateOnly? date, int[]? selectedHours)
     {
@@ -171,7 +331,7 @@ public class HomeController : Controller
     {
         return View(new AccountPrototypeViewModel
         {
-            ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : Url.Action(nameof(Index))
+            ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null
         });
     }
 

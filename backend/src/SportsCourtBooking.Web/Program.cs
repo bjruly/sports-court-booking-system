@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using SportsCourtBooking.Application.Interfaces;
+using SportsCourtBooking.Domain.Entities;
+using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
 using SportsCourtBooking.Infrastructure.Security;
 using SportsCourtBooking.Infrastructure.Services;
@@ -21,6 +23,8 @@ builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<PendingBookingExpirationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddHostedService<PendingBookingExpirationWorker>();
 
 // Đăng nhập bằng cookie xác thực (được mã hóa/ký bởi ASP.NET Core, người dùng không tự sửa được)
@@ -57,6 +61,20 @@ using (var scope = app.Services.CreateScope())
                 db.Database.Migrate();
             else
                 db.Database.EnsureCreated();
+
+            if (!await db.Users.AnyAsync(user => user.Email == SeedCredentials.OwnerEmail))
+            {
+                db.Users.Add(new User
+                {
+                    FullName = "Chủ Sân Demo",
+                    Email = SeedCredentials.OwnerEmail,
+                    PhoneNumber = "0901111111",
+                    PasswordHash = SeedCredentials.OwnerPasswordHash,
+                    Role = UserRole.CourtOwner,
+                    IsActive = true
+                });
+                await db.SaveChangesAsync();
+            }
 
             await db.EnsureBookingSchemaAsync();
 

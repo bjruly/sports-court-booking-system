@@ -97,6 +97,8 @@ public class AuthService : IAuthService
         FullName = user.FullName,
         Email = user.Email,
         PhoneNumber = user.PhoneNumber,
-        Role = user.Role
+        Role = user.Role,
+        IsActive = user.IsActive,
+        CreatedAt = user.CreatedAt
     };
 }

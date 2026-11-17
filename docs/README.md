@@ -15,7 +15,7 @@ Thư mục này lưu báo cáo, sơ đồ phân tích/thiết kế và tài li�
 | `07_UI_Wireframe.md` | Luồng UI, trạng thái màn hình và tiêu chí review/acceptance. |
 | `TLTK/` | Tài liệu mẫu và nguồn tham khảo được liệt kê hoặc dùng để định hướng báo cáo. |
 
-**Lựa chọn công nghệ:** báo cáo và solution hiện thống nhất dùng ASP.NET Core MVC + Razor bằng C# theo kiến trúc modular monolith; PostgreSQL là cơ sở dữ liệu đề xuất. Cấu hình lưu trữ và các nghiệp vụ sẽ được bổ sung trong giai đoạn triển khai.
+**Công nghệ triển khai:** solution hiện dùng ASP.NET Core MVC + Razor bằng C# theo kiến trúc modular monolith, EF Core và PostgreSQL. Trạng thái tính năng hiện tại được ghi trong [README ở thư mục gốc](../README.md); tài liệu trong thư mục này giữ vai trò phân tích, thiết kế và tham khảo.
 
 ## Tài liệu tham khảo chính
 

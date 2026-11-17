@@ -9,27 +9,38 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
+    @{
+        var isAccountPage = ViewContext.RouteData.Values["controller"]?.ToString() == "Home"
+            && ViewContext.RouteData.Values["action"]?.ToString() is "Login" or "Register";
+    }
     <header class="site-header">
         <div class="shell header-inner">
             <a class="brand" asp-controller="Home" asp-action="Index" aria-label="Sân Nhà - Trang chủ">
                 <span class="brand-mark" aria-hidden="true">S</span>
                 <span>SÂN NHÀ<span class="brand-period">.</span></span>
             </a>
-            <nav class="main-nav" aria-label="Điều hướng chính">
-                <a asp-controller="Home" asp-action="Index">Tìm sân</a>
-                @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
-                {
-                    <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
-                }
-                <a asp-controller="Booking" asp-action="My">Lịch đặt của tôi</a>
-                @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
-                {
-                    <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
-                }
-            </nav>
+            @if (!isAccountPage)
+            {
+                <nav class="main-nav" aria-label="Điều hướng chính">
+                    @if (User.IsInRole("Admin") || User.IsInRole("CourtOwner"))
+                    {
+                        <a asp-controller="Home" asp-action="Index">Về trang chính</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Home" asp-action="Index">Tìm sân</a>
+                        @if (User.IsInRole("Staff"))
+                        {
+                            <a asp-controller="Booking" asp-action="Index">Quản lý lịch đặt</a>
+                        }
+                        <a asp-controller="Booking" asp-action="My">Lịch đặt của tôi</a>
+                    }
+                </nav>
+            }
             <div class="header-actions">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
+                    <a class="header-login" asp-controller="Account" asp-action="Profile">Hồ sơ cá nhân</a>
                     <span class="header-user">Xin chào, <strong>@User.Identity?.Name</strong></span>
                     <form class="inline-form" asp-controller="Auth" asp-action="Logout" method="post">
                         <button class="button button--small button--dark" type="submit">Đăng xuất</button>
@@ -43,7 +54,16 @@
             </div>
             @if (User.Identity?.IsAuthenticated == true)
             {
-                if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                <a class="mobile-account" asp-controller="Account" asp-action="Profile">Hồ sơ</a>
+                if (User.IsInRole("Admin"))
+                {
+                    <a class="mobile-account" asp-controller="Admin" asp-action="Index" aria-label="Trang quản trị">Trang quản trị <span aria-hidden="true">↗</span></a>
+                }
+                else if (User.IsInRole("CourtOwner"))
+                {
+                    <a class="mobile-account" asp-controller="Owner" asp-action="Index" aria-label="Trang Chủ Sân">Trang Chủ Sân <span aria-hidden="true">↗</span></a>
+                }
+                else if (User.IsInRole("Staff"))
                 {
                     <a class="mobile-account" asp-controller="Booking" asp-action="Index" aria-label="Quản lý lịch đặt">Quản lý lịch đặt <span aria-hidden="true">↗</span></a>
                 }

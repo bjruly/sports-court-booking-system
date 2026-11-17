@@ -1,0 +1,154 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Domain.Enums
+@model BookingDetailDto
+
+@{
+    ViewData["Title"] = $"Chi tiết đơn #{Model.Id}";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+
+    var nowUtc = DateTime.UtcNow;
+    var nowVietnam = nowUtc.AddHours(7);
+
+    var canCancel =
+        (
+            Model.Status == BookingStatus.Pending
+            || Model.Status == BookingStatus.Confirmed
+        )
+        && !Model.IsPaid
+        && Model.BookingDate.ToDateTime(Model.StartTime) > nowVietnam
+        && (
+            Model.Status != BookingStatus.Pending
+            || (
+                Model.ExpiresAt.HasValue
+                && Model.ExpiresAt.Value > nowUtc
+            )
+        );
+}
+
+<section class="page-section">
+    <div class="shell shell--narrow">
+
+        <div class="page-heading">
+            <div>
+                <h1>Chi tiết đơn #@Model.Id</h1>
+                <p class="page-subtitle">@Model.CustomerName</p>
+            </div>
+
+            <a class="button button--outline"
+               asp-controller="Booking"
+               asp-action="My">
+                Quay lại lịch đặt
+            </a>
+        </div>
+
+        <div class="booking-table-wrap">
+            <table class="booking-table">
+                <tbody>
+                    <tr>
+                        <th>Sân</th>
+                        <td>@Model.CourtName</td>
+                    </tr>
+
+                    <tr>
+                        <th>Địa điểm</th>
+                        <td>@Model.Location</td>
+                    </tr>
+
+                    <tr>
+                        <th>Ngày chơi</th>
+                        <td>@Model.BookingDate.ToString("dd/MM/yyyy")</td>
+                    </tr>
+
+                    <tr>
+                        <th>Khung giờ</th>
+                        <td>
+                            @Model.StartTime.ToString("HH:mm")
+                            –
+                            @Model.EndTime.ToString("HH:mm")
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Tổng tiền</th>
+                        <td>@Model.TotalPrice.ToString("N0", culture)₫</td>
+                    </tr>
+
+                    <tr>
+                        <th>Trạng thái đơn</th>
+                        <td>
+                            <span class="status-badge @BookingStatusDisplay.CssClass(Model.Status)">
+                                @BookingStatusDisplay.Label(Model.Status)
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Thanh toán</th>
+                        <td>
+                            @(Model.IsPaid
+                                ? "Đã thanh toán"
+                                : "Chưa ghi nhận thanh toán")
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Thời điểm tạo đơn</th>
+                        <td>
+                            @Model.CreatedAt.AddHours(7).ToString("dd/MM/yyyy HH:mm")
+                            (giờ Việt Nam)
+                        </td>
+                    </tr>
+
+                    @if (Model.Status == BookingStatus.Pending
+                        && Model.ExpiresAt.HasValue)
+                    {
+                        <tr>
+                            <th>Hạn giữ chỗ</th>
+                            <td>
+                                @Model.ExpiresAt.Value.AddHours(7).ToString("dd/MM/yyyy HH:mm")
+                                (giờ Việt Nam)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (canCancel)
+{
+    <div class="my-bookings-actions">
+        <form asp-controller="Booking"
+              asp-action="CancelMy"
+              asp-route-id="@Model.Id"
+              method="post"
+              onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn này? Khung giờ sẽ được mở lại cho người khác.');">
+
+            @Html.AntiForgeryToken()
+
+            <button class="button button--outline" type="submit">
+                Hủy đơn đặt sân
+            </button>
+        </form>
+    </div>
+}
+else if (Model.IsPaid)
+{
+    <p>
+        Đơn đã thanh toán. Vui lòng liên hệ nhân viên
+        để được hỗ trợ hủy và xử lý tiền.
+    </p>
+}
+
+        <div class="my-bookings-actions">
+            <div>
+                <h2>Ghi chú</h2>
+                <p>
+                    @(string.IsNullOrWhiteSpace(Model.Note)
+                        ? "Không có ghi chú."
+                        : Model.Note)
+                </p>
+            </div>
+        </div>
+
+    </div>
+</section>

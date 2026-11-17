@@ -49,6 +49,7 @@ public class PasswordHasherTests
     {
         Assert.True(_hasher.Verify("Admin@123", SeedCredentials.AdminPasswordHash));
         Assert.True(_hasher.Verify("Customer@123", SeedCredentials.CustomerPasswordHash));
+        Assert.True(_hasher.Verify(SeedCredentials.OwnerPassword, SeedCredentials.OwnerPasswordHash));
         Assert.False(_hasher.Verify("Customer@123", SeedCredentials.AdminPasswordHash));
     }
 }
