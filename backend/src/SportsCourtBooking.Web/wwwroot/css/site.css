@@ -536,3 +536,33 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .admin-hero-art { transform: scale(.45); }
   .admin-status-card { align-items: flex-start; flex-direction: column; gap: 14px; padding: 17px; }
 }
+
+/* ─── User management table ─────────────────────────────────────── */
+.admin-status-card--block { display: block; }.booking-filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.filter-group { flex: 1 1 240px; }
+.filter-input { width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); font: inherit; font-size: 12px; }
+.filter-input:focus { outline: 2px solid var(--green-dark); outline-offset: 1px; }
+
+.table-wrapper { overflow-x: auto; border: 1px solid #e4e9e2; border-radius: 8px; background: #fff; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th, .data-table td { padding: 12px 15px; border-bottom: 1px solid #edf0eb; text-align: left; white-space: nowrap; }
+.data-table th { color: var(--muted); background: #fbfcf9; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.data-table tbody tr:last-child td { border-bottom: 0; }
+.data-table tbody tr:hover td { background: #f9faf7; }
+.col-index { width: 44px; color: var(--muted); }
+.col-email { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+.col-date { color: var(--muted); }
+
+.row--locked td { opacity: .65; }
+.row--locked td strong { text-decoration: line-through; }
+
+/* status badges */
+.status-badge--active  { color: #3d5a24; background: #e8f3d4; }
+.status-badge--locked  { color: #87372f; background: #fde9e6; }
+
+/* button variants */
+.button--success { background: #4a7c3f; border-color: #4a7c3f; color: #fff; }
+.button--success:hover { background: #3d6634; }
+.button--danger  { background: #c0392b; border-color: #c0392b; color: #fff; }
+.button--danger:hover  { background: #a53223; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }

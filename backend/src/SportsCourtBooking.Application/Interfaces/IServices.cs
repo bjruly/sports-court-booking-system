@@ -38,3 +38,12 @@ public interface IPasswordHasher
     string Hash(string password);
     bool Verify(string password, string storedHash);
 }
+
+public interface IUserService
+{
+    /// <summary>Lấy danh sách khách hàng (Role = Customer), hỗ trợ tìm kiếm theo tên/email/SĐT.</summary>
+    Task<List<UserDto>> GetCustomersAsync(string? search = null);
+
+    /// <summary>Khóa hoặc mở khóa tài khoản. Trả về (Success, Message, trạng thái IsActive mới).</summary>
+    Task<(bool Success, string Message, bool? IsActive)> ToggleLockAsync(int targetUserId, int? adminUserId);
+}
