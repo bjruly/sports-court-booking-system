@@ -254,7 +254,47 @@ public class BookingService : IBookingService
         _logger.LogInformation("Người dùng {ActorUserId} đã hủy đơn {BookingId}, khung giờ được nhả", actorUserId, bookingId);
         return (true, "Đã hủy đơn đặt sân, khung giờ được mở lại.");
     }
+public async Task<BookingDetailDto?> GetOwnBookingAsync(
+    int bookingId,
+    int userId)
+{
+    await _expirationService.ExpireOverdueAsync();
 
+    return await _context.Bookings
+        .AsNoTracking()
+        .Where(b => b.Id == bookingId && b.UserId == userId)
+        .Select(b => new BookingDetailDto
+        {
+            Id = b.Id,
+            UserId = b.UserId,
+            CourtId = b.CourtId,
+
+            CustomerName = b.User != null
+                ? b.User.FullName
+                : string.Empty,
+
+            CourtName = b.Court != null
+                ? b.Court.Name
+                : string.Empty,
+
+            Location = b.Court != null
+                ? b.Court.Location
+                : string.Empty,
+
+            BookingDate = b.BookingDate,
+            StartTime = b.StartTime,
+            EndTime = b.EndTime,
+            TotalPrice = b.TotalPrice,
+            Status = b.Status,
+            Note = b.Note,
+            CreatedAt = b.CreatedAt,
+            ExpiresAt = b.ExpiresAt,
+
+            IsPaid = b.Payment != null
+                && b.Payment.Status == PaymentStatus.Paid
+        })
+        .FirstOrDefaultAsync();
+}
     private Task<BookingStatus?> GetStatusAsync(int bookingId)
         => _context.Bookings
             .Where(b => b.Id == bookingId)

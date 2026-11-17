@@ -73,7 +73,29 @@ public class BookingController : Controller
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Index), new { date = date?.ToString("yyyy-MM-dd"), courtId });
     }
+[Authorize]
+[HttpGet]
+public async Task<IActionResult> Details(int id)
+{
+    var userId = User.GetUserId();
 
+    if (userId is null)
+    {
+        return Challenge();
+    }
+
+    var booking = await _bookingService.GetOwnBookingAsync(
+        id,
+        userId.Value
+    );
+
+    if (booking is null)
+    {
+        return NotFound();
+    }
+
+    return View(booking);
+}
     // Lịch đặt của chính người dùng đang đăng nhập
     [Authorize]
     [HttpGet]

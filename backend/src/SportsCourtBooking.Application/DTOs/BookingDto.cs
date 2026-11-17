@@ -25,3 +25,16 @@ public class BookingDto
     public decimal TotalPrice { get; set; }
     public BookingStatus Status { get; set; }
 }
+
+public class BookingDetailDto : BookingDto
+{
+    public string Location { get; set; } = string.Empty;
+
+    public string? Note { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime? ExpiresAt { get; set; }
+
+    public bool IsPaid { get; set; }
+}

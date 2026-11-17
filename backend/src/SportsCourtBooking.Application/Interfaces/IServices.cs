@@ -15,6 +15,7 @@ public interface IBookingService
     /// true: lấy cả đơn đã hủy/hết hạn, dùng cho trang quản trị.</param>
     Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null, bool includeInactive = false);
     Task<List<BookingDto>> GetBookingsByUserAsync(int userId);
+    Task<BookingDetailDto?> GetOwnBookingAsync(int bookingId, int userId);
     Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime);
     Task<(bool Success, string Message, BookingDto? Data)> CreateBookingAsync(CreateBookingRequest request);
 
