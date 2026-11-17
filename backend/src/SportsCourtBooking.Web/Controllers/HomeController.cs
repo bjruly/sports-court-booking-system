@@ -7,6 +7,7 @@ using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Application.Rules;
 using SportsCourtBooking.Web.Extensions;
 using SportsCourtBooking.Web.Models;
+using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Web.Controllers;
 
@@ -196,6 +197,32 @@ public class HomeController : Controller
         // Thông báo thành công/lỗi sau khi đặt sân (TempData) được _Layout hiển thị chung cho mọi trang.
         return View(schedule);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> CourtDetails(
+    int id,
+    DateOnly? date)
+    {
+    if (!ModelState.IsValid)
+    {
+        return BadRequest("Thông tin sân hoặc ngày chơi không hợp lệ.");
+    }
+
+    var court = await _courtService.GetCourtByIdAsync(id);
+
+    if (court is null || court.Status != CourtStatus.Active)
+    {
+        return NotFound();
+    }
+
+    var viewModel = new CourtDetailsViewModel
+    {
+        Court = court,
+        PlayDate = date ?? VietnamClock.Today.AddDays(1)
+    };
+
+    return View(viewModel);
+  }
 
     public async Task<IActionResult> Review(int id, DateOnly? date, int[]? selectedHours)
     {

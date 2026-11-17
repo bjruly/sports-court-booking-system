@@ -762,3 +762,137 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
         display: none;
     }
 }
+
+/* Trang chi tiết sân */
+.court-details-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+    gap: 24px;
+}
+
+.court-details-main {
+    min-width: 0;
+}
+
+.court-details-media {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #edf3e7;
+}
+
+.court-details-image {
+    display: block;
+    width: 100%;
+    height: 340px;
+    object-fit: cover;
+}
+
+.court-details-media .court-visual {
+    height: 340px;
+    margin: 0;
+    border-radius: 0;
+}
+
+.court-details-media .visual-number {
+    top: 95px;
+    left: 28px;
+    font-size: 64px;
+}
+
+.court-details-card {
+    margin-top: 20px;
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.court-details-card h2 {
+    margin: 0 0 18px;
+    color: var(--ink);
+    font-size: 21px;
+}
+
+.court-details-info {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 16px 20px;
+    margin: 0 0 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+}
+
+.court-details-info dt {
+    color: var(--muted);
+}
+
+.court-details-info dd {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.court-details-description {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.court-details-summary {
+    min-width: 0;
+    order: 0;
+    border-radius: 14px;
+}
+
+.court-details-summary .summary-caption {
+    margin: 14px 0;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.court-details-summary .summary-line strong {
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+    .court-details-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .court-details-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 480px) {
+    .court-details-image,
+    .court-details-media .court-visual {
+        height: 230px;
+    }
+
+    .court-details-media .visual-number {
+        top: 65px;
+        font-size: 48px;
+    }
+
+    .court-details-card {
+        padding: 20px;
+    }
+
+    .court-details-info {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+    }
+
+    .court-details-info dd {
+        margin-bottom: 12px;
+    }
+}

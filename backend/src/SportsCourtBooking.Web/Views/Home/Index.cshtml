@@ -180,9 +180,9 @@
                 @foreach (var court in Model.Courts)
                 {
                     <article class="court-card">
-                        <a class="court-card-link" asp-controller="Home" asp-action="Schedule"
+                        <a class="court-card-link" asp-controller="Home" asp-action="CourtDetails"
                            asp-route-id="@court.Id" asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")"
-                           aria-label="Xem lịch @court.CourtName tại @court.FacilityName">
+                           aria-label="@($"Xem chi tiết {court.CourtName}")">
                             <div class="court-visual @court.VisualClass" aria-hidden="true">
                                 <span class="visual-tag">@court.Sport.ToUpperInvariant()</span>
                                 <span class="visual-number">SÂN<br />NHÀ<span>.</span></span>
@@ -203,7 +203,7 @@
                                 <p class="court-description">@court.Description</p>
                                 <div class="court-card-bottom">
                                     <span>Giá từ <strong>@court.StartingPrice.ToString("N0", culture)₫</strong><small> / giờ</small></span>
-                                    <span class="text-link">Xem lịch <span aria-hidden="true">→</span></span>
+                                    <span class="text-link"> Xem chi tiết <span aria-hidden="true">→</span></span>
                                 </div>
                             </div>
                         </a>
