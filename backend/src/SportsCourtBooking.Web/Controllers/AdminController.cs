@@ -9,16 +9,28 @@ namespace SportsCourtBooking.Web.Controllers;
 public class AdminController : Controller
 {
     private readonly IUserService _userService;
+    private readonly IReportService _reportService;
 
-    public AdminController(IUserService userService)
+    public AdminController(IUserService userService, IReportService reportService)
     {
         _userService = userService;
+        _reportService = reportService;
     }
 
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View();
+        var report = await _reportService.GetAdminReportAsync();
+        return View(report);
+    }
+
+    // ─── Báo cáo thống kê ─────────────────────────────────────────────────────
+
+    [HttpGet]
+    public async Task<IActionResult> Reports()
+    {
+        var report = await _reportService.GetAdminReportAsync();
+        return View(report);
     }
 
     // ─── Quản lý khách hàng ───────────────────────────────────────────────────

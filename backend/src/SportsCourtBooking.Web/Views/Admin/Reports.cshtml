@@ -1,0 +1,170 @@
+@model SportsCourtBooking.Application.DTOs.AdminReportDto
+@{
+    ViewData["Title"] = "Báo cáo thống kê tổng hợp";
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> BÁO CÁO THỐNG KÊ</p>
+                        <h1>Báo cáo tổng hợp</h1>
+                        <p class="page-subtitle">Số liệu kinh doanh, lượng đặt sân và người dùng trên toàn hệ thống.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="button button--small button--dark" onclick="window.print()">
+                            <span>🖨 In báo cáo</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            @* ─── BẢNG SỐ LIỆU TỔNG HỢP BÁO CÁO (ĐẶT Ở ĐẦU) ─── *@
+            <section class="admin-status-card admin-status-card--block" style="margin-bottom:1.5rem;">
+                <p class="admin-section-label">BẢNG SỐ LIỆU TỔNG HỢP</p>
+                <h2 style="margin:0 0 14px; font-size:18px;">Bảng tổng hợp kinh doanh theo môn & loại sân</h2>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Môn / Loại sân</th>
+                                <th class="text-center">Số sân</th>
+                                <th class="text-center">Tổng đơn đặt</th>
+                                <th class="text-center">Đơn thành công</th>
+                                <th class="text-right">Doanh thu ghi nhận</th>
+                                <th class="text-center">Tỷ trọng doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.CourtTypeReports.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center" style="padding:1.5rem; color:var(--muted);">Chưa có dữ liệu loại sân.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var (item, index) in Model.CourtTypeReports.Select((r, i) => (r, i + 1)))
+                                {
+                                    <tr>
+                                        <td class="col-index">@index</td>
+                                        <td><strong>@item.CourtTypeName</strong></td>
+                                        <td class="text-center">@item.CourtCount sân</td>
+                                        <td class="text-center">@item.TotalBookings</td>
+                                        <td class="text-center">
+                                            <span class="status-badge status-badge--active">@item.SuccessfulBookings</span>
+                                        </td>
+                                        <td class="text-right"><strong>@item.Revenue.ToString("N0") đ</strong></td>
+                                        <td class="text-center">
+                                            <strong>@item.ContributionPercent%</strong>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2">TỔNG CỘNG</td>
+                                <td class="text-center">@Model.TotalCourts sân</td>
+                                <td class="text-center">@Model.TotalBookings</td>
+                                <td class="text-center">@Model.ConfirmedBookings</td>
+                                <td class="text-right">@Model.TotalRevenue.ToString("N0") đ</td>
+                                <td class="text-center">100%</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            @* 4 Thẻ KPI *@
+            <div class="admin-stats-grid" aria-label="Chỉ số quan trọng">
+                <div class="admin-stat-card">
+                    <p class="admin-section-label">TỔNG DOANH THU THỰC TẾ</p>
+                    <div class="admin-stat-value">@Model.TotalRevenue.ToString("N0") <span style="font-size:14px;font-weight:600;">đ</span></div>
+                    <p class="admin-stat-sub">Tạm tính chờ duyệt: <strong>@Model.PendingRevenue.ToString("N0") đ</strong></p>
+                </div>
+                <div class="admin-stat-card">
+                    <p class="admin-section-label">TỔNG ĐƠN ĐẶT</p>
+                    <div class="admin-stat-value">@Model.TotalBookings <span style="font-size:14px;font-weight:600;">đơn</span></div>
+                    <p class="admin-stat-sub">Thành công: <strong>@Model.ConfirmedBookings</strong> | Đã hủy: <strong>@Model.CancelledBookings</strong></p>
+                </div>
+                <div class="admin-stat-card">
+                    <p class="admin-section-label">TỔNG KHÁCH HÀNG</p>
+                    <div class="admin-stat-value">@Model.TotalCustomers <span style="font-size:14px;font-weight:600;">người</span></div>
+                    <p class="admin-stat-sub">Hoạt động: <strong>@Model.ActiveCustomers</strong> | Khóa: <strong>@Model.LockedCustomers</strong></p>
+                </div>
+                <div class="admin-stat-card">
+                    <p class="admin-section-label">SÂN HOẠT ĐỘNG</p>
+                    <div class="admin-stat-value">@Model.ActiveCourts / @Model.TotalCourts <span style="font-size:14px;font-weight:600;">sân</span></div>
+                    <p class="admin-stat-sub">Tỷ lệ khả dụng: <strong>@(Model.TotalCourts > 0 ? Math.Round((double)Model.ActiveCourts / Model.TotalCourts * 100, 1) : 0)%</strong></p>
+                </div>
+            </div>
+
+            @* BẢNG 2: BÁO CÁO THEO TRẠNG THÁI ĐƠN *@
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">BÁO CÁO CHI TIẾT</p>
+                <h2 style="margin:0 0 14px; font-size:18px;">Bảng tổng hợp phân loại trạng thái đơn đặt sân</h2>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Trạng thái đơn</th>
+                                <th class="text-center">Số lượng đơn</th>
+                                <th class="text-center">Tỷ lệ (%)</th>
+                                <th class="text-right">Giá trị tương ứng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var status in Model.BookingStatusReports)
+                            {
+                                <tr>
+                                    <td>
+                                        @switch (status.Status)
+                                        {
+                                            case SportsCourtBooking.Domain.Enums.BookingStatus.Confirmed:
+                                                <span class="status-badge status-badge--confirmed">@status.StatusName</span>
+                                                break;
+                                            case SportsCourtBooking.Domain.Enums.BookingStatus.Completed:
+                                                <span class="status-badge status-badge--completed">@status.StatusName</span>
+                                                break;
+                                            case SportsCourtBooking.Domain.Enums.BookingStatus.Pending:
+                                                <span class="status-badge status-badge--pending">@status.StatusName</span>
+                                                break;
+                                            case SportsCourtBooking.Domain.Enums.BookingStatus.Cancelled:
+                                                <span class="status-badge status-badge--cancelled">@status.StatusName</span>
+                                                break;
+                                            case SportsCourtBooking.Domain.Enums.BookingStatus.Expired:
+                                                <span class="status-badge status-badge--expired">@status.StatusName</span>
+                                                break;
+                                            default:
+                                                <span>@status.StatusName</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-center"><strong>@status.Count</strong> đơn</td>
+                                    <td class="text-center">@status.Percent%</td>
+                                    <td class="text-right">@status.TotalAmount.ToString("N0") đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>TỔNG CỘNG</td>
+                                <td class="text-center">@Model.TotalBookings đơn</td>
+                                <td class="text-center">100%</td>
+                                <td class="text-right">@((Model.TotalRevenue + Model.PendingRevenue + Model.BookingStatusReports.Where(s => s.Status == SportsCourtBooking.Domain.Enums.BookingStatus.Cancelled || s.Status == SportsCourtBooking.Domain.Enums.BookingStatus.Expired).Sum(s => s.TotalAmount)).ToString("N0")) đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+</section>

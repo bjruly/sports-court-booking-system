@@ -47,3 +47,9 @@ public interface IUserService
     /// <summary>Khóa hoặc mở khóa tài khoản. Trả về (Success, Message, trạng thái IsActive mới).</summary>
     Task<(bool Success, string Message, bool? IsActive)> ToggleLockAsync(int targetUserId, int? adminUserId);
 }
+
+public interface IReportService
+{
+    /// <summary>Lấy số liệu báo cáo tổng hợp toàn hệ thống cho Admin.</summary>
+    Task<AdminReportDto> GetAdminReportAsync();
+}

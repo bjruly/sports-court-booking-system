@@ -1,5 +1,6 @@
+@model SportsCourtBooking.Application.DTOs.AdminReportDto
 @{
-    ViewData["Title"] = "Tổng quan quản trị";
+    ViewData["Title"] = "Tổng quan & Báo cáo quản trị";
 }
 
 <section class="admin-page">
@@ -10,45 +11,167 @@
             <header class="admin-page-heading">
                 <div>
                     <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> KHU VỰC QUẢN TRỊ</p>
-                    <h1>Tổng quan</h1>
-                    <p class="page-subtitle">Xin chào, @User.Identity?.Name. Quản lý hệ thống đặt sân tại đây.</p>
+                    <h1>Tổng quan hệ thống</h1>
+                    <p class="page-subtitle">Xin chào, @User.Identity?.Name. Báo cáo số liệu tổng hợp và tình hình hoạt động của hệ thống.</p>
                 </div>
             </header>
 
-            <section class="admin-welcome-card">
-                <div class="admin-welcome-copy">
-                    <p class="admin-section-label">TRANG QUẢN TRỊ SÂN NHÀ</p>
-                    <h2>Chào mừng trở lại</h2>
-                    <p>Theo dõi hoạt động và truy cập nhanh các chức năng quản lý.</p>
-                    <a class="button button--small button--dark"
-                       asp-controller="Booking"
-                       asp-action="Index">Theo dõi tất cả đơn đặt</a>
-                </div>
-                <div class="admin-welcome-art">
-                    <div class="hero-art admin-hero-art" role="img" aria-label="Minh họa sân thể thao">
-                        <div class="hero-art-orbit hero-art-orbit--one"></div>
-                        <div class="hero-art-orbit hero-art-orbit--two"></div>
-                        <div class="hero-court">
-                            <div class="hero-court-half"></div>
-                            <div class="hero-court-center"></div>
-                            <div class="hero-court-net"></div>
-                            <span class="hero-court-label">GAME<br />ON</span>
-                        </div>
-                        <div class="floating-note floating-note--top"><span class="floating-note-icon">✳</span><span><strong>Ra sân thôi</strong><small>Trận vui bắt đầu từ đây</small></span></div>
-                        <div class="floating-note floating-note--bottom"><span class="status-pulse"></span><span><strong>Giờ trống hôm nay</strong><small>Chọn sân, xem lịch ngay</small></span><span class="note-arrow">↗</span></div>
-                        <span class="hero-art-spark hero-art-spark--one">✳</span>
-                        <span class="hero-art-spark hero-art-spark--two">✳</span>
+            @* ─── BẢNG SỐ LIỆU TỔNG HỢP BÁO CÁO (ĐẶT Ở ĐẦU) ─── *@
+            <section class="admin-status-card admin-status-card--block" style="margin-bottom:1.5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <p class="admin-section-label">BẢNG SỐ LIỆU TỔNG HỢP BÁO CÁO</p>
+                        <h2 style="margin:0; font-size:18px;">Hiệu quả kinh doanh & phân bổ theo môn / loại sân</h2>
                     </div>
+                    <a asp-action="Reports" class="text-link">Xem báo cáo chi tiết <span aria-hidden="true">↗</span></a>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Môn / Loại sân</th>
+                                <th class="text-center">Số sân</th>
+                                <th class="text-center">Tổng lượt đặt</th>
+                                <th class="text-center">Đơn thành công</th>
+                                <th class="text-right">Doanh thu phát sinh</th>
+                                <th class="text-center">Tỷ trọng doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.CourtTypeReports.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center" style="padding:1.5rem; color:var(--muted);">Chưa có dữ liệu loại sân.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var (item, index) in Model.CourtTypeReports.Select((r, i) => (r, i + 1)))
+                                {
+                                    <tr>
+                                        <td class="col-index">@index</td>
+                                        <td><strong>@item.CourtTypeName</strong></td>
+                                        <td class="text-center">@item.CourtCount sân</td>
+                                        <td class="text-center">@item.TotalBookings</td>
+                                        <td class="text-center">
+                                            <span class="status-badge status-badge--active">@item.SuccessfulBookings</span>
+                                        </td>
+                                        <td class="text-right"><strong>@item.Revenue.ToString("N0") đ</strong></td>
+                                        <td class="text-center">
+                                            <strong>@item.ContributionPercent%</strong>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2">TỔNG CỘNG</td>
+                                <td class="text-center">@Model.TotalCourts sân</td>
+                                <td class="text-center">@Model.TotalBookings</td>
+                                <td class="text-center">@Model.ConfirmedBookings</td>
+                                <td class="text-right">@Model.TotalRevenue.ToString("N0") đ</td>
+                                <td class="text-center">100%</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </section>
 
-            <section class="admin-status-card" aria-labelledby="admin-status-title">
-                <div>
-                    <p class="admin-section-label">CHƯA TRIỂN KHAI</p>
-                    <h2 id="admin-status-title">Thống kê toàn hệ thống</h2>
-                    <p>Các số liệu tổng quan sẽ được bổ sung sau. Hiện tại bạn có thể theo dõi và xử lý đơn đặt sân.</p>
+            @* 4 Thẻ chỉ số tổng quan *@
+            <div class="admin-stats-grid" aria-label="Thống kê tổng quan">
+                <div class="admin-stat-card">
+                    <p class="admin-section-label">TỔNG DOANH THU</p>
+                    <div class="admin-stat-value">@Model.TotalRevenue.ToString("N0") <span style="font-size:14px;font-weight:600;">đ</span></div>
+                    <p class="admin-stat-sub">Chờ duyệt: <strong>@Model.PendingRevenue.ToString("N0") đ</strong></p>
                 </div>
-                <a class="text-link" asp-controller="Booking" asp-action="Index">Mở quản lý lịch đặt <span aria-hidden="true">↗</span></a>
+                <div class="admin-stat-card">
+                    <p class="admin-section-label">ĐƠN ĐẶT SÂN</p>
+                    <div class="admin-stat-value">@Model.TotalBookings <span style="font-size:14px;font-weight:600;">đơn</span></div>
+                    <p class="admin-stat-sub">Thành công: <strong>@Model.ConfirmedBookings</strong> | Chờ: <strong>@Model.PendingBookings</strong></p>
+                </div>
+                <div class="admin-stat-card">
+                    <p class="admin-section-label">KHÁCH HÀNG</p>
+                    <div class="admin-stat-value">@Model.TotalCustomers <span style="font-size:14px;font-weight:600;">người</span></div>
+                    <p class="admin-stat-sub">Hoạt động: <strong>@Model.ActiveCustomers</strong> | Đã khóa: <strong>@Model.LockedCustomers</strong></p>
+                </div>
+                <div class="admin-stat-card">
+                    <p class="admin-section-label">SÂN THỂ THAO</p>
+                    <div class="admin-stat-value">@Model.TotalCourts <span style="font-size:14px;font-weight:600;">sân</span></div>
+                    <p class="admin-stat-sub">Đang hoạt động: <strong>@Model.ActiveCourts</strong> / @Model.TotalCourts</p>
+                </div>
+            </div>
+
+            @* BẢNG SỐ LIỆU TỔNG HỢP BÁO CÁO 2: TỔNG QUAN CHỈ SỐ HỆ THỐNG *@
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">CHỈ SỐ TỔNG HỢP HỆ THỐNG</p>
+                <h2 style="margin:0 0 14px; font-size:18px;">Bảng tổng hợp chi tiết tình trạng toàn hệ thống</h2>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nhóm chỉ số</th>
+                                <th>Chỉ số chi tiết</th>
+                                <th class="text-center">Số lượng / Giá trị</th>
+                                <th>Tỷ lệ / Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="2" style="font-weight:700; background:#fbfcf9;">Doanh thu</td>
+                                <td>Doanh thu thực tế (Đã xác nhận & Hoàn thành)</td>
+                                <td class="text-center" style="font-weight:700; color:#3d5a24;">@Model.TotalRevenue.ToString("N0") đ</td>
+                                <td><span class="status-badge status-badge--active">Đã ghi nhận</span></td>
+                            </tr>
+                            <tr>
+                                <td>Doanh thu tạm tính (Đang chờ duyệt / giữ chỗ)</td>
+                                <td class="text-center" style="font-weight:700; color:#7a5a12;">@Model.PendingRevenue.ToString("N0") đ</td>
+                                <td><span class="status-badge status-badge--pending">Chờ xác nhận</span></td>
+                            </tr>
+
+                            <tr>
+                                <td rowspan="3" style="font-weight:700; background:#fbfcf9;">Đơn đặt sân</td>
+                                <td>Đơn thành công (Confirmed & Completed)</td>
+                                <td class="text-center"><strong>@Model.ConfirmedBookings</strong> đơn</td>
+                                <td>@(Model.TotalBookings > 0 ? Math.Round((double)Model.ConfirmedBookings / Model.TotalBookings * 100, 1) : 0)% tổng đơn</td>
+                            </tr>
+                            <tr>
+                                <td>Đơn chờ duyệt (Pending giữ chỗ)</td>
+                                <td class="text-center"><strong>@Model.PendingBookings</strong> đơn</td>
+                                <td>@(Model.TotalBookings > 0 ? Math.Round((double)Model.PendingBookings / Model.TotalBookings * 100, 1) : 0)% tổng đơn</td>
+                            </tr>
+                            <tr>
+                                <td>Đơn bị hủy hoặc hết hạn (Cancelled & Expired)</td>
+                                <td class="text-center"><strong>@Model.CancelledBookings</strong> đơn</td>
+                                <td>@(Model.TotalBookings > 0 ? Math.Round((double)Model.CancelledBookings / Model.TotalBookings * 100, 1) : 0)% tổng đơn</td>
+                            </tr>
+
+                            <tr>
+                                <td rowspan="2" style="font-weight:700; background:#fbfcf9;">Khách hàng</td>
+                                <td>Khách hàng đang hoạt động bình thường</td>
+                                <td class="text-center"><strong>@Model.ActiveCustomers</strong> tài khoản</td>
+                                <td><span class="status-badge status-badge--active">@(Model.TotalCustomers > 0 ? Math.Round((double)Model.ActiveCustomers / Model.TotalCustomers * 100, 1) : 0)%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Khách hàng bị khóa tài khoản</td>
+                                <td class="text-center"><strong>@Model.LockedCustomers</strong> tài khoản</td>
+                                <td>
+                                    @if (Model.LockedCustomers > 0)
+                                    {
+                                        <span class="status-badge status-badge--locked">@Model.LockedCustomers bị khóa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-badge--active">Không có</span>
+                                    }
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </div>
     </div>

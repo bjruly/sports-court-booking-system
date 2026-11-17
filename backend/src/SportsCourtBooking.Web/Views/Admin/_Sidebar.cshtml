@@ -8,10 +8,7 @@
         <details class="admin-menu-group" open>
             <summary>Tổng quan</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true">
-                    <span>Thống kê toàn hệ thống</span>
-                    <small>Chưa triển khai</small>
-                </span>
+                <a class="admin-menu-item" asp-controller="Admin" asp-action="Index">Thống kê toàn hệ thống</a>
             </div>
         </details>
 
@@ -19,34 +16,6 @@
             <summary>Quản lý người dùng</summary>
             <div class="admin-submenu">
                 <a class="admin-menu-item" asp-controller="Admin" asp-action="Customers">Khách hàng</a>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Chủ sân</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Nhân viên</span><small>Chưa triển khai</small></span>
-            </div>
-        </details>
-
-        <details class="admin-menu-group">
-            <summary>Quản lý cơ sở</summary>
-            <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Danh sách cơ sở</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Duyệt cơ sở</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Khóa cơ sở</span><small>Chưa triển khai</small></span>
-            </div>
-        </details>
-
-        <details class="admin-menu-group">
-            <summary>Quản lý sân</summary>
-            <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Danh sách sân</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Trạng thái sân</span><small>Chưa triển khai</small></span>
-            </div>
-        </details>
-
-        <details class="admin-menu-group" open>
-            <summary>Quản lý đặt sân</summary>
-            <div class="admin-submenu">
-                <a class="admin-menu-item admin-menu-item--active"
-                   asp-controller="Booking"
-                   asp-action="Index">Theo dõi tất cả đơn đặt</a>
             </div>
         </details>
 
@@ -66,13 +35,10 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open>
             <summary>Báo cáo thống kê</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Doanh thu</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Người dùng</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Cơ sở</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Lượt đặt</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item" asp-controller="Admin" asp-action="Reports">Báo cáo tổng hợp</a>
             </div>
         </details>
 
