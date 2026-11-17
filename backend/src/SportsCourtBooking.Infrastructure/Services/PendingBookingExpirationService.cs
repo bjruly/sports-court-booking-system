@@ -18,6 +18,11 @@ public sealed class PendingBookingExpirationService
     {
         var now = DateTime.UtcNow;
 
+        if (!_context.Database.IsRelational())
+        {
+            return ExpireOverdueInMemoryAsync(now, cancellationToken);
+        }
+
         return _context.Bookings
             .Where(booking =>
                 booking.Status == BookingStatus.Pending &&
@@ -28,5 +33,28 @@ public sealed class PendingBookingExpirationService
                     .SetProperty(booking => booking.Status, BookingStatus.Expired)
                     .SetProperty(booking => booking.UpdatedAt, now),
                 cancellationToken);
+    }
+
+    private async Task<int> ExpireOverdueInMemoryAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        var overdueBookings = await _context.Bookings
+            .Where(booking =>
+                booking.Status == BookingStatus.Pending &&
+                booking.ExpiresAt.HasValue &&
+                booking.ExpiresAt.Value <= now)
+            .ToListAsync(cancellationToken);
+
+        foreach (var booking in overdueBookings)
+        {
+            booking.Status = BookingStatus.Expired;
+            booking.UpdatedAt = now;
+        }
+
+        if (overdueBookings.Count > 0)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        return overdueBookings.Count;
     }
 }

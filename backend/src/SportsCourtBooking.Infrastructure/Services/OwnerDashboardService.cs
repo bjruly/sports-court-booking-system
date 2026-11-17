@@ -32,7 +32,8 @@ public class OwnerDashboardService : IOwnerDashboardService
             {
                 Id = booking.Id,
                 UserId = booking.UserId,
-                CustomerName = booking.User!.FullName,
+                CustomerName = booking.User != null ? booking.User.FullName : booking.GuestName ?? string.Empty,
+                CustomerPhone = booking.User != null ? booking.User.PhoneNumber : booking.GuestPhone ?? string.Empty,
                 CourtId = booking.CourtId,
                 CourtName = booking.Court!.Name,
                 BookingDate = booking.BookingDate,

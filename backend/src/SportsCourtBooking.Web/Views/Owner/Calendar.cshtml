@@ -1,0 +1,121 @@
+@using System.Globalization
+@using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
+@model OwnerCalendarViewModel
+
+@{
+    ViewData["Title"] = "Lịch sân";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var weekEnd = Model.WeekStart.AddDays(6);
+    var selectedDate = Model.WeekStart.ToString("yyyy-MM-dd");
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> LỊCH HOẠT ĐỘNG</p>
+                    <h1>Lịch sân</h1>
+                    <p class="page-subtitle">Theo dõi lịch đặt trong tuần và đặt sân giúp khách tại quầy.</p>
+                </div>
+            </header>
+
+            <section class="admin-status-card admin-status-card--block owner-calendar-controls">
+                <div class="owner-calendar-week-nav">
+                    <a class="button button--small button--outline"
+                       asp-action="Calendar" asp-route-date="@Model.WeekStart.AddDays(-7).ToString("yyyy-MM-dd")"
+                       asp-route-courtId="@Model.SelectedCourtId" aria-label="Tuần trước">← Tuần trước</a>
+                    <strong>@Model.WeekStart.ToString("dd/MM/yyyy") – @weekEnd.ToString("dd/MM/yyyy")</strong>
+                    <a class="button button--small button--outline"
+                       asp-action="Calendar" asp-route-date="@Model.WeekStart.AddDays(7).ToString("yyyy-MM-dd")"
+                       asp-route-courtId="@Model.SelectedCourtId" aria-label="Tuần tiếp theo">Tuần sau →</a>
+                </div>
+                <form class="owner-calendar-filter" asp-action="Calendar" method="get">
+                    <label>
+                        <span>CHỌN TUẦN</span>
+                        <input type="date" name="date" value="@selectedDate" />
+                    </label>
+                    <label>
+                        <span>SÂN</span>
+                        <select name="courtId">
+                            <option value="">Tất cả sân</option>
+                            @foreach (var court in Model.Courts)
+                            {
+                                <option value="@court.Id" selected="@(Model.SelectedCourtId == court.Id)">@court.Name</option>
+                            }
+                        </select>
+                    </label>
+                    <button class="button button--small button--dark" type="submit">Xem lịch</button>
+                    <a class="text-link" asp-action="Calendar" asp-route-courtId="@Model.SelectedCourtId">Tuần hiện tại</a>
+                </form>
+            </section>
+
+            <section class="admin-status-card admin-status-card--block owner-calendar-panel">
+                <div class="owner-booking-results-heading">
+                    <div>
+                        <p class="admin-section-label">@Model.Bookings.Count ĐƠN TRONG TUẦN</p>
+                        <h2>Lịch đặt theo ngày</h2>
+                    </div>
+                    <a class="button button--small button--primary"
+                       asp-action="CreateWalkInBooking" asp-route-date="@selectedDate"
+                       asp-route-courtId="@Model.SelectedCourtId">+ Đặt hộ khách</a>
+                </div>
+
+                @if (Model.Courts.Count == 0)
+                {
+                    <div class="empty-state owner-calendar-empty" role="status">
+                        <span class="empty-state-icon" aria-hidden="true">▦</span>
+                        <h3>Bạn chưa có sân</h3>
+                        <p>Thêm sân trước khi theo dõi lịch đặt.</p>
+                        <a class="button button--small button--dark" asp-action="CreateCourt">Thêm sân</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="owner-calendar-grid" aria-label="Lịch đặt từ @Model.WeekStart.ToString("dd/MM/yyyy") đến @weekEnd.ToString("dd/MM/yyyy")">
+                        @for (var dayIndex = 0; dayIndex < 7; dayIndex++)
+                        {
+                            var day = Model.WeekStart.AddDays(dayIndex);
+                            var dayBookings = Model.Bookings.Where(booking => booking.BookingDate == day).ToList();
+                            <article class="owner-calendar-day">
+                                <header class="owner-calendar-day-heading">
+                                    <div>
+                                        <span>@day.ToString("dddd", culture)</span>
+                                        <strong>@day.ToString("dd/MM")</strong>
+                                    </div>
+                                    <a asp-action="CreateWalkInBooking" asp-route-date="@day.ToString("yyyy-MM-dd")"
+                                       asp-route-courtId="@Model.SelectedCourtId" aria-label="Đặt sân ngày @day.ToString("dd/MM/yyyy")">+</a>
+                                </header>
+                                <div class="owner-calendar-day-bookings">
+                                    @if (dayBookings.Count == 0)
+                                    {
+                                        <p class="owner-calendar-no-bookings">Chưa có đơn đặt</p>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var booking in dayBookings)
+                                        {
+                                            <div class="owner-calendar-booking @BookingStatusDisplay.CssClass(booking.Status)">
+                                                <strong>@booking.StartTime.ToString("HH:mm")–@booking.EndTime.ToString("HH:mm")</strong>
+                                                <span>@booking.CourtName</span>
+                                                <span>@booking.CustomerName</span>
+                                                @if (!string.IsNullOrWhiteSpace(booking.CustomerPhone))
+                                                {
+                                                    <small>@booking.CustomerPhone</small>
+                                                }
+                                                <span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</section>

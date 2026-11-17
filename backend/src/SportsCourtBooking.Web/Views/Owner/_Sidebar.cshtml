@@ -3,6 +3,7 @@
     var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
     var isCourtList = currentAction is "Courts" or "EditCourt";
     var isBookingManagement = currentAction == "Bookings";
+    var isCalendarManagement = currentAction is "Calendar" or "CreateWalkInBooking";
 }
 
 <aside class="admin-sidebar" aria-label="Menu Chủ Sân">
@@ -57,11 +58,15 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isCalendarManagement ? "open" : null)">
             <summary>Lịch sân</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Xem lịch</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Đặt hộ khách</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "Calendar" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Calendar"
+                   aria-current="@(currentAction == "Calendar" ? "page" : null)">Xem lịch</a>
+                <a class="admin-menu-item @(currentAction == "CreateWalkInBooking" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CreateWalkInBooking"
+                   aria-current="@(currentAction == "CreateWalkInBooking" ? "page" : null)">Đặt hộ khách</a>
                 <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Check-in</span><small>Chưa triển khai</small></span>
             </div>
         </details>

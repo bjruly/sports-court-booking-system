@@ -569,6 +569,37 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-booking-results-heading > p { margin: 0; color: var(--muted); font-size: 10px; }
 .owner-bookings-empty { margin: 0; padding: 26px 16px; }
 .owner-bookings-table-wrap .booking-table { min-width: 880px; }
+.owner-booking-phone { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+.owner-calendar-controls { display: grid; gap: 18px; padding: 18px; }
+.owner-calendar-week-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.owner-calendar-week-nav strong { color: var(--ink); font-size: 13px; }
+.owner-calendar-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.owner-calendar-filter label, .owner-walkin-fields label { display: grid; flex: 1 1 180px; gap: 6px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.owner-calendar-filter input, .owner-calendar-filter select, .owner-walkin-fields input, .owner-walkin-fields select, .owner-walkin-fields textarea { width: 100%; min-height: 38px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); background: #fff; font: inherit; font-size: 12px; }
+.owner-calendar-panel { margin-top: 16px; }
+.owner-calendar-empty { margin: 0; padding: 28px 16px; }
+.owner-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(140px, 1fr)); gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+.owner-calendar-day { min-height: 205px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.owner-calendar-day-heading { display: flex; align-items: center; justify-content: space-between; padding: 11px; border-bottom: 1px solid var(--line); background: #fafbf9; }
+.owner-calendar-day-heading div { display: grid; gap: 2px; }
+.owner-calendar-day-heading span { color: var(--muted); font-size: 9px; text-transform: capitalize; }
+.owner-calendar-day-heading strong { color: var(--ink); font-size: 13px; }
+.owner-calendar-day-heading a { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); text-decoration: none; }
+.owner-calendar-day-bookings { display: grid; align-content: start; gap: 7px; padding: 8px; }
+.owner-calendar-no-bookings { margin: 8px 0; color: var(--muted); font-size: 10px; text-align: center; }
+.owner-calendar-booking { display: grid; gap: 3px; padding: 8px; border-left: 3px solid #197b57; border-radius: 4px; background: #f0f8f3; color: var(--ink); font-size: 10px; overflow-wrap: anywhere; }
+.owner-calendar-booking > strong { font-size: 11px; }
+.owner-calendar-booking > small { color: var(--muted); }
+.owner-calendar-booking .status-badge { width: fit-content; margin-top: 3px; }
+.owner-calendar-booking.status-badge--cancelled, .owner-calendar-booking.status-badge--expired { border-left-color: #9ca3af; background: #f4f5f6; }
+.owner-walkin-panel { padding: 24px; }
+.owner-walkin-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.owner-walkin-fields label { min-width: 0; }
+.owner-walkin-fields textarea { resize: vertical; }
+.owner-walkin-note { grid-column: 1 / -1; }
+.owner-walkin-confirmation { margin: 20px 0 0; padding: 12px; border-radius: 5px; background: #f1f7f3; color: var(--muted); font-size: 11px; }
+.owner-walkin-confirmation strong { color: var(--ink); }
+.owner-walkin-panel .owner-court-form-actions { margin-top: 16px; }
 .status-badge--maintenance { color: #7a5a12; background: #fdf3d6; }
 .status-badge--inactive { color: #87372f; background: #fde9e6; }
 
@@ -607,6 +638,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .owner-booking-filter { grid-template-columns: 1fr; }
   .owner-booking-filter-actions { grid-column: auto; }
   .owner-booking-results-heading { align-items: flex-start; flex-direction: column; }
+  .owner-calendar-week-nav { flex-wrap: wrap; }
+  .owner-calendar-week-nav strong { order: -1; width: 100%; text-align: center; }
+  .owner-walkin-fields { grid-template-columns: 1fr; }
+  .owner-walkin-note { grid-column: auto; }
+  .owner-walkin-panel { padding: 17px; }
 }
 
 /* ─── User management table ─────────────────────────────────────── */

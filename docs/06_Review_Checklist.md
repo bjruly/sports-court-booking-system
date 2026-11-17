@@ -109,7 +109,7 @@ Ghi ngay trong buổi họp. Không suy diễn quyết định từ nội dung �
 | Chủ đề | Trạng thái | Quyết định/việc cần làm |
 |---|---|---|
 | Phạm vi MVP và thanh toán | Đã chốt | MVP dừng ở booking `PENDING`; không tích hợp hoặc mô phỏng thanh toán. |
-| Khách vãng lai/đặt hộ | Đã chốt | Ngoài MVP; chỉ khách đăng nhập được đặt sân trong lát cắt này. |
+| Khách vãng lai/đặt hộ | Đã cập nhật | Khách đặt trực tuyến cần đăng nhập; Chủ sân có thể đặt hộ tại quầy bằng tên/số điện thoại, đơn được xác nhận ngay. |
 | Quy tắc chọn khung giờ | Đã chốt | Một khung 1 giờ; tối đa 4 khung liên tiếp trên cùng sân và ngày. |
 | Trạng thái booking và thời hạn giữ | Chờ review đề xuất | `PENDING` chưa xác nhận/thanh toán; thời hạn 10 phút là đề xuất trong tài liệu, cần rà soát. |
 | Chống đặt trùng và transaction | Chờ review schema | Làm rõ cơ chế PostgreSQL và nguồn trạng thái giữ giờ duy nhất. |

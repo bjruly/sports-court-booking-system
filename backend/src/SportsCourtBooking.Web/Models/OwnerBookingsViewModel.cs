@@ -11,3 +11,11 @@ public class OwnerBookingsViewModel
     public int? SelectedCourtId { get; set; }
     public BookingStatus? SelectedStatus { get; set; }
 }
+
+public class OwnerCalendarViewModel
+{
+    public List<CourtDto> Courts { get; set; } = new();
+    public List<BookingDto> Bookings { get; set; } = new();
+    public DateOnly WeekStart { get; set; }
+    public int? SelectedCourtId { get; set; }
+}

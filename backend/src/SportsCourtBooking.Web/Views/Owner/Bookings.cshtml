@@ -98,7 +98,13 @@
                                         <td>#@booking.Id</td>
                                         <td>@booking.BookingDate.ToString("dd/MM/yyyy") · @booking.StartTime.ToString("HH:mm")–@booking.EndTime.ToString("HH:mm")</td>
                                         <td>@booking.CourtName</td>
-                                        <td>@booking.CustomerName</td>
+                                        <td>
+                                            <strong>@booking.CustomerName</strong>
+                                            @if (!string.IsNullOrWhiteSpace(booking.CustomerPhone))
+                                            {
+                                                <small class="owner-booking-phone">@booking.CustomerPhone</small>
+                                            }
+                                        </td>
                                         <td>@booking.TotalPrice.ToString("N0", culture) đ</td>
                                         <td><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
                                         <td>

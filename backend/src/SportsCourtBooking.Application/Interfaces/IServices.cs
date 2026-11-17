@@ -16,10 +16,12 @@ public interface IBookingService
     /// true: lấy cả đơn đã hủy/hết hạn, dùng cho trang quản trị.</param>
     Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null, bool includeInactive = false);
     Task<List<BookingDto>> GetOwnerBookingsAsync(int ownerId, DateOnly? date = null, int? courtId = null, BookingStatus? status = null);
+    Task<List<BookingDto>> GetOwnerBookingsForCalendarAsync(int ownerId, DateOnly startDate, DateOnly endDate, int? courtId = null);
     Task<List<BookingDto>> GetBookingsByUserAsync(int userId);
     Task<BookingDetailDto?> GetOwnBookingAsync(int bookingId, int userId);
     Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime);
     Task<(bool Success, string Message, BookingDto? Data)> CreateBookingAsync(CreateBookingRequest request);
+    Task<(bool Success, string Message, BookingDto? Data)> CreateOwnerWalkInBookingAsync(int ownerId, OwnerWalkInBookingRequest request);
 
     /// <summary>Admin/Staff xác nhận đơn Pending còn hạn giữ chỗ.</summary>
     Task<(bool Success, string Message)> ConfirmBookingAsync(int bookingId, int actorUserId);

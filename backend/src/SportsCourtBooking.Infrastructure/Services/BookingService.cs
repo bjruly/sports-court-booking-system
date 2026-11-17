@@ -8,6 +8,7 @@ using SportsCourtBooking.Domain.Entities;
 using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
 using Npgsql;
+using System.Text.RegularExpressions;
 
 namespace SportsCourtBooking.Infrastructure.Services;
 
@@ -48,7 +49,8 @@ public class BookingService : IBookingService
         {
             Id = b.Id,
             UserId = b.UserId,
-            CustomerName = b.User != null ? b.User.FullName : string.Empty,
+            CustomerName = b.User != null ? b.User.FullName : b.GuestName ?? string.Empty,
+            CustomerPhone = b.User != null ? b.User.PhoneNumber : b.GuestPhone ?? string.Empty,
             CourtId = b.CourtId,
             CourtName = b.Court != null ? b.Court.Name : string.Empty,
             BookingDate = b.BookingDate,
@@ -93,7 +95,48 @@ public class BookingService : IBookingService
             {
                 Id = booking.Id,
                 UserId = booking.UserId,
-                CustomerName = booking.User != null ? booking.User.FullName : string.Empty,
+                CustomerName = booking.User != null ? booking.User.FullName : booking.GuestName ?? string.Empty,
+                CustomerPhone = booking.User != null ? booking.User.PhoneNumber : booking.GuestPhone ?? string.Empty,
+                CourtId = booking.CourtId,
+                CourtName = booking.Court != null ? booking.Court.Name : string.Empty,
+                BookingDate = booking.BookingDate,
+                StartTime = booking.StartTime,
+                EndTime = booking.EndTime,
+                TotalPrice = booking.TotalPrice,
+                Status = booking.Status
+            })
+            .ToListAsync();
+    }
+
+    public async Task<List<BookingDto>> GetOwnerBookingsForCalendarAsync(
+        int ownerId,
+        DateOnly startDate,
+        DateOnly endDate,
+        int? courtId = null)
+    {
+        await _expirationService.ExpireOverdueAsync();
+
+        var query = _context.Bookings
+            .AsNoTracking()
+            .Where(booking =>
+                booking.Court!.OwnerId == ownerId &&
+                booking.BookingDate >= startDate &&
+                booking.BookingDate <= endDate);
+
+        if (courtId.HasValue)
+        {
+            query = query.Where(booking => booking.CourtId == courtId.Value);
+        }
+
+        return await query
+            .OrderBy(booking => booking.BookingDate)
+            .ThenBy(booking => booking.StartTime)
+            .Select(booking => new BookingDto
+            {
+                Id = booking.Id,
+                UserId = booking.UserId,
+                CustomerName = booking.User != null ? booking.User.FullName : booking.GuestName ?? string.Empty,
+                CustomerPhone = booking.User != null ? booking.User.PhoneNumber : booking.GuestPhone ?? string.Empty,
                 CourtId = booking.CourtId,
                 CourtName = booking.Court != null ? booking.Court.Name : string.Empty,
                 BookingDate = booking.BookingDate,
@@ -117,7 +160,8 @@ public class BookingService : IBookingService
             {
                 Id = b.Id,
                 UserId = b.UserId,
-                CustomerName = b.User != null ? b.User.FullName : string.Empty,
+                CustomerName = b.User != null ? b.User.FullName : b.GuestName ?? string.Empty,
+                CustomerPhone = b.User != null ? b.User.PhoneNumber : b.GuestPhone ?? string.Empty,
                 CourtId = b.CourtId,
                 CourtName = b.Court != null ? b.Court.Name : string.Empty,
                 BookingDate = b.BookingDate,
@@ -131,41 +175,97 @@ public class BookingService : IBookingService
     public async Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
     {
         await _expirationService.ExpireOverdueAsync();
-
-        // Hai khoảng thời gian [StartA, EndA] và [StartB, EndB] giao nhau khi: StartA < EndB VÀ EndA > StartB
-        bool isOverlapping = await _context.Bookings.AnyAsync(b =>
-            b.CourtId == courtId &&
-            b.BookingDate == date &&
-            (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed) &&
-            startTime < b.EndTime &&
-            endTime > b.StartTime);
-
-        return !isOverlapping;
+        return await IsTimeSlotAvailableCoreAsync(courtId, date, startTime, endTime);
     }
 
-    public async Task<(bool Success, string Message, BookingDto? Data)> CreateBookingAsync(CreateBookingRequest request)
+    public Task<(bool Success, string Message, BookingDto? Data)> CreateBookingAsync(CreateBookingRequest request)
+        => CreateBookingCoreAsync(
+            request.UserId,
+            ownerId: null,
+            request.CourtId,
+            request.BookingDate,
+            request.StartTime,
+            request.EndTime,
+            request.Note,
+            guestName: null,
+            guestPhone: null,
+            BookingStatus.Pending);
+
+    public Task<(bool Success, string Message, BookingDto? Data)> CreateOwnerWalkInBookingAsync(
+        int ownerId,
+        OwnerWalkInBookingRequest request)
     {
-        // 1. Kiểm tra dữ liệu đầu vào (áp dụng cho mọi nơi gọi, không chỉ riêng giao diện web)
+        var guestName = request.GuestName?.Trim();
+        if (string.IsNullOrWhiteSpace(guestName) || guestName.Length > 100)
+        {
+            return Task.FromResult<(bool Success, string Message, BookingDto? Data)>(
+                (false, "Tên khách phải từ 1 đến 100 ký tự.", null));
+        }
+
+        var guestPhone = request.GuestPhone?.Trim();
+        if (string.IsNullOrWhiteSpace(guestPhone)
+            || guestPhone.Length > 20
+            || !Regex.IsMatch(guestPhone, @"^(0|\+84)\d{9}$"))
+        {
+            return Task.FromResult<(bool Success, string Message, BookingDto? Data)>(
+                (false, "Số điện thoại khách không hợp lệ (ví dụ 0901234567).", null));
+        }
+
+        return CreateBookingCoreAsync(
+            userId: null,
+            ownerId,
+            request.CourtId,
+            request.BookingDate,
+            request.StartTime,
+            request.EndTime,
+            request.Note,
+            guestName,
+            guestPhone,
+            BookingStatus.Confirmed);
+    }
+
+    private async Task<(bool Success, string Message, BookingDto? Data)> CreateBookingCoreAsync(
+        int? userId,
+        int? ownerId,
+        int courtId,
+        DateOnly bookingDate,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        string? note,
+        string? guestName,
+        string? guestPhone,
+        BookingStatus status)
+    {
         var rangeError = BookingRules.ValidateTimeRange(
-            request.BookingDate, request.StartTime, request.EndTime, VietnamClock.Now);
+            bookingDate, startTime, endTime, VietnamClock.Now);
         if (rangeError != null)
             return (false, rangeError, null);
 
-        var note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
-        if (note != null && note.Length > BookingRules.MaxNoteLength)
+        note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        if (note is { Length: > BookingRules.MaxNoteLength })
             return (false, $"Ghi chú tối đa {BookingRules.MaxNoteLength} ký tự.", null);
 
-        var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId && u.IsActive);
-        if (!userExists)
+        if (userId.HasValue && !await _context.Users.AnyAsync(user => user.Id == userId.Value && user.IsActive))
+        {
             return (false, "Tài khoản không hợp lệ hoặc đã bị khóa. Vui lòng đăng nhập lại.", null);
-
-        var court = await _context.Courts.FindAsync(request.CourtId);
-        if (court == null || court.Status != CourtStatus.Active)
-            return (false, "Sân không tồn tại hoặc đang tạm ngưng hoạt động.", null);
+        }
 
         try
         {
+            await _expirationService.ExpireOverdueAsync();
             await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            var courtQuery = _context.Courts.Where(court => court.Id == courtId);
+            if (ownerId.HasValue)
+            {
+                courtQuery = courtQuery.Where(court => court.OwnerId == ownerId.Value);
+            }
+
+            var court = await courtQuery.SingleOrDefaultAsync();
+            if (court == null || court.Status != CourtStatus.Active)
+            {
+                return (false, "Sân không tồn tại, không thuộc quyền quản lý của bạn hoặc đang tạm ngưng hoạt động.", null);
+            }
 
             // 2. Chống đặt trùng khi nhiều người bấm cùng lúc: khóa theo (sân, ngày) trong suốt transaction.
             //    Người đến sau sẽ đợi đến khi người trước commit xong rồi mới kiểm tra lại khung giờ.
@@ -173,13 +273,12 @@ public class BookingService : IBookingService
             {
                 // Chờ tối đa 10 giây để lấy khóa; quá hạn sẽ ném lỗi và được bắt ở khối catch bên dưới.
                 await _context.Database.ExecuteSqlRawAsync("SET LOCAL lock_timeout = '10s'");
-                var lockKey = $"booking:{court.Id}:{request.BookingDate:yyyyMMdd}";
+                var lockKey = $"booking:{court.Id}:{bookingDate:yyyyMMdd}";
                 await _context.Database.ExecuteSqlInterpolatedAsync(
                     $"SELECT pg_advisory_xact_lock(hashtext({lockKey}))");
             }
 
-            bool isAvailable = await IsTimeSlotAvailableAsync(
-                request.CourtId, request.BookingDate, request.StartTime, request.EndTime);
+            var isAvailable = await IsTimeSlotAvailableCoreAsync(courtId, bookingDate, startTime, endTime);
             if (!isAvailable)
                 return (false, "Khung giờ này đã có người đặt. Vui lòng chọn khung giờ khác!", null);
 
@@ -187,26 +286,36 @@ public class BookingService : IBookingService
             var createdAt = DateTime.UtcNow;
             var booking = new Booking
             {
-                UserId = request.UserId,
-                CourtId = request.CourtId,
-                BookingDate = request.BookingDate,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                TotalPrice = BookingRules.CalculateTotalPrice(court.PricePerHour, request.StartTime, request.EndTime),
+                UserId = userId,
+                GuestName = guestName,
+                GuestPhone = guestPhone,
+                CourtId = courtId,
+                BookingDate = bookingDate,
+                StartTime = startTime,
+                EndTime = endTime,
+                TotalPrice = BookingRules.CalculateTotalPrice(court.PricePerHour, startTime, endTime),
                 Note = note,
-                Status = BookingStatus.Pending,
+                Status = status,
                 CreatedAt = createdAt,
-                ExpiresAt = createdAt.AddMinutes(Booking.PendingExpirationMinutes)
+                ExpiresAt = status == BookingStatus.Pending
+                    ? createdAt.AddMinutes(Booking.PendingExpirationMinutes)
+                    : null
             };
 
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return (true, "Đã tạo đơn đặt sân, đang chờ xác nhận.", new BookingDto
+            var message = status == BookingStatus.Confirmed
+                ? "Đã tạo và xác nhận đơn đặt sân."
+                : "Đã tạo đơn đặt sân, đang chờ xác nhận.";
+
+            return (true, message, new BookingDto
             {
                 Id = booking.Id,
                 UserId = booking.UserId,
+                CustomerName = guestName ?? string.Empty,
+                CustomerPhone = guestPhone ?? string.Empty,
                 CourtId = booking.CourtId,
                 CourtName = court.Name,
                 BookingDate = booking.BookingDate,
@@ -222,15 +331,27 @@ public class BookingService : IBookingService
             _logger.LogInformation(
                 ex,
                 "Booking bị từ chối do trùng khung giờ ở sân {CourtId} ngày {Date}",
-                request.CourtId,
-                request.BookingDate);
+                courtId,
+                bookingDate);
             return (false, "Khung giờ này đã có người đặt. Vui lòng chọn khung giờ khác!", null);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Không thể tạo booking cho sân {CourtId} ngày {Date}", request.CourtId, request.BookingDate);
+            _logger.LogError(ex, "Không thể tạo booking cho sân {CourtId} ngày {Date}", courtId, bookingDate);
             return (false, "Hệ thống đang bận hoặc gặp lỗi khi lưu đơn đặt sân. Vui lòng thử lại.", null);
         }
+    }
+
+    private async Task<bool> IsTimeSlotAvailableCoreAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
+    {
+        var isOverlapping = await _context.Bookings.AnyAsync(booking =>
+            booking.CourtId == courtId &&
+            booking.BookingDate == date &&
+            (booking.Status == BookingStatus.Pending || booking.Status == BookingStatus.Confirmed) &&
+            startTime < booking.EndTime &&
+            endTime > booking.StartTime);
+
+        return !isOverlapping;
     }
 
     public Task<(bool Success, string Message)> ConfirmBookingAsync(int bookingId, int actorUserId)
@@ -350,7 +471,7 @@ public async Task<BookingDetailDto?> GetOwnBookingAsync(
 
             CustomerName = b.User != null
                 ? b.User.FullName
-                : string.Empty,
+                : b.GuestName ?? string.Empty,
 
             CourtName = b.Court != null
                 ? b.Court.Name
