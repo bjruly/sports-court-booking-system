@@ -18,6 +18,7 @@ namespace SportsCourtBooking.Web.Controllers;
 public class OwnerController : Controller
 {
     private readonly IOwnerDashboardService _dashboardService;
+    private readonly IOwnerCourtStatisticsService _courtStatisticsService;
     private readonly IOwnerCourtService _courtService;
     private readonly IOwnerFacilityService _facilityService;
     private readonly IBookingService _bookingService;
@@ -28,6 +29,7 @@ public class OwnerController : Controller
 
     public OwnerController(
         IOwnerDashboardService dashboardService,
+        IOwnerCourtStatisticsService courtStatisticsService,
         IOwnerCourtService courtService,
         IOwnerFacilityService facilityService,
         IBookingService bookingService,
@@ -37,6 +39,7 @@ public class OwnerController : Controller
         IOwnerRevenueReportService revenueReportService)
     {
         _dashboardService = dashboardService;
+        _courtStatisticsService = courtStatisticsService;
         _courtService = courtService;
         _facilityService = facilityService;
         _bookingService = bookingService;
@@ -57,6 +60,37 @@ public class OwnerController : Controller
 
         var dashboard = await _dashboardService.GetDashboardAsync(ownerId.Value);
         return View(dashboard);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CourtStatistics(int? year, int? month)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest();
+        }
+
+        var today = VietnamClock.Today;
+        var selectedYear = year ?? today.Year;
+        var selectedMonth = month ?? today.Month;
+        if (selectedYear < 1 || selectedYear > 9998 || selectedMonth < 1 || selectedMonth > 12)
+        {
+            return BadRequest();
+        }
+
+        return View(new OwnerCourtStatisticsViewModel
+        {
+            Statistics = await _courtStatisticsService.GetMonthlyStatisticsAsync(
+                ownerId.Value, selectedYear, selectedMonth),
+            SelectedYear = selectedYear,
+            SelectedMonth = selectedMonth
+        });
     }
 
     [HttpGet]
@@ -252,6 +286,21 @@ public class OwnerController : Controller
         }
 
         TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Facilities));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFacility(int id)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _facilityService.DeleteOwnerFacilityAsync(id, ownerId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Facilities));
     }
 

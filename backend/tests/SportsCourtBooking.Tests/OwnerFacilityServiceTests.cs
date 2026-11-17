@@ -87,6 +87,52 @@ public class OwnerFacilityServiceTests
         Assert.Empty(await context.Facilities.ToListAsync());
     }
 
+    [Fact]
+    public async Task DeleteOwnerFacilityAsync_DeletesOnlyEmptyFacilitiesOwnedByTheRequester()
+    {
+        await using var context = CreateContext();
+        context.Users.AddRange(CreateOwner(3), CreateOwner(4));
+        context.Facilities.AddRange(
+            new Facility
+            {
+                Id = 1,
+                OwnerId = 3,
+                Name = "Cơ sở trống",
+                Address = "Địa chỉ 1"
+            },
+            new Facility
+            {
+                Id = 2,
+                OwnerId = 3,
+                Name = "Cơ sở đang dùng",
+                Address = "Địa chỉ 2"
+            });
+        context.Courts.Add(new Court
+        {
+            Id = 10,
+            OwnerId = 3,
+            FacilityId = 2,
+            Name = "Sân đang dùng",
+            CourtTypeId = 1,
+            Location = "Khu A",
+            PricePerHour = 100_000
+        });
+        await context.SaveChangesAsync();
+        var service = new OwnerFacilityService(context);
+
+        var otherOwner = await service.DeleteOwnerFacilityAsync(1, 4);
+        var linkedFacility = await service.DeleteOwnerFacilityAsync(2, 3);
+        var emptyFacility = await service.DeleteOwnerFacilityAsync(1, 3);
+
+        Assert.False(otherOwner.Success);
+        Assert.False(linkedFacility.Success);
+        Assert.Contains("đang có sân", linkedFacility.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.True(emptyFacility.Success, emptyFacility.Message);
+        Assert.Null(await context.Facilities.FindAsync(1));
+        Assert.NotNull(await context.Facilities.FindAsync(2));
+        Assert.Equal(2, (await context.Courts.SingleAsync()).FacilityId);
+    }
+
     private static User CreateOwner(int id) => new()
     {
         Id = id,

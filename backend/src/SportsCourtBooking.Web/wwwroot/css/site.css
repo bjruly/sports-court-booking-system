@@ -599,6 +599,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-courts-table { min-width: 1020px; }
 .owner-facility-table { min-width: 720px; }
 .owner-facility-description { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+.owner-facility-actions { display: flex; align-items: center; gap: 12px; }
+.owner-facility-delete { border-color: #e6c8c4; color: #983d35; }
+.owner-facility-delete-hint { color: var(--muted); font-size: 10px; }
 .owner-court-actions { display: flex; min-width: 260px; align-items: center; gap: 12px; }
 .owner-status-form { display: flex; align-items: center; gap: 6px; }
 .owner-status-form .filter-input { width: auto; min-width: 145px; }

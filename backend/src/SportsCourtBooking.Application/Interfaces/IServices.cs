@@ -71,6 +71,11 @@ public interface IOwnerDashboardService
     Task<OwnerDashboardDto> GetDashboardAsync(int ownerId);
 }
 
+public interface IOwnerCourtStatisticsService
+{
+    Task<OwnerCourtStatisticsDto> GetMonthlyStatisticsAsync(int ownerId, int year, int month);
+}
+
 public interface IOwnerRevenueReportService
 {
     Task<OwnerRevenueReportDto> GetMonthlyReportAsync(
@@ -99,6 +104,7 @@ public interface IOwnerFacilityService
         int facilityId,
         int ownerId,
         OwnerFacilityRequest request);
+    Task<(bool Success, string Message)> DeleteOwnerFacilityAsync(int facilityId, int ownerId);
 }
 
 public interface IVoucherService

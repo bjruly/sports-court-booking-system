@@ -5,6 +5,7 @@
     var isFacilityManagement = currentAction is "Facilities" or "CreateFacility" or "EditFacility";
     var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
     var isCourtList = currentAction is "Courts" or "EditCourt";
+    var isCourtStatistics = currentAction == "CourtStatistics";
     var isPricingManagement = currentAction is "Pricing" or "EditCourt";
     var isVoucherManagement = currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher";
     var isReviewManagement = currentAction is "Reviews" or "ReplyToReview";
@@ -30,7 +31,9 @@
                 <a class="admin-menu-item @(currentAction == "Index" ? "admin-menu-item--active" : string.Empty)"
                    asp-controller="Owner" asp-action="Index"
                    aria-current="@(currentAction == "Index" ? "page" : null)">Bảng điều khiển</a>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Thống kê sân</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isCourtStatistics ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CourtStatistics"
+                   aria-current="@(isCourtStatistics ? "page" : null)">Thống kê sân</a>
                 <a class="admin-menu-item @(isBookingManagement ? "admin-menu-item--active" : string.Empty)"
                    asp-controller="Owner" asp-action="Bookings"
                    aria-current="@(isBookingManagement ? "page" : null)">Đơn đặt</a>

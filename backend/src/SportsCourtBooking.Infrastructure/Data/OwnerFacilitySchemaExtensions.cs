@@ -20,6 +20,17 @@ public static class OwnerFacilitySchemaExtensions
 
         DO $$
         BEGIN
+            IF EXISTS (
+                SELECT 1
+                FROM pg_constraint
+                WHERE conname = 'FK_Courts_Facilities_FacilityId'
+                  AND conrelid = '"Courts"'::regclass
+                  AND confdeltype <> 'r'
+            ) THEN
+                ALTER TABLE "Courts"
+                    DROP CONSTRAINT "FK_Courts_Facilities_FacilityId";
+            END IF;
+
             IF NOT EXISTS (
                 SELECT 1
                 FROM pg_constraint
@@ -28,7 +39,7 @@ public static class OwnerFacilitySchemaExtensions
             ) THEN
                 ALTER TABLE "Courts"
                     ADD CONSTRAINT "FK_Courts_Facilities_FacilityId"
-                    FOREIGN KEY ("FacilityId") REFERENCES "Facilities" ("Id") ON DELETE SET NULL;
+                    FOREIGN KEY ("FacilityId") REFERENCES "Facilities" ("Id") ON DELETE RESTRICT;
             END IF;
         END $$;
 

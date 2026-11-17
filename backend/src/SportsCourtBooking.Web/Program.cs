@@ -26,6 +26,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IOwnerDashboardService, OwnerDashboardService>();
+builder.Services.AddScoped<IOwnerCourtStatisticsService, OwnerCourtStatisticsService>();
 builder.Services.AddScoped<IOwnerCourtService, OwnerCourtService>();
 builder.Services.AddScoped<IOwnerFacilityService, OwnerFacilityService>();
 builder.Services.AddScoped<IVoucherService, OwnerVoucherService>();

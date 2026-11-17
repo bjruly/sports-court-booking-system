@@ -76,7 +76,7 @@ public class AppDbContext : DbContext
             entity.HasOne(court => court.Facility)
                 .WithMany(facility => facility.Courts)
                 .HasForeignKey(court => court.FacilityId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(c => c.CourtType)
                   .WithMany(ct => ct.Courts)

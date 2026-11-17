@@ -56,7 +56,20 @@
                                         <td>@facility.Address</td>
                                         <td>@facility.CourtCount</td>
                                         <td>
-                                            <a class="text-link" asp-action="EditFacility" asp-route-id="@facility.Id">Sửa</a>
+                                            <div class="owner-facility-actions">
+                                                <a class="text-link" asp-action="EditFacility" asp-route-id="@facility.Id">Sửa</a>
+                                                @if (facility.CourtCount == 0)
+                                                {
+                                                    <form asp-action="DeleteFacility" asp-route-id="@facility.Id" method="post">
+                                                        <button class="button button--small button--outline owner-facility-delete"
+                                                                type="submit">Xóa</button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <small class="owner-facility-delete-hint">Chuyển sân để xóa</small>
+                                                }
+                                            </div>
                                         </td>
                                     </tr>
                                 }

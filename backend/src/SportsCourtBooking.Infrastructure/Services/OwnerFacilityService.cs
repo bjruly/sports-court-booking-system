@@ -4,6 +4,7 @@ using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Domain.Entities;
 using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
+using Npgsql;
 
 namespace SportsCourtBooking.Infrastructure.Services;
 
@@ -101,6 +102,40 @@ public class OwnerFacilityService : IOwnerFacilityService
         await _context.SaveChangesAsync();
 
         return (true, "Đã cập nhật thông tin cơ sở.");
+    }
+
+    public async Task<(bool Success, string Message)> DeleteOwnerFacilityAsync(int facilityId, int ownerId)
+    {
+        var facility = await _context.Facilities
+            .SingleOrDefaultAsync(item => item.Id == facilityId
+                && item.OwnerId == ownerId
+                && item.Owner!.Role == UserRole.CourtOwner);
+        if (facility is null)
+        {
+            return (false, "Không tìm thấy cơ sở thuộc tài khoản của bạn.");
+        }
+
+        if (await _context.Courts.AnyAsync(court => court.FacilityId == facilityId))
+        {
+            return (false, "Không thể xóa cơ sở đang có sân. Hãy chuyển các sân sang cơ sở khác trước.");
+        }
+
+        _context.Facilities.Remove(facility);
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException exception) when (
+            exception.InnerException is PostgresException
+            {
+                SqlState: PostgresErrorCodes.ForeignKeyViolation
+            })
+        {
+            _context.Entry(facility).State = EntityState.Unchanged;
+            return (false, "Không thể xóa cơ sở đang có sân. Hãy chuyển các sân sang cơ sở khác trước.");
+        }
+
+        return (true, "Đã xóa cơ sở.");
     }
 
     private static bool TryNormalize(
