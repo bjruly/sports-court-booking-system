@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
+using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Web.Extensions;
+using SportsCourtBooking.Web.Models;
 
 namespace SportsCourtBooking.Web.Controllers;
 
@@ -9,10 +13,12 @@ namespace SportsCourtBooking.Web.Controllers;
 public class OwnerController : Controller
 {
     private readonly IOwnerDashboardService _dashboardService;
+    private readonly IOwnerCourtService _courtService;
 
-    public OwnerController(IOwnerDashboardService dashboardService)
+    public OwnerController(IOwnerDashboardService dashboardService, IOwnerCourtService courtService)
     {
         _dashboardService = dashboardService;
+        _courtService = courtService;
     }
 
     [HttpGet]
@@ -26,5 +32,143 @@ public class OwnerController : Controller
 
         var dashboard = await _dashboardService.GetDashboardAsync(ownerId.Value);
         return View(dashboard);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Courts()
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        return View(await _courtService.GetOwnerCourtsAsync(ownerId.Value));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CreateCourt()
+    {
+        var model = new OwnerCourtFormViewModel();
+        await PopulateCourtTypesAsync(model);
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateCourt(OwnerCourtFormViewModel model)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            await PopulateCourtTypesAsync(model);
+            return View(model);
+        }
+
+        var result = await _courtService.CreateOwnerCourtAsync(ownerId.Value, model);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            await PopulateCourtTypesAsync(model);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Courts));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditCourt(int id)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var court = await _courtService.GetOwnerCourtAsync(id, ownerId.Value);
+        if (court is null)
+        {
+            return NotFound();
+        }
+
+        var model = new OwnerCourtFormViewModel
+        {
+            Name = court.Name,
+            CourtTypeId = court.CourtTypeId,
+            Location = court.Location,
+            Description = court.Description,
+            ImageUrl = court.ImageUrl,
+            PricePerHour = court.PricePerHour,
+            Status = court.Status
+        };
+        await PopulateCourtTypesAsync(model);
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditCourt(int id, OwnerCourtFormViewModel model)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            await PopulateCourtTypesAsync(model);
+            return View(model);
+        }
+
+        var result = await _courtService.UpdateOwnerCourtAsync(id, ownerId.Value, model);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            await PopulateCourtTypesAsync(model);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Courts));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateCourtStatus(int id, CourtStatus status)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = ModelState.IsValid
+            ? await _courtService.UpdateOwnerCourtStatusAsync(id, ownerId.Value, status)
+            : (false, "Trạng thái sân không hợp lệ.");
+
+        if (result.Item1)
+        {
+            TempData["SuccessMessage"] = result.Item2;
+        }
+        else
+        {
+            TempData["ErrorMessage"] = result.Item2;
+        }
+
+        return RedirectToAction(nameof(Courts));
+    }
+
+    private async Task PopulateCourtTypesAsync(OwnerCourtFormViewModel model)
+    {
+        model.CourtTypes = (await _courtService.GetCourtTypesAsync())
+            .Select(courtType => new SelectListItem(courtType.Name, courtType.Id.ToString()))
+            .ToList();
     }
 }

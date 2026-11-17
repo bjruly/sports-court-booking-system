@@ -1,0 +1,36 @@
+@model SportsCourtBooking.Web.Models.OwnerCourtFormViewModel
+
+@{
+    ViewData["Title"] = "Chỉnh sửa sân";
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading owner-list-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ SÂN</p>
+                    <h1>Chỉnh sửa sân</h1>
+                    <p class="page-subtitle">Cập nhật thông tin và tình trạng sân.</p>
+                </div>
+                <a class="button button--outline" asp-action="Courts">Quay lại danh sách</a>
+            </header>
+
+            <section class="admin-status-card admin-status-card--block owner-court-form-panel">
+                <form asp-action="EditCourt" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post" class="owner-court-form">
+                    <partial name="_CourtFormFields" model="Model" />
+                    <div class="owner-form-actions">
+                        <a class="button button--outline" asp-action="Courts">Hủy</a>
+                        <button class="button button--primary" type="submit">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

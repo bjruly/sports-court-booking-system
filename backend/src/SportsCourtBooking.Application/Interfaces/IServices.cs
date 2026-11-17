@@ -1,4 +1,5 @@
 using SportsCourtBooking.Application.DTOs;
+using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Application.Interfaces;
 
@@ -57,4 +58,14 @@ public interface IReportService
 public interface IOwnerDashboardService
 {
     Task<OwnerDashboardDto> GetDashboardAsync(int ownerId);
+}
+
+public interface IOwnerCourtService
+{
+    Task<List<CourtDto>> GetOwnerCourtsAsync(int ownerId);
+    Task<List<CourtTypeDto>> GetCourtTypesAsync();
+    Task<CourtDto?> GetOwnerCourtAsync(int courtId, int ownerId);
+    Task<(bool Success, string Message)> CreateOwnerCourtAsync(int ownerId, OwnerCourtRequest request);
+    Task<(bool Success, string Message)> UpdateOwnerCourtAsync(int courtId, int ownerId, OwnerCourtRequest request);
+    Task<(bool Success, string Message)> UpdateOwnerCourtStatusAsync(int courtId, int ownerId, CourtStatus status);
 }

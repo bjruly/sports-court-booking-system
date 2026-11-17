@@ -1,0 +1,49 @@
+@using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
+@model OwnerCourtFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="owner-form-summary" role="alert"></div>
+<div class="owner-form-grid">
+    <div class="owner-form-field">
+        <label asp-for="Name">Tên sân <span aria-hidden="true">*</span></label>
+        <input asp-for="Name" class="filter-input" autocomplete="off" />
+        <span asp-validation-for="Name" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="CourtTypeId">Môn thể thao <span aria-hidden="true">*</span></label>
+        <select asp-for="CourtTypeId" asp-items="Model.CourtTypes" class="filter-input">
+            <option value="">-- Chọn môn thể thao --</option>
+        </select>
+        <span asp-validation-for="CourtTypeId" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="Location">Địa điểm <span aria-hidden="true">*</span></label>
+        <input asp-for="Location" class="filter-input" autocomplete="street-address" />
+        <span asp-validation-for="Location" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="PricePerHour">Giá cơ bản / giờ (đ) <span aria-hidden="true">*</span></label>
+        <input asp-for="PricePerHour" class="filter-input" type="number" min="1" step="1000" />
+        <span asp-validation-for="PricePerHour" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="Status">Trạng thái</label>
+        <select asp-for="Status" class="filter-input">
+            @foreach (var status in Enum.GetValues<CourtStatus>())
+            {
+                <option value="@status">@CourtStatusDisplay.Label(status)</option>
+            }
+        </select>
+        <span asp-validation-for="Status" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field owner-form-field--full">
+        <label asp-for="Description">Mô tả</label>
+        <textarea asp-for="Description" class="filter-input" rows="4" maxlength="1000"></textarea>
+        <span asp-validation-for="Description" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field owner-form-field--full">
+        <label asp-for="ImageUrl">Đường dẫn hình ảnh</label>
+        <input asp-for="ImageUrl" class="filter-input" type="url" placeholder="https://example.com/court.jpg" />
+        <span asp-validation-for="ImageUrl" class="field-validation-error"></span>
+    </div>
+</div>

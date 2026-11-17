@@ -539,6 +539,26 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-status-track span { display: block; height: 100%; border-radius: inherit; background: var(--green-dark); }
 .owner-status-caption, .owner-status-empty { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .owner-preview-note { margin: 14px 2px 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.owner-list-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.owner-courts-table { min-width: 900px; }
+.owner-court-actions { display: flex; min-width: 260px; align-items: center; gap: 12px; }
+.owner-status-form { display: flex; align-items: center; gap: 6px; }
+.owner-status-form .filter-input { width: auto; min-width: 145px; }
+.owner-courts-empty { margin: 0; padding: 28px 16px; }
+.owner-court-form-panel { padding: 24px; }
+.owner-court-form { max-width: 760px; }
+.owner-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.owner-form-field { min-width: 0; }
+.owner-form-field--full { grid-column: 1 / -1; }
+.owner-form-field label { display: block; margin-bottom: 6px; color: var(--ink-soft); font-size: 11px; font-weight: 700; }
+.owner-form-field label span { color: var(--danger); }
+.owner-form-field textarea.filter-input { height: auto; min-height: 100px; padding: 10px; resize: vertical; }
+.owner-form-field .field-validation-error { display: block; margin-top: 5px; color: var(--danger); font-size: 10px; }
+.owner-form-summary:empty { display: none; }
+.owner-form-summary.validation-summary-errors { margin-bottom: 16px; color: var(--danger); font-size: 11px; }
+.owner-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+.status-badge--maintenance { color: #7a5a12; background: #fdf3d6; }
+.status-badge--inactive { color: #87372f; background: #fde9e6; }
 
 @media (max-width: 1000px) {
   .admin-layout { grid-template-columns: minmax(210px, 240px) minmax(0, 1fr); gap: 15px; }
@@ -557,11 +577,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .admin-welcome-art { height: 185px; }
   .admin-hero-art { transform: scale(.45); }
   .admin-status-card { align-items: flex-start; flex-direction: column; gap: 14px; padding: 17px; }
+  .owner-list-heading { align-items: stretch; flex-direction: column; }
+  .owner-list-heading > .button { align-self: flex-start; }
 }
 
 @media (max-width: 540px) {
   .owner-stats-grid { grid-template-columns: 1fr; }
   .owner-stat-card, .owner-panel { padding: 16px; }
+  .owner-form-grid { grid-template-columns: 1fr; }
+  .owner-form-field--full { grid-column: auto; }
+  .owner-court-form-panel { padding: 17px; }
+  .owner-court-actions { align-items: flex-start; flex-direction: column; }
+  .owner-status-form { width: 100%; }
+  .owner-status-form .filter-input { flex: 1; min-width: 0; }
 }
 
 /* ─── User management table ─────────────────────────────────────── */
