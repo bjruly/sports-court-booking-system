@@ -53,4 +53,12 @@ public class BookingDetailDto : BookingDto
     public DateTime? ExpiresAt { get; set; }
 
     public bool IsPaid { get; set; }
+
+    public bool CanReview { get; set; }
+
+    public int? ReviewId { get; set; }
+
+    public int? ReviewRating { get; set; }
+
+    public string? ReviewComment { get; set; }
 }

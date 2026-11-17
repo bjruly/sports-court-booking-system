@@ -624,49 +624,61 @@ public class BookingService : IBookingService
         return query;
     }
 
-public async Task<BookingDetailDto?> GetOwnBookingAsync(
-    int bookingId,
-    int userId)
-{
-    await _expirationService.ExpireOverdueAsync();
+    public async Task<BookingDetailDto?> GetOwnBookingAsync(
+        int bookingId,
+        int userId)
+    {
+        await _expirationService.ExpireOverdueAsync();
 
-    return await _context.Bookings
-        .AsNoTracking()
-        .Where(b => b.Id == bookingId && b.UserId == userId)
-        .Select(b => new BookingDetailDto
+        var booking = await _context.Bookings
+            .AsNoTracking()
+            .Where(b => b.Id == bookingId && b.UserId == userId)
+            .Select(b => new BookingDetailDto
+            {
+                Id = b.Id,
+                UserId = b.UserId,
+                CourtId = b.CourtId,
+
+                CustomerName = b.User != null
+                    ? b.User.FullName
+                    : b.GuestName ?? string.Empty,
+
+                CourtName = b.Court != null
+                    ? b.Court.Name
+                    : string.Empty,
+
+                Location = b.Court != null
+                    ? b.Court.Location
+                    : string.Empty,
+
+                BookingDate = b.BookingDate,
+                StartTime = b.StartTime,
+                EndTime = b.EndTime,
+                TotalPrice = b.TotalPrice,
+                Status = b.Status,
+                VoucherCode = b.VoucherCode,
+                DiscountAmount = b.DiscountAmount,
+                Note = b.Note,
+                CreatedAt = b.CreatedAt,
+                ExpiresAt = b.ExpiresAt,
+
+                IsPaid = b.Payment != null
+                    && b.Payment.Status == PaymentStatus.Paid,
+                ReviewId = b.Review != null ? b.Review.Id : null,
+                ReviewRating = b.Review != null ? b.Review.Rating : null,
+                ReviewComment = b.Review != null ? b.Review.Comment : null
+            })
+            .FirstOrDefaultAsync();
+
+        if (booking is not null)
         {
-            Id = b.Id,
-            UserId = b.UserId,
-            CourtId = b.CourtId,
+            booking.CanReview = ReviewRules.CanReview(
+                booking.Status, booking.BookingDate, booking.EndTime, VietnamClock.Now);
+        }
 
-            CustomerName = b.User != null
-                ? b.User.FullName
-                : b.GuestName ?? string.Empty,
+        return booking;
+    }
 
-            CourtName = b.Court != null
-                ? b.Court.Name
-                : string.Empty,
-
-            Location = b.Court != null
-                ? b.Court.Location
-                : string.Empty,
-
-            BookingDate = b.BookingDate,
-            StartTime = b.StartTime,
-            EndTime = b.EndTime,
-            TotalPrice = b.TotalPrice,
-            Status = b.Status,
-            VoucherCode = b.VoucherCode,
-            DiscountAmount = b.DiscountAmount,
-            Note = b.Note,
-            CreatedAt = b.CreatedAt,
-            ExpiresAt = b.ExpiresAt,
-
-            IsPaid = b.Payment != null
-                && b.Payment.Status == PaymentStatus.Paid
-        })
-        .FirstOrDefaultAsync();
-}
     private Task<BookingStatus?> GetStatusAsync(int bookingId, int? ownerId)
         => GetBookingScope(bookingId, ownerId)
             .Select(b => (BookingStatus?)b.Status)

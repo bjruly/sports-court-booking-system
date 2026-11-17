@@ -18,17 +18,20 @@ public class OwnerController : Controller
     private readonly IOwnerCourtService _courtService;
     private readonly IBookingService _bookingService;
     private readonly IVoucherService _voucherService;
+    private readonly IReviewService _reviewService;
 
     public OwnerController(
         IOwnerDashboardService dashboardService,
         IOwnerCourtService courtService,
         IBookingService bookingService,
-        IVoucherService voucherService)
+        IVoucherService voucherService,
+        IReviewService reviewService)
     {
         _dashboardService = dashboardService;
         _courtService = courtService;
         _bookingService = bookingService;
         _voucherService = voucherService;
+        _reviewService = reviewService;
     }
 
     [HttpGet]
@@ -181,6 +184,44 @@ public class OwnerController : Controller
         var result = await _voucherService.ToggleOwnerVoucherAsync(id, ownerId.Value);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Vouchers));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Reviews(int? courtId)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var courts = await _courtService.GetOwnerCourtsAsync(ownerId.Value);
+        if (courtId.HasValue && courts.All(court => court.Id != courtId.Value))
+        {
+            return NotFound();
+        }
+
+        return View(new OwnerReviewsViewModel
+        {
+            Courts = courts,
+            Reviews = await _reviewService.GetOwnerReviewsAsync(ownerId.Value, courtId),
+            SelectedCourtId = courtId
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReplyToReview(int id, string reply, int? courtId)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _reviewService.ReplyToReviewAsync(id, ownerId.Value, reply);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Reviews), new { courtId });
     }
 
     [HttpGet]

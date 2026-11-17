@@ -29,4 +29,5 @@ public class Booking : BaseEntity
     public Court? Court { get; set; }
     public Payment? Payment { get; set; }
     public Voucher? Voucher { get; set; }
+    public Review? Review { get; set; }
 }

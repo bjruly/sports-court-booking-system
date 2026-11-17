@@ -442,8 +442,37 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .my-bookings-actions { display: flex; gap: 12px; margin-top: 20px; }
 
+.review-booking-panel,
+.review-form-card,
+.owner-review-card { border: 1px solid var(--border-color, #e1e5e2); border-radius: 12px; background: #fff; }
+.review-booking-panel { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding: 20px; }
+.review-booking-panel h2 { margin: 0 0 6px; font-size: 1.15rem; }
+.review-booking-panel p { margin: 0; color: #647067; }
+.review-form-card { max-width: 700px; margin: 0 auto; padding: 24px; }
+.review-booking-time { color: #647067; font-size: .9rem; }
+.review-form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.review-filter { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.review-filter label { font-weight: 600; }
+.review-filter select { max-width: 360px; }
+.owner-review-list { display: grid; gap: 16px; }
+.owner-review-card { padding: 20px; }
+.owner-review-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.owner-review-heading h2 { margin: 0 0 4px; font-size: 1.1rem; }
+.owner-review-heading p { margin: 0; color: #647067; font-size: .9rem; }
+.owner-review-rating { color: #946200; font-weight: 700; white-space: nowrap; }
+.owner-review-comment { margin: 16px 0; white-space: pre-wrap; }
+.owner-review-reply { display: grid; gap: 8px; border-top: 1px solid #e8ece9; padding-top: 16px; }
+.owner-review-reply label { font-weight: 600; }
+.owner-review-reply textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccd5cf; border-radius: 8px; font: inherit; resize: vertical; }
+.owner-review-reply small { color: #647067; }
+.owner-review-reply .button { justify-self: start; }
+
 @media (max-width: 640px) {
   .booking-history-table-wrap { overflow: visible; border: 0; background: transparent; }
+  .review-booking-panel,
+  .review-filter { align-items: stretch; flex-direction: column; }
+  .review-form-card,
+  .owner-review-card { padding: 16px; }
   .booking-history-table { display: block; }
   .booking-history-table thead {
     position: absolute;

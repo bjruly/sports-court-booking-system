@@ -144,6 +144,17 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(r => r.Id);
             entity.Property(r => r.Comment).HasMaxLength(500);
+            entity.Property(r => r.OwnerReply).HasMaxLength(1000);
+            entity.Property(r => r.OwnerRepliedAt).HasColumnType("timestamp with time zone");
+            entity.HasIndex(r => r.BookingId).IsUnique();
+            entity.ToTable(table =>
+            {
+                table.HasCheckConstraint("ck_reviews_rating", "\"Rating\" >= 1 AND \"Rating\" <= 5");
+                table.HasCheckConstraint(
+                    "ck_reviews_owner_reply",
+                    "(\"OwnerReply\" IS NULL AND \"OwnerRepliedAt\" IS NULL) " +
+                    "OR (\"OwnerReply\" IS NOT NULL AND \"OwnerRepliedAt\" IS NOT NULL)");
+            });
 
             entity.HasOne(r => r.User)
                   .WithMany(u => u.Reviews)
@@ -154,6 +165,11 @@ public class AppDbContext : DbContext
                   .WithMany(c => c.Reviews)
                   .HasForeignKey(r => r.CourtId)
                   .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.Booking)
+                  .WithOne(b => b.Review)
+                  .HasForeignKey<Review>(r => r.BookingId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // 7. Khởi tạo dữ liệu mẫu (Seed Data)

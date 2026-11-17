@@ -85,3 +85,11 @@ public interface IVoucherService
     Task<(bool Success, string Message, bool? IsActive)> ToggleOwnerVoucherAsync(int voucherId, int ownerId);
     Task<VoucherApplicationDto> ValidateForCourtAsync(int courtId, DateOnly applicationDate, decimal subtotal, string code);
 }
+
+public interface IReviewService
+{
+    Task<List<OwnerReviewDto>> GetOwnerReviewsAsync(int ownerId, int? courtId = null);
+    Task<CustomerReviewFormDto?> GetCustomerReviewFormAsync(int bookingId, int userId);
+    Task<(bool Success, string Message)> SaveCustomerReviewAsync(int bookingId, int userId, CustomerReviewRequest request);
+    Task<(bool Success, string Message)> ReplyToReviewAsync(int reviewId, int ownerId, string reply);
+}

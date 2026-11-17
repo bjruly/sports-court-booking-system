@@ -6,6 +6,7 @@
     var isCourtList = currentAction is "Courts" or "EditCourt";
     var isPricingManagement = currentAction is "Pricing" or "EditCourt";
     var isVoucherManagement = currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher";
+    var isReviewManagement = currentAction is "Reviews" or "ReplyToReview";
     var isTodayCheckInView = currentAction == "Bookings"
         && ViewContext.HttpContext.Request.Query["date"] == VietnamClock.Today.ToString("yyyy-MM-dd")
         && ViewContext.HttpContext.Request.Query["status"] == BookingStatus.Confirmed.ToString();
@@ -103,11 +104,12 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isReviewManagement ? "open" : null)">
             <summary>Đánh giá</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Xem đánh giá</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Phản hồi</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isReviewManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Reviews"
+                   aria-current="@(isReviewManagement ? "page" : null)">Xem đánh giá / phản hồi</a>
             </div>
         </details>
 

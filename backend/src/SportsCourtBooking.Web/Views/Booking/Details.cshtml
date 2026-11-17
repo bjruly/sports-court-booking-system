@@ -121,5 +121,33 @@
             </div>
         </div>
 
+        @if (Model.CanReview)
+        {
+            <div class="review-booking-panel">
+                <div>
+                    <h2>@(Model.ReviewId.HasValue ? "Cập nhật đánh giá" : "Chia sẻ trải nghiệm")</h2>
+                    <p>
+                        @(Model.ReviewId.HasValue
+                            ? $"Bạn đã đánh giá {Model.ReviewRating}/5 sao."
+                            : "Khung giờ đã kết thúc. Hãy chia sẻ trải nghiệm của bạn về sân.")
+                    </p>
+                </div>
+                <a class="button button--primary"
+                   asp-action="Review"
+                   asp-route-id="@Model.Id">
+                    @(Model.ReviewId.HasValue ? "Sửa đánh giá" : "Viết đánh giá")
+                </a>
+            </div>
+        }
+        else if (Model.ReviewId.HasValue)
+        {
+            <div class="review-booking-panel">
+                <div>
+                    <h2>Đánh giá của bạn: @Model.ReviewRating/5 sao</h2>
+                    <p>@(string.IsNullOrWhiteSpace(Model.ReviewComment) ? "Bạn chưa thêm nhận xét." : Model.ReviewComment)</p>
+                </div>
+            </div>
+        }
+
     </div>
 </section>
