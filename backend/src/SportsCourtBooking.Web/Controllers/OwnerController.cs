@@ -19,19 +19,22 @@ public class OwnerController : Controller
     private readonly IBookingService _bookingService;
     private readonly IVoucherService _voucherService;
     private readonly IReviewService _reviewService;
+    private readonly IOwnerRevenueReportService _revenueReportService;
 
     public OwnerController(
         IOwnerDashboardService dashboardService,
         IOwnerCourtService courtService,
         IBookingService bookingService,
         IVoucherService voucherService,
-        IReviewService reviewService)
+        IReviewService reviewService,
+        IOwnerRevenueReportService revenueReportService)
     {
         _dashboardService = dashboardService;
         _courtService = courtService;
         _bookingService = bookingService;
         _voucherService = voucherService;
         _reviewService = reviewService;
+        _revenueReportService = revenueReportService;
     }
 
     [HttpGet]
@@ -222,6 +225,45 @@ public class OwnerController : Controller
         var result = await _reviewService.ReplyToReviewAsync(id, ownerId.Value, reply);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Reviews), new { courtId });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> RevenueReport(int? year, int? month, int? courtId)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest();
+        }
+
+        var today = VietnamClock.Today;
+        var selectedYear = year ?? today.Year;
+        var selectedMonth = month ?? today.Month;
+        if (selectedYear < 1 || selectedYear > 9998 || selectedMonth < 1 || selectedMonth > 12)
+        {
+            return BadRequest();
+        }
+
+        var courts = await _courtService.GetOwnerCourtsAsync(ownerId.Value);
+        if (courtId.HasValue && courts.All(court => court.Id != courtId.Value))
+        {
+            return NotFound();
+        }
+
+        return View(new OwnerRevenueReportViewModel
+        {
+            Courts = courts,
+            Report = await _revenueReportService.GetMonthlyReportAsync(
+                ownerId.Value, selectedYear, selectedMonth, courtId),
+            SelectedYear = selectedYear,
+            SelectedMonth = selectedMonth,
+            SelectedCourtId = courtId
+        });
     }
 
     [HttpGet]

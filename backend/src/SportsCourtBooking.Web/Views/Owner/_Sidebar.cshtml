@@ -7,6 +7,7 @@
     var isPricingManagement = currentAction is "Pricing" or "EditCourt";
     var isVoucherManagement = currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher";
     var isReviewManagement = currentAction is "Reviews" or "ReplyToReview";
+    var isRevenueReport = currentAction == "RevenueReport";
     var isTodayCheckInView = currentAction == "Bookings"
         && ViewContext.HttpContext.Request.Query["date"] == VietnamClock.Today.ToString("yyyy-MM-dd")
         && ViewContext.HttpContext.Request.Query["status"] == BookingStatus.Confirmed.ToString();
@@ -31,7 +32,9 @@
                 <a class="admin-menu-item @(isBookingManagement ? "admin-menu-item--active" : string.Empty)"
                    asp-controller="Owner" asp-action="Bookings"
                    aria-current="@(isBookingManagement ? "page" : null)">Đơn đặt</a>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Doanh thu</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isRevenueReport ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="RevenueReport"
+                   aria-current="@(isRevenueReport ? "page" : null)">Doanh thu</a>
             </div>
         </details>
 
@@ -113,10 +116,12 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isRevenueReport ? "open" : null)">
             <summary>Báo cáo</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Báo cáo doanh thu</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isRevenueReport ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="RevenueReport"
+                   aria-current="@(isRevenueReport ? "page" : null)">Báo cáo doanh thu</a>
             </div>
         </details>
 

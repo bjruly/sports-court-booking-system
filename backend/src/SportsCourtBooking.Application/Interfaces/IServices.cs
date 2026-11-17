@@ -66,6 +66,15 @@ public interface IOwnerDashboardService
     Task<OwnerDashboardDto> GetDashboardAsync(int ownerId);
 }
 
+public interface IOwnerRevenueReportService
+{
+    Task<OwnerRevenueReportDto> GetMonthlyReportAsync(
+        int ownerId,
+        int year,
+        int month,
+        int? courtId = null);
+}
+
 public interface IOwnerCourtService
 {
     Task<List<CourtDto>> GetOwnerCourtsAsync(int ownerId);

@@ -466,11 +466,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .owner-review-reply textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccd5cf; border-radius: 8px; font: inherit; resize: vertical; }
 .owner-review-reply small { color: #647067; }
 .owner-review-reply .button { justify-self: start; }
+.owner-report-filter { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .8fr) minmax(0, 1.35fr); gap: 22px; max-width: 940px; margin-bottom: 16px; }
+.owner-report-filter .form-group { display: grid; gap: 7px; margin: 0; }
+.owner-report-filter label { color: #252a27; font-weight: 500; }
+.owner-report-filter select { width: 100%; min-width: 0; height: 48px; padding: 0 14px; border: 1px solid #d9dde2; border-radius: 8px; background: #fff; color: #303633; }
+.owner-report-note { margin: 0 0 20px; padding: 14px 16px; border-left: 4px solid #6b9478; border-radius: 6px; background: #eef4ef; color: #35483a; font-size: .92rem; line-height: 1.6; }
+.owner-report-kpis { margin-bottom: 20px; }
+.owner-report-warning { border-color: #e4c891; }
 
 @media (max-width: 640px) {
   .booking-history-table-wrap { overflow: visible; border: 0; background: transparent; }
   .review-booking-panel,
   .review-filter { align-items: stretch; flex-direction: column; }
+  .owner-report-filter { grid-template-columns: 1fr; gap: 12px; }
   .review-form-card,
   .owner-review-card { padding: 16px; }
   .booking-history-table { display: block; }
