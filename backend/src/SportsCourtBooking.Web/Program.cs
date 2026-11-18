@@ -24,6 +24,7 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<PendingBookingExpirationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();

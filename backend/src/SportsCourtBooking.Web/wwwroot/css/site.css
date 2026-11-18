@@ -611,3 +611,333 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .category-modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid #edf0eb; background: #fbfcf9; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+/* Bộ lọc tìm sân: môn, khu vực, ngày, giá và sắp xếp */
+.search-panel {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+    gap: 18px;
+}
+
+.search-panel .search-intro {
+    grid-column: 1 / -1;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.search-panel .filter-field {
+    min-width: 0;
+    padding-left: 0;
+    border-left: 0;
+}
+
+.search-panel .filter-field--date {
+    grid-column: auto;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.search-panel .filter-field input,
+.search-panel .filter-field select {
+    width: 100%;
+    height: 40px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--white);
+}
+
+.search-panel .button--search {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+@media (max-width: 720px) {
+    .search-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .search-panel {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Thu gọn bộ lọc tìm sân */
+/* Thu gọn bộ lọc tìm sân */
+.court-search-collapse {
+    overflow: hidden;
+    margin-bottom: 24px;
+    border: 1px solid #dce5d4;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 22px rgba(20, 59, 51, 0.04);
+}
+
+.court-search-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 78px;
+    padding: 16px 22px;
+    color: var(--ink);
+    background: linear-gradient(110deg, #fff, #f5f8ee);
+    cursor: pointer;
+    list-style: none;
+    transition: background 0.2s ease;
+}
+
+.court-search-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.court-search-toggle:hover {
+    background: #f0f5e7;
+}
+
+.court-search-toggle:focus-visible {
+    outline: 3px solid var(--green-dark);
+    outline-offset: -4px;
+    border-radius: 12px;
+}
+
+.court-search-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.court-search-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    color: #42632e;
+    background: #eaf2d7;
+}
+
+.court-search-copy {
+    display: grid;
+    gap: 5px;
+}
+
+.court-search-copy strong {
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.court-search-copy small {
+    color: #788578;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.court-search-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    color: #526b38;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.court-search-arrow {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #dbe5cc;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.court-search-arrow svg {
+    transition: transform 0.2s ease;
+}
+
+.court-search-open {
+    display: none;
+}
+
+.court-search-collapse[open] > .court-search-toggle {
+    border-bottom: 1px solid #e4eadc;
+}
+
+.court-search-collapse[open] .court-search-closed {
+    display: none;
+}
+
+.court-search-collapse[open] .court-search-open {
+    display: inline;
+}
+
+.court-search-collapse[open] .court-search-arrow svg {
+    transform: rotate(180deg);
+}
+
+.court-search-collapse .search-panel {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+@media (max-width: 480px) {
+    .court-search-toggle {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .court-search-copy strong {
+        font-size: 13px;
+    }
+
+    .court-search-copy small {
+        font-size: 10px;
+    }
+
+    .court-search-action > .court-search-closed,
+    .court-search-action > .court-search-open {
+        display: none;
+    }
+}
+
+/* Trang chi tiết sân */
+.court-details-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+    gap: 24px;
+}
+
+.court-details-main {
+    min-width: 0;
+}
+
+.court-details-media {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #edf3e7;
+}
+
+.court-details-image {
+    display: block;
+    width: 100%;
+    height: 340px;
+    object-fit: cover;
+}
+
+.court-details-media .court-visual {
+    height: 340px;
+    margin: 0;
+    border-radius: 0;
+}
+
+.court-details-media .visual-number {
+    top: 95px;
+    left: 28px;
+    font-size: 64px;
+}
+
+.court-details-card {
+    margin-top: 20px;
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.court-details-card h2 {
+    margin: 0 0 18px;
+    color: var(--ink);
+    font-size: 21px;
+}
+
+.court-details-info {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 16px 20px;
+    margin: 0 0 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+}
+
+.court-details-info dt {
+    color: var(--muted);
+}
+
+.court-details-info dd {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.court-details-description {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.court-details-summary {
+    min-width: 0;
+    order: 0;
+    border-radius: 14px;
+}
+
+.court-details-summary .summary-caption {
+    margin: 14px 0;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.court-details-summary .summary-line strong {
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+    .court-details-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .court-details-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 480px) {
+    .court-details-image,
+    .court-details-media .court-visual {
+        height: 230px;
+    }
+
+    .court-details-media .visual-number {
+        top: 65px;
+        font-size: 48px;
+    }
+
+    .court-details-card {
+        padding: 20px;
+    }
+
+    .court-details-info {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+    }
+
+    .court-details-info dd {
+        margin-bottom: 12px;
+    }
+}

@@ -5,6 +5,7 @@ using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Web.Extensions;
 using SportsCourtBooking.Web.Models;
+using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Web.Controllers;
 
@@ -98,18 +99,101 @@ public async Task<IActionResult> Details(int id)
 }
     // Lịch đặt của chính người dùng đang đăng nhập
     [Authorize]
-    [HttpGet]
-    public async Task<IActionResult> My()
-    {
-        var userId = User.GetUserId();
-        if (userId is null)
-        {
-            return Challenge();
-        }
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> CancelMy(int id)
+{
+    var userId = User.GetUserId();
 
-        var bookings = await _bookingService.GetBookingsByUserAsync(userId.Value);
-        return View(bookings);
+    if (userId is null)
+    {
+        return Challenge();
     }
+
+    var booking = await _bookingService.GetOwnBookingAsync(
+        id,
+        userId.Value
+    );
+
+    if (booking is null)
+    {
+        return NotFound();
+    }
+
+    var result = await _bookingService.CancelOwnBookingAsync(
+        id,
+        userId.Value
+    );
+
+    if (result.Success)
+    {
+        TempData["SuccessMessage"] = result.Message;
+    }
+    else
+    {
+        TempData["ErrorMessage"] = result.Message;
+    }
+
+    return RedirectToAction(nameof(Details), new { id });
+}
+    [Authorize]
+    [HttpGet]
+public async Task<IActionResult> My(
+    BookingStatus? status = null,
+    DateOnly? fromDate = null,
+    DateOnly? toDate = null)
+{
+    var userId = User.GetUserId();
+
+    if (userId is null)
+    {
+        return Challenge();
+    }
+
+    if (!ModelState.IsValid)
+    {
+        TempData["ErrorMessage"] =
+            "Dữ liệu bộ lọc không hợp lệ. Vui lòng chọn lại.";
+
+        return RedirectToAction(nameof(My));
+    }
+
+    if (status.HasValue
+        && !Enum.IsDefined(typeof(BookingStatus), status.Value))
+    {
+        TempData["ErrorMessage"] =
+            "Trạng thái được chọn không hợp lệ.";
+
+        return RedirectToAction(nameof(My));
+    }
+
+    if (fromDate.HasValue
+        && toDate.HasValue
+        && fromDate.Value > toDate.Value)
+    {
+        TempData["ErrorMessage"] =
+            "Từ ngày phải trước hoặc bằng Đến ngày.";
+
+        return RedirectToAction(nameof(My));
+    }
+
+    var bookings = await _bookingService.GetBookingsByUserAsync(
+        userId.Value,
+        status,
+        fromDate,
+        toDate
+    );
+
+    var viewModel = new BookingHistoryViewModel
+    {
+        Bookings = bookings,
+        Status = status,
+        FromDate = fromDate,
+        ToDate = toDate
+    };
+
+    return View(viewModel);
+}
 
     // Xử lý form đặt sân. UserId luôn lấy từ cookie đăng nhập, bỏ qua mọi giá trị UserId do form gửi lên.
     [Authorize]

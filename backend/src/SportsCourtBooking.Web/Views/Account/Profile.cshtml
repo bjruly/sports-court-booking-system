@@ -1,0 +1,83 @@
+@using SportsCourtBooking.Application.DTOs
+@model UpdateProfileRequest
+
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    var email = ViewData["Email"] as string;
+}
+
+<section class="page-section">
+    <div class="shell shell--narrow">
+
+        <div class="page-heading">
+            <div>
+                <h1>Hồ sơ cá nhân</h1>
+                <p class="page-subtitle">
+                    Xem và cập nhật thông tin của bạn.
+                </p>
+            </div>
+        </div>
+
+        <div class="review-card">
+            <form class="account-form"
+                  asp-controller="Account"
+                  asp-action="Profile"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="selection-error">
+                </div>
+
+                <label for="profileEmail">Email đăng nhập</label>
+
+                <input id="profileEmail"
+                       type="email"
+                       value="@email"
+                       readonly />
+
+                <label asp-for="FullName">Họ và tên</label>
+
+                <input asp-for="FullName"
+                       type="text"
+                       autocomplete="name"
+                       maxlength="100"
+                       required />
+
+                <span asp-validation-for="FullName"
+                      class="selection-error">
+                </span>
+
+                <label asp-for="PhoneNumber">Số điện thoại</label>
+
+                <input asp-for="PhoneNumber"
+                       type="tel"
+                       autocomplete="tel"
+                       maxlength="20"
+                       required />
+
+                <span asp-validation-for="PhoneNumber"
+                      class="selection-error">
+                </span>
+
+                <button class="button button--primary"
+                        type="submit">
+                    Lưu thay đổi
+                </button>
+
+                <a class="text-link"
+                   asp-controller="Account"
+                   asp-action="ChangePassword">Đổi mật khẩu
+                   </a>
+
+                <a class="text-link"
+                   asp-controller="Home"
+                   asp-action="Index">
+                    Quay lại trang chủ
+                </a>
+            </form>
+        </div>
+
+    </div>
+</section>
