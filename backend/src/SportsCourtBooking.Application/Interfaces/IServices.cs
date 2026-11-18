@@ -74,3 +74,22 @@ public interface ICategoryService
     /// <summary>Xóa danh mục (chỉ xóa khi chưa có sân nào thuộc danh mục).</summary>
     Task<(bool Success, string Message)> DeleteCategoryAsync(int id);
 }
+
+public interface IReviewService
+{
+    /// <summary>UC26: Lấy danh sách đánh giá phục vụ kiểm duyệt, hỗ trợ tìm kiếm và lọc vi phạm/đã ẩn.</summary>
+    Task<List<ReviewItemDto>> GetAllReviewsAsync(string? search = null, string? filter = null);
+
+    /// <summary>Thống kê số lượng đánh giá theo từng trạng thái.</summary>
+    Task<ReviewStatsSummaryDto> GetReviewStatsAsync();
+
+    /// <summary>UC26: Ẩn đánh giá vi phạm kèm lý do.</summary>
+    Task<(bool Success, string Message)> HideReviewAsync(int reviewId, string reason);
+
+    /// <summary>UC26: Bỏ ẩn / khôi phục hiển thị đánh giá.</summary>
+    Task<(bool Success, string Message)> UnhideReviewAsync(int reviewId);
+
+    /// <summary>UC26: Xóa vĩnh viễn đánh giá vi phạm.</summary>
+    Task<(bool Success, string Message)> DeleteReviewAsync(int reviewId);
+}
+

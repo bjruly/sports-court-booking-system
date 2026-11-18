@@ -12,15 +12,18 @@ public class AdminController : Controller
     private readonly IUserService _userService;
     private readonly IReportService _reportService;
     private readonly ICategoryService _categoryService;
+    private readonly IReviewService _reviewService;
 
     public AdminController(
         IUserService userService,
         IReportService reportService,
-        ICategoryService categoryService)
+        ICategoryService categoryService,
+        IReviewService reviewService)
     {
         _userService = userService;
         _reportService = reportService;
         _categoryService = categoryService;
+        _reviewService = reviewService;
     }
 
     [HttpGet]
@@ -130,5 +133,59 @@ public class AdminController : Controller
             TempData["ErrorMessage"] = message;
 
         return RedirectToAction(nameof(Customers), new { search = returnSearch });
+    }
+
+    // ─── UC26: Quản lý & Xử lý đánh giá vi phạm ──────────────────────────────
+
+    [HttpGet]
+    public async Task<IActionResult> Reviews(string? search, string? filter)
+    {
+        ViewData["Search"] = search;
+        ViewData["Filter"] = filter ?? "all";
+        
+        var reviews = await _reviewService.GetAllReviewsAsync(search, filter);
+        var stats = await _reviewService.GetReviewStatsAsync();
+        ViewData["Stats"] = stats;
+
+        return View(reviews);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> HideReview(int id, string reason, string? returnSearch, string? returnFilter)
+    {
+        var (success, message) = await _reviewService.HideReviewAsync(id, reason);
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
+
+        return RedirectToAction(nameof(Reviews), new { search = returnSearch, filter = returnFilter });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UnhideReview(int id, string? returnSearch, string? returnFilter)
+    {
+        var (success, message) = await _reviewService.UnhideReviewAsync(id);
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
+
+        return RedirectToAction(nameof(Reviews), new { search = returnSearch, filter = returnFilter });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteReview(int id, string? returnSearch, string? returnFilter)
+    {
+        var (success, message) = await _reviewService.DeleteReviewAsync(id);
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
+
+        return RedirectToAction(nameof(Reviews), new { search = returnSearch, filter = returnFilter });
     }
 }
