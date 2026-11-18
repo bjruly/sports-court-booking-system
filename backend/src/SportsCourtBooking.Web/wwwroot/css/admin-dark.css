@@ -250,37 +250,6 @@ body.admin-dark-body {
   color: #ef4444 !important;
 }
 
-/* Header Direct Logout Button */
-.adm-header-logout-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--d-green-btn);
-  color: #071f15;
-  border: none;
-  border-radius: 8px;
-  padding: 7px 15px;
-  font-size: 12.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.adm-header-logout-btn:hover {
-  background-color: var(--d-green-btn-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(46, 213, 115, 0.35);
-}
-
-.adm-header-logout-btn svg {
-  flex-shrink: 0;
-  transition: transform 0.18s ease;
-}
-
-.adm-header-logout-btn:hover svg {
-  transform: translateX(1px);
-}
-
 .adm-avatar {
   width: 34px;
   height: 34px;
