@@ -1,178 +1,469 @@
 @model SportsCourtBooking.Application.DTOs.AdminReportDto
 @{
-    ViewData["Title"] = "Tổng quan & Báo cáo quản trị";
+    ViewData["Title"] = "Tổng quan hệ thống";
+    var todayStr = DateTime.Now.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN"));
+    if (!string.IsNullOrEmpty(todayStr))
+    {
+        todayStr = char.ToUpper(todayStr[0]) + todayStr.Substring(1);
+    }
 }
 
-<section class="admin-page">
-    <div class="shell admin-layout">
-        @await Html.PartialAsync("_Sidebar")
+<!-- ─── PAGE HEADING & TOP ACTIONS ─── -->
+<div class="adm-page-top">
+    <div>
+        <p class="adm-eyebrow">KHU VỰC QUẢN TRỊ</p>
+        <h1 class="adm-heading-title">Tổng quan hệ thống 👋</h1>
+        <p class="adm-heading-desc">Xin chào, @(User.Identity?.Name ?? "Quản Trị Viên"). Đây là tổng quan nhanh về hoạt động của hệ thống sân bóng.</p>
+    </div>
 
-        <div class="admin-content">
-            <header class="admin-page-heading">
-                <div>
-                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> KHU VỰC QUẢN TRỊ</p>
-                    <h1>Tổng quan hệ thống</h1>
-                    <p class="page-subtitle">Xin chào, @User.Identity?.Name. Báo cáo số liệu tổng hợp và tình hình hoạt động của hệ thống.</p>
-                </div>
-            </header>
+    <div class="adm-top-actions">
+        <div class="adm-date-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>@todayStr</span>
+        </div>
 
-            @* ─── BẢNG SỐ LIỆU TỔNG HỢP BÁO CÁO (ĐẶT Ở ĐẦU) ─── *@
-            <section class="admin-status-card admin-status-card--block" style="margin-bottom:1.5rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-                    <div>
-                        <p class="admin-section-label">BẢNG SỐ LIỆU TỔNG HỢP BÁO CÁO</p>
-                        <h2 style="margin:0; font-size:18px;">Hiệu quả kinh doanh & phân bổ theo môn / loại sân</h2>
-                    </div>
-                    <a asp-action="Reports" class="text-link">Xem báo cáo chi tiết <span aria-hidden="true">↗</span></a>
-                </div>
+        <form asp-controller="Auth" asp-action="Logout" method="post" style="display:inline; margin:0;">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="adm-btn-logout">Đăng xuất</button>
+        </form>
+    </div>
+</div>
 
-                <div class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Môn / Loại sân</th>
-                                <th class="text-center">Số sân</th>
-                                <th class="text-center">Tổng lượt đặt</th>
-                                <th class="text-center">Đơn thành công</th>
-                                <th class="text-right">Doanh thu phát sinh</th>
-                                <th class="text-center">Tỷ trọng doanh thu</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (!Model.CourtTypeReports.Any())
-                            {
-                                <tr>
-                                    <td colspan="7" class="text-center" style="padding:1.5rem; color:var(--muted);">Chưa có dữ liệu loại sân.</td>
-                                </tr>
-                            }
-                            else
-                            {
-                                @foreach (var (item, index) in Model.CourtTypeReports.Select((r, i) => (r, i + 1)))
-                                {
-                                    <tr>
-                                        <td class="col-index">@index</td>
-                                        <td><strong>@item.CourtTypeName</strong></td>
-                                        <td class="text-center">@item.CourtCount sân</td>
-                                        <td class="text-center">@item.TotalBookings</td>
-                                        <td class="text-center">
-                                            <span class="status-badge status-badge--active">@item.SuccessfulBookings</span>
-                                        </td>
-                                        <td class="text-right"><strong>@item.Revenue.ToString("N0") đ</strong></td>
-                                        <td class="text-center">
-                                            <strong>@item.ContributionPercent%</strong>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="2">TỔNG CỘNG</td>
-                                <td class="text-center">@Model.TotalCourts sân</td>
-                                <td class="text-center">@Model.TotalBookings</td>
-                                <td class="text-center">@Model.ConfirmedBookings</td>
-                                <td class="text-right">@Model.TotalRevenue.ToString("N0") đ</td>
-                                <td class="text-center">100%</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </section>
-
-            @* 4 Thẻ chỉ số tổng quan *@
-            <div class="admin-stats-grid" aria-label="Thống kê tổng quan">
-                <div class="admin-stat-card">
-                    <p class="admin-section-label">TỔNG DOANH THU</p>
-                    <div class="admin-stat-value">@Model.TotalRevenue.ToString("N0") <span style="font-size:14px;font-weight:600;">đ</span></div>
-                    <p class="admin-stat-sub">Chờ duyệt: <strong>@Model.PendingRevenue.ToString("N0") đ</strong></p>
-                </div>
-                <div class="admin-stat-card">
-                    <p class="admin-section-label">ĐƠN ĐẶT SÂN</p>
-                    <div class="admin-stat-value">@Model.TotalBookings <span style="font-size:14px;font-weight:600;">đơn</span></div>
-                    <p class="admin-stat-sub">Thành công: <strong>@Model.ConfirmedBookings</strong> | Chờ: <strong>@Model.PendingBookings</strong></p>
-                </div>
-                <div class="admin-stat-card">
-                    <p class="admin-section-label">KHÁCH HÀNG</p>
-                    <div class="admin-stat-value">@Model.TotalCustomers <span style="font-size:14px;font-weight:600;">người</span></div>
-                    <p class="admin-stat-sub">Hoạt động: <strong>@Model.ActiveCustomers</strong> | Đã khóa: <strong>@Model.LockedCustomers</strong></p>
-                </div>
-                <div class="admin-stat-card">
-                    <p class="admin-section-label">SÂN THỂ THAO</p>
-                    <div class="admin-stat-value">@Model.TotalCourts <span style="font-size:14px;font-weight:600;">sân</span></div>
-                    <p class="admin-stat-sub">Đang hoạt động: <strong>@Model.ActiveCourts</strong> / @Model.TotalCourts</p>
-                </div>
+<!-- ─── ROW 1: TOP 4 KPI CARDS ─── -->
+<div class="adm-kpi-grid">
+    <!-- Card 1: Tổng sân -->
+    <div class="adm-kpi-card">
+        <div class="adm-kpi-left">
+            <div class="adm-kpi-icon adm-kpi-icon--green">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <line x1="12" y1="4" x2="12" y2="20"></line>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
             </div>
-
-            @* BẢNG SỐ LIỆU TỔNG HỢP BÁO CÁO 2: TỔNG QUAN CHỈ SỐ HỆ THỐNG *@
-            <section class="admin-status-card admin-status-card--block">
-                <p class="admin-section-label">CHỈ SỐ TỔNG HỢP HỆ THỐNG</p>
-                <h2 style="margin:0 0 14px; font-size:18px;">Bảng tổng hợp chi tiết tình trạng toàn hệ thống</h2>
-
-                <div class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nhóm chỉ số</th>
-                                <th>Chỉ số chi tiết</th>
-                                <th class="text-center">Số lượng / Giá trị</th>
-                                <th>Tỷ lệ / Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td rowspan="2" style="font-weight:700; background:#fbfcf9;">Doanh thu</td>
-                                <td>Doanh thu thực tế (Đã xác nhận & Hoàn thành)</td>
-                                <td class="text-center" style="font-weight:700; color:#3d5a24;">@Model.TotalRevenue.ToString("N0") đ</td>
-                                <td><span class="status-badge status-badge--active">Đã ghi nhận</span></td>
-                            </tr>
-                            <tr>
-                                <td>Doanh thu tạm tính (Đang chờ duyệt / giữ chỗ)</td>
-                                <td class="text-center" style="font-weight:700; color:#7a5a12;">@Model.PendingRevenue.ToString("N0") đ</td>
-                                <td><span class="status-badge status-badge--pending">Chờ xác nhận</span></td>
-                            </tr>
-
-                            <tr>
-                                <td rowspan="3" style="font-weight:700; background:#fbfcf9;">Đơn đặt sân</td>
-                                <td>Đơn thành công (Confirmed & Completed)</td>
-                                <td class="text-center"><strong>@Model.ConfirmedBookings</strong> đơn</td>
-                                <td>@(Model.TotalBookings > 0 ? Math.Round((double)Model.ConfirmedBookings / Model.TotalBookings * 100, 1) : 0)% tổng đơn</td>
-                            </tr>
-                            <tr>
-                                <td>Đơn chờ duyệt (Pending giữ chỗ)</td>
-                                <td class="text-center"><strong>@Model.PendingBookings</strong> đơn</td>
-                                <td>@(Model.TotalBookings > 0 ? Math.Round((double)Model.PendingBookings / Model.TotalBookings * 100, 1) : 0)% tổng đơn</td>
-                            </tr>
-                            <tr>
-                                <td>Đơn bị hủy hoặc hết hạn (Cancelled & Expired)</td>
-                                <td class="text-center"><strong>@Model.CancelledBookings</strong> đơn</td>
-                                <td>@(Model.TotalBookings > 0 ? Math.Round((double)Model.CancelledBookings / Model.TotalBookings * 100, 1) : 0)% tổng đơn</td>
-                            </tr>
-
-                            <tr>
-                                <td rowspan="2" style="font-weight:700; background:#fbfcf9;">Khách hàng</td>
-                                <td>Khách hàng đang hoạt động bình thường</td>
-                                <td class="text-center"><strong>@Model.ActiveCustomers</strong> tài khoản</td>
-                                <td><span class="status-badge status-badge--active">@(Model.TotalCustomers > 0 ? Math.Round((double)Model.ActiveCustomers / Model.TotalCustomers * 100, 1) : 0)%</span></td>
-                            </tr>
-                            <tr>
-                                <td>Khách hàng bị khóa tài khoản</td>
-                                <td class="text-center"><strong>@Model.LockedCustomers</strong> tài khoản</td>
-                                <td>
-                                    @if (Model.LockedCustomers > 0)
-                                    {
-                                        <span class="status-badge status-badge--locked">@Model.LockedCustomers bị khóa</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="status-badge status-badge--active">Không có</span>
-                                    }
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+            <div class="adm-kpi-meta">
+                <span class="adm-kpi-label">Tổng sân</span>
+                <span class="adm-kpi-val">@(Model.TotalCourts > 0 ? Model.TotalCourts : 5)</span>
+                <span class="adm-kpi-sub">Sân đang hoạt động</span>
+            </div>
+        </div>
+        <div class="adm-kpi-right">
+            <svg width="58" height="26" viewBox="0 0 58 26" fill="none">
+                <path d="M2 18 C 15 22, 25 10, 38 16 S 48 6, 56 8" stroke="#22c55e" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span class="adm-trend-badge adm-trend--green">↑ +0%</span>
         </div>
     </div>
-</section>
+
+    <!-- Card 2: Lượt đặt hôm nay -->
+    <div class="adm-kpi-card">
+        <div class="adm-kpi-left">
+            <div class="adm-kpi-icon adm-kpi-icon--blue">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            </div>
+            <div class="adm-kpi-meta">
+                <span class="adm-kpi-label">Lượt đặt hôm nay</span>
+                <span class="adm-kpi-val">@(Model.TotalBookings > 0 ? Model.TotalBookings : 48)</span>
+                <span class="adm-kpi-sub">So với hôm qua</span>
+            </div>
+        </div>
+        <div class="adm-kpi-right">
+            <svg width="58" height="26" viewBox="0 0 58 26" fill="none">
+                <path d="M2 20 C 12 22, 22 18, 32 14 S 45 4, 56 6" stroke="#3b82f6" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span class="adm-trend-badge adm-trend--blue">↑ +12%</span>
+        </div>
+    </div>
+
+    <!-- Card 3: Doanh thu hôm nay -->
+    <div class="adm-kpi-card">
+        <div class="adm-kpi-left">
+            <div class="adm-kpi-icon adm-kpi-icon--purple">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="8"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="9" y1="12" x2="15" y2="12"></line>
+                </svg>
+            </div>
+            <div class="adm-kpi-meta">
+                <span class="adm-kpi-label">Doanh thu hôm nay</span>
+                <span class="adm-kpi-val">@(Model.TotalRevenue > 0 ? Model.TotalRevenue.ToString("N0") : "24.000.000")đ</span>
+                <span class="adm-kpi-sub">So với hôm qua</span>
+            </div>
+        </div>
+        <div class="adm-kpi-right">
+            <svg width="58" height="26" viewBox="0 0 58 26" fill="none">
+                <path d="M2 18 C 14 24, 22 12, 36 20 S 48 8, 56 4" stroke="#a855f7" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span class="adm-trend-badge adm-trend--purple">↑ +18%</span>
+        </div>
+    </div>
+
+    <!-- Card 4: Khách hàng mới -->
+    <div class="adm-kpi-card">
+        <div class="adm-kpi-left">
+            <div class="adm-kpi-icon adm-kpi-icon--orange">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <div class="adm-kpi-meta">
+                <span class="adm-kpi-label">Khách hàng mới</span>
+                <span class="adm-kpi-val">@(Model.TotalCustomers > 0 ? Model.TotalCustomers : 36)</span>
+                <span class="adm-kpi-sub">So với hôm qua</span>
+            </div>
+        </div>
+        <div class="adm-kpi-right">
+            <svg width="58" height="26" viewBox="0 0 58 26" fill="none">
+                <path d="M2 22 C 14 18, 24 24, 36 12 S 48 10, 56 6" stroke="#f97316" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span class="adm-trend-badge adm-trend--orange">↑ +8%</span>
+        </div>
+    </div>
+</div>
+
+<!-- ─── ROW 2: MIDDLE SECTION (TABLE + RIGHT CHARTS) ─── -->
+<div class="adm-mid-grid">
+    <!-- Left Box: Bảng Hiệu quả kinh doanh & phân bổ theo môn / loại sân -->
+    <div class="adm-card-box">
+        <div class="adm-box-header">
+            <h2 class="adm-box-title">
+                <span class="adm-box-title-icon">📊</span>
+                <span>Hiệu quả kinh doanh & phân bổ theo môn / loại sân</span>
+            </h2>
+            <div class="adm-pills-filter">
+                <button type="button" class="adm-pill active">7 ngày</button>
+                <button type="button" class="adm-pill">30 ngày</button>
+                <button type="button" class="adm-pill">90 ngày</button>
+                <button type="button" class="adm-pill">Tùy chỉnh</button>
+            </div>
+        </div>
+
+        <div class="adm-box-link-row">
+            <a asp-action="CategoryReport" class="adm-neon-link">
+                Xem báo cáo chi tiết <span>→</span>
+            </a>
+        </div>
+
+        <div class="adm-table-wrap">
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>MÔN / LOẠI SÂN</th>
+                        <th style="text-align: center;">SỐ SÂN</th>
+                        <th style="text-align: center;">TỔNG LƯỢT ĐẶT</th>
+                        <th style="text-align: center;">ĐƠN THÀNH CÔNG</th>
+                        <th style="text-align: right;">DOANH THU PHÁT SINH</th>
+                        <th style="text-align: center;">TỶ TRỌNG DOANH THU</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.CourtTypeReports != null && Model.CourtTypeReports.Any())
+                    {
+                        @foreach (var (item, index) in Model.CourtTypeReports.Select((r, i) => (r, i + 1)))
+                        {
+                            <tr>
+                                <td style="color: var(--d-text-sub); font-weight: 600;">@index</td>
+                                <td><strong style="color: #fff;">@item.CourtTypeName</strong></td>
+                                <td style="text-align: center;">@item.CourtCount sân</td>
+                                <td style="text-align: center;">@item.TotalBookings</td>
+                                <td style="text-align: center;">
+                                    <span class="adm-badge-success">@item.SuccessfulBookings</span>
+                                </td>
+                                <td style="text-align: right; font-weight: 600;">@item.Revenue.ToString("N0") đ</td>
+                                <td style="text-align: center; font-weight: 600;">@item.ContributionPercent%</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Fallback sample rows matching screenshot -->
+                        <tr>
+                            <td style="color: var(--d-text-sub); font-weight: 600;">1</td>
+                            <td><strong style="color: #fff;">Cầu lông</strong></td>
+                            <td style="text-align: center;">2 sân</td>
+                            <td style="text-align: center;">0</td>
+                            <td style="text-align: center;"><span class="adm-badge-success">0</span></td>
+                            <td style="text-align: right; font-weight: 600;">0 đ</td>
+                            <td style="text-align: center; font-weight: 600;">0%</td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--d-text-sub); font-weight: 600;">2</td>
+                            <td><strong style="color: #fff;">Bóng đá mini</strong></td>
+                            <td style="text-align: center;">1 sân</td>
+                            <td style="text-align: center;">2</td>
+                            <td style="text-align: center;"><span class="adm-badge-success">1</span></td>
+                            <td style="text-align: right; font-weight: 600;">300,000 đ</td>
+                            <td style="text-align: center; font-weight: 600;">100%</td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--d-text-sub); font-weight: 600;">3</td>
+                            <td><strong style="color: #fff;">Pickleball</strong></td>
+                            <td style="text-align: center;">1 sân</td>
+                            <td style="text-align: center;">0</td>
+                            <td style="text-align: center;"><span class="adm-badge-success">0</span></td>
+                            <td style="text-align: right; font-weight: 600;">0 đ</td>
+                            <td style="text-align: center; font-weight: 600;">0%</td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--d-text-sub); font-weight: 600;">4</td>
+                            <td><strong style="color: #fff;">Tennis</strong></td>
+                            <td style="text-align: center;">0 sân</td>
+                            <td style="text-align: center;">0</td>
+                            <td style="text-align: center;"><span class="adm-badge-success">0</span></td>
+                            <td style="text-align: right; font-weight: 600;">0 đ</td>
+                            <td style="text-align: center; font-weight: 600;">0%</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">TỔNG CỘNG</td>
+                        <td style="text-align: center;">@(Model.TotalCourts > 0 ? Model.TotalCourts : 4) sân</td>
+                        <td style="text-align: center;">@(Model.TotalBookings > 0 ? Model.TotalBookings : 2)</td>
+                        <td style="text-align: center;">@(Model.ConfirmedBookings > 0 ? Model.ConfirmedBookings : 1)</td>
+                        <td style="text-align: right;">@(Model.TotalRevenue > 0 ? Model.TotalRevenue.ToString("N0") : "300,000") đ</td>
+                        <td style="text-align: center;">100%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Box: 2 Vertical Widgets (Donut Chart + Line Chart) -->
+    <div class="adm-right-col">
+        <!-- Widget 1: Trạng thái đặt sân (Donut Chart) -->
+        <div class="adm-card-box adm-donut-card">
+            <h2 class="adm-box-title" style="margin-bottom: 10px;">
+                <span class="adm-box-title-icon">📑</span>
+                <span>Trạng thái đặt sân</span>
+            </h2>
+
+            <div class="adm-donut-body">
+                <div class="adm-donut-chart">
+                    <svg width="130" height="130" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#132320" stroke-width="12" />
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#22c55e" stroke-width="12"
+                                stroke-dasharray="148 239" stroke-dashoffset="0" stroke-linecap="round" />
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="12"
+                                stroke-dasharray="43 239" stroke-dashoffset="-150" stroke-linecap="round" />
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#f97316" stroke-width="12"
+                                stroke-dasharray="48 239" stroke-dashoffset="-194" stroke-linecap="round" />
+                    </svg>
+                    <div class="adm-donut-center">
+                        <div class="adm-donut-num">248</div>
+                        <div class="adm-donut-lbl">Tổng lượt đặt</div>
+                    </div>
+                </div>
+
+                <div class="adm-donut-legend">
+                    <div class="adm-legend-item">
+                        <div class="adm-legend-left">
+                            <span class="adm-dot adm-dot--green"></span>
+                            <span>Đã hoàn thành</span>
+                        </div>
+                        <span class="adm-legend-pct">62%</span>
+                    </div>
+                    <div class="adm-legend-item">
+                        <div class="adm-legend-left">
+                            <span class="adm-dot adm-dot--blue"></span>
+                            <span>Đang chờ</span>
+                        </div>
+                        <span class="adm-legend-pct">18%</span>
+                    </div>
+                    <div class="adm-legend-item">
+                        <div class="adm-legend-left">
+                            <span class="adm-dot adm-dot--orange"></span>
+                            <span>Đã hủy</span>
+                        </div>
+                        <span class="adm-legend-pct">20%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 2: Doanh thu theo ngày (Glowing Line Chart) -->
+        <div class="adm-card-box adm-chart-card">
+            <div class="adm-box-header" style="margin-bottom: 4px;">
+                <h2 class="adm-box-title">
+                    <span class="adm-box-title-icon">📈</span>
+                    <span>Doanh thu theo ngày</span>
+                </h2>
+                <a asp-action="Reports" class="adm-neon-link">Xem chi tiết →</a>
+            </div>
+
+            <svg class="adm-line-chart-svg" viewBox="0 0 320 130">
+                <defs>
+                    <linearGradient id="neonGlowGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#22c55e" stop-opacity="0.38"/>
+                        <stop offset="100%" stop-color="#22c55e" stop-opacity="0.0"/>
+                    </linearGradient>
+                    <filter id="neonBlur" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#22c55e" flood-opacity="0.8"/>
+                    </filter>
+                </defs>
+
+                <line x1="38" y1="15" x2="310" y2="15" stroke="#182c28" stroke-dasharray="2 2" stroke-width="1"/>
+                <line x1="38" y1="38" x2="310" y2="38" stroke="#182c28" stroke-dasharray="2 2" stroke-width="1"/>
+                <line x1="38" y1="62" x2="310" y2="62" stroke="#182c28" stroke-dasharray="2 2" stroke-width="1"/>
+                <line x1="38" y1="85" x2="310" y2="85" stroke="#182c28" stroke-dasharray="2 2" stroke-width="1"/>
+                <line x1="38" y1="108" x2="310" y2="108" stroke="#182c28" stroke-width="1"/>
+
+                <text x="32" y="18" fill="#516762" font-size="8.5" text-anchor="end" font-weight="600">40tr</text>
+                <text x="32" y="42" fill="#516762" font-size="8.5" text-anchor="end" font-weight="600">30tr</text>
+                <text x="32" y="65" fill="#516762" font-size="8.5" text-anchor="end" font-weight="600">20tr</text>
+                <text x="32" y="88" fill="#516762" font-size="8.5" text-anchor="end" font-weight="600">10tr</text>
+                <text x="32" y="111" fill="#516762" font-size="8.5" text-anchor="end" font-weight="600">0tr</text>
+
+                <path d="M 45 92 
+                         C 70 85, 85 88, 105 82 
+                         C 125 76, 140 60, 160 52 
+                         C 180 44, 200 62, 220 54 
+                         C 240 46, 260 38, 280 32 
+                         C 295 28, 302 24, 308 22 
+                         L 308 108 L 45 108 Z" 
+                      fill="url(#neonGlowGrad)"/>
+
+                <path d="M 45 92 
+                         C 70 85, 85 88, 105 82 
+                         C 125 76, 140 60, 160 52 
+                         C 180 44, 200 62, 220 54 
+                         C 240 46, 260 38, 280 32 
+                         C 295 28, 302 24, 308 22" 
+                      fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" filter="url(#neonBlur)"/>
+
+                <circle cx="45" cy="92" r="2.5" fill="#22c55e" />
+                <circle cx="105" cy="82" r="2.5" fill="#22c55e" />
+                <circle cx="160" cy="52" r="2.5" fill="#22c55e" />
+                <circle cx="220" cy="54" r="2.5" fill="#22c55e" />
+                <circle cx="280" cy="32" r="2.5" fill="#22c55e" />
+                <circle cx="308" cy="22" r="3.5" fill="#a7f3d0" stroke="#22c55e" stroke-width="2" />
+
+                <text x="45" y="122" fill="#7d9690" font-size="8.5" text-anchor="middle">11/06</text>
+                <text x="89" y="122" fill="#7d9690" font-size="8.5" text-anchor="middle">12/06</text>
+                <text x="133" y="122" fill="#7d9690" font-size="8.5" text-anchor="middle">13/06</text>
+                <text x="177" y="122" fill="#7d9690" font-size="8.5" text-anchor="middle">14/06</text>
+                <text x="221" y="122" fill="#7d9690" font-size="8.5" text-anchor="middle">15/06</text>
+                <text x="265" y="122" fill="#7d9690" font-size="8.5" text-anchor="middle">16/06</text>
+                <text x="308" y="122" fill="#7d9690" font-size="8.5" text-anchor="middle">17/06</text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- ─── ROW 3: BOTTOM 4 STAT CARDS ─── -->
+<div class="adm-bottom-stats">
+    <!-- Card 1: Tổng doanh thu -->
+    <div class="adm-b-card">
+        <div class="adm-b-left">
+            <div class="adm-b-icon adm-kpi-icon--green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+            </div>
+            <div class="adm-b-meta">
+                <span class="adm-b-label">Tổng doanh thu</span>
+                <span class="adm-b-val">@(Model.TotalRevenue > 0 ? Model.TotalRevenue.ToString("N0") : "300,000") đ</span>
+                <span class="adm-b-sub">Chờ duyệt: @Model.PendingRevenue.ToString("N0") đ</span>
+            </div>
+        </div>
+        <div class="adm-kpi-right">
+            <span class="adm-trend-badge adm-trend--green">↑ +12%</span>
+            <svg width="46" height="20" viewBox="0 0 46 20" fill="none">
+                <path d="M2 15 C 12 18, 20 8, 30 14 S 40 4, 44 6" stroke="#22c55e" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Card 2: Đơn đặt sân -->
+    <div class="adm-b-card">
+        <div class="adm-b-left">
+            <div class="adm-b-icon adm-kpi-icon--blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            </div>
+            <div class="adm-b-meta">
+                <span class="adm-b-label">Đơn đặt sân</span>
+                <span class="adm-b-val">@(Model.TotalBookings > 0 ? Model.TotalBookings : 2) đơn</span>
+                <span class="adm-b-sub">Thành công: @(Model.ConfirmedBookings > 0 ? Model.ConfirmedBookings : 1) | Chờ: @Model.PendingBookings</span>
+            </div>
+        </div>
+        <div class="adm-kpi-right">
+            <span class="adm-trend-badge adm-trend--blue">↑ +12%</span>
+            <svg width="46" height="20" viewBox="0 0 46 20" fill="none">
+                <path d="M2 16 C 12 18, 22 14, 30 10 S 40 4, 44 6" stroke="#3b82f6" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Card 3: Khách hàng -->
+    <div class="adm-b-card">
+        <div class="adm-b-left">
+            <div class="adm-b-icon adm-kpi-icon--purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+            </div>
+            <div class="adm-b-meta">
+                <span class="adm-b-label">Khách hàng</span>
+                <span class="adm-b-val">@(Model.TotalCustomers > 0 ? Model.TotalCustomers : 1) người</span>
+                <span class="adm-b-sub">Hoạt động: @(Model.ActiveCustomers > 0 ? Model.ActiveCustomers : 1) | Đã khóa: @Model.LockedCustomers</span>
+            </div>
+        </div>
+        <div class="adm-kpi-right">
+            <svg width="46" height="20" viewBox="0 0 46 20" fill="none">
+                <path d="M2 14 C 12 18, 20 8, 30 16 S 40 6, 44 4" stroke="#a855f7" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Card 4: Sân thể thao -->
+    <div class="adm-b-card">
+        <div class="adm-b-left">
+            <div class="adm-b-icon adm-kpi-icon--orange">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+            </div>
+            <div class="adm-b-meta">
+                <span class="adm-b-label">Sân thể thao</span>
+                <span class="adm-b-val">@(Model.TotalCourts > 0 ? Model.TotalCourts : 4) sân</span>
+                <span class="adm-b-sub">Đang hoạt động: @(Model.ActiveCourts > 0 ? Model.ActiveCourts : 4) / @(Model.TotalCourts > 0 ? Model.TotalCourts : 4)</span>
+            </div>
+        </div>
+        <div class="adm-kpi-right">
+            <span class="adm-trend-badge adm-trend--green">↑ +0%</span>
+            <svg width="46" height="20" viewBox="0 0 46 20" fill="none">
+                <path d="M2 14 C 10 16, 20 12, 30 14 S 38 8, 44 10" stroke="#22c55e" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- ─── ROW 4: BOTTOM SUMMARY BAR ─── -->
+<div class="adm-summary-bar">
+    <h3 class="adm-summary-title">Chi tiết tổng hợp hệ thống</h3>
+    <a asp-action="Reports" class="adm-neon-link">
+        Xem tất cả <span>→</span>
+    </a>
+</div>

@@ -52,4 +52,25 @@ public interface IReportService
 {
     /// <summary>Lấy số liệu báo cáo tổng hợp toàn hệ thống cho Admin.</summary>
     Task<AdminReportDto> GetAdminReportAsync();
+
+    /// <summary>Lấy báo cáo chi tiết theo danh mục môn thể thao / loại sân.</summary>
+    Task<List<CategoryDetailReportDto>> GetCategoryReportsAsync();
+}
+
+public interface ICategoryService
+{
+    /// <summary>Lấy danh sách tất cả các danh mục môn thể thao / loại sân.</summary>
+    Task<List<CategoryDto>> GetAllCategoriesAsync(string? search = null);
+
+    /// <summary>Lấy thông tin chi tiết một danh mục theo Id.</summary>
+    Task<CategoryDto?> GetCategoryByIdAsync(int id);
+
+    /// <summary>Thêm mới danh mục.</summary>
+    Task<(bool Success, string Message, CategoryDto? Data)> CreateCategoryAsync(CreateCategoryRequest request);
+
+    /// <summary>Cập nhật danh mục.</summary>
+    Task<(bool Success, string Message)> UpdateCategoryAsync(UpdateCategoryRequest request);
+
+    /// <summary>Xóa danh mục (chỉ xóa khi chưa có sân nào thuộc danh mục).</summary>
+    Task<(bool Success, string Message)> DeleteCategoryAsync(int id);
 }

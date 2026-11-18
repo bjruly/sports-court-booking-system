@@ -118,4 +118,76 @@ public class ReportService : IReportService
             BookingStatusReports = bookingStatusReports
         };
     }
+
+    public async Task<List<CategoryDetailReportDto>> GetCategoryReportsAsync()
+    {
+        var courtTypes = await _context.CourtTypes
+            .Include(ct => ct.Courts)
+            .OrderBy(ct => ct.Id)
+            .ToListAsync();
+
+        var bookings = await _context.Bookings
+            .Select(b => new { b.Id, b.CourtId, b.Status, b.TotalPrice })
+            .ToListAsync();
+
+        var totalSystemRevenue = bookings
+            .Where(b => b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed)
+            .Sum(b => b.TotalPrice);
+
+        var result = new List<CategoryDetailReportDto>();
+
+        foreach (var ct in courtTypes)
+        {
+            var courts = ct.Courts.ToList();
+            var courtIds = courts.Select(c => c.Id).ToHashSet();
+            var ctBookings = bookings.Where(b => courtIds.Contains(b.CourtId)).ToList();
+
+            var successfulBookings = ctBookings.Where(b => b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed).ToList();
+            var pendingBookings = ctBookings.Where(b => b.Status == BookingStatus.Pending).ToList();
+            var cancelledBookings = ctBookings.Where(b => b.Status == BookingStatus.Cancelled || b.Status == BookingStatus.Expired).ToList();
+
+            var revenue = successfulBookings.Sum(b => b.TotalPrice);
+            var pendingRevenue = pendingBookings.Sum(b => b.TotalPrice);
+            var totalBookingsCount = ctBookings.Count;
+
+            var courtItems = courts.Select(c =>
+            {
+                var cBookings = ctBookings.Where(b => b.CourtId == c.Id).ToList();
+                var cSuccessful = cBookings.Where(b => b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed).ToList();
+                return new CategoryCourtItemDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Location = c.Location,
+                    PricePerHour = c.PricePerHour,
+                    Status = c.Status,
+                    TotalBookings = cBookings.Count,
+                    Revenue = cSuccessful.Sum(b => b.TotalPrice)
+                };
+            }).ToList();
+
+            result.Add(new CategoryDetailReportDto
+            {
+                CourtTypeId = ct.Id,
+                CourtTypeName = ct.Name,
+                Description = ct.Description ?? string.Empty,
+                TotalCourts = courts.Count,
+                ActiveCourts = courts.Count(c => c.Status == CourtStatus.Active),
+                MinPricePerHour = courts.Any() ? courts.Min(c => c.PricePerHour) : 0,
+                MaxPricePerHour = courts.Any() ? courts.Max(c => c.PricePerHour) : 0,
+                TotalBookings = totalBookingsCount,
+                SuccessfulBookings = successfulBookings.Count,
+                PendingBookings = pendingBookings.Count,
+                CancelledBookings = cancelledBookings.Count,
+                SuccessRate = totalBookingsCount > 0 ? Math.Round((double)successfulBookings.Count / totalBookingsCount * 100, 1) : 0,
+                Revenue = revenue,
+                PendingRevenue = pendingRevenue,
+                ContributionPercent = totalSystemRevenue > 0 ? Math.Round((double)(revenue / totalSystemRevenue * 100), 1) : 0,
+                AverageOrderValue = successfulBookings.Count > 0 ? Math.Round(revenue / successfulBookings.Count, 0) : 0,
+                Courts = courtItems
+            });
+        }
+
+        return result;
+    }
 }

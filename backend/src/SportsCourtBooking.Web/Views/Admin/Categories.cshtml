@@ -1,0 +1,246 @@
+@model List<SportsCourtBooking.Application.DTOs.CategoryDto>
+@{
+    ViewData["Title"] = "Quản lý danh mục môn thể thao & loại sân";
+    var search = ViewData["Search"] as string;
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ DANH MỤC</p>
+                        <h1>Môn thể thao & Loại sân</h1>
+                        <p class="page-subtitle">Quản lý danh sách các môn thể thao và phân loại sân hoạt động trong hệ thống.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="button button--small button--dark" onclick="openAddModal()">
+                            <span>➕ Thêm danh mục</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            @* Thanh tìm kiếm *@
+            <section class="admin-status-card admin-status-card--block" style="margin-bottom:1.5rem;">
+                <form method="get" asp-action="Categories" class="booking-filter-bar">
+                    <div class="filter-group">
+                        <label for="search" class="sr-only">Tìm kiếm</label>
+                        <input id="search"
+                               type="search"
+                               name="search"
+                               value="@search"
+                               placeholder="Tìm theo tên môn thể thao, mô tả…"
+                               class="filter-input" />
+                    </div>
+                    <button type="submit" class="button button--small button--dark">Tìm kiếm</button>
+                    @if (!string.IsNullOrWhiteSpace(search))
+                    {
+                        <a asp-action="Categories" class="text-link">Xóa bộ lọc</a>
+                    }
+                </form>
+            </section>
+
+            @* Bảng danh sách danh mục *@
+            <section class="admin-status-card admin-status-card--block">
+                @if (!Model.Any())
+                {
+                    <p style="color:var(--color-muted);padding:1rem 0;">
+                        @(string.IsNullOrWhiteSpace(search)
+                            ? "Chưa có danh mục nào trong hệ thống."
+                            : $"Không tìm thấy danh mục phù hợp với \"{search}\".")
+                    </p>
+                }
+                else
+                {
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <p class="admin-section-label" style="margin:0;">@Model.Count DANH MỤC HIỆN CÓ</p>
+                        <a asp-action="CategoryReport" class="text-link" style="font-size:11px;">Xem báo cáo doanh thu danh mục <span aria-hidden="true">↗</span></a>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tên môn / Loại sân</th>
+                                    <th>Mô tả</th>
+                                    <th class="text-center">Số sân trực thuộc</th>
+                                    <th class="text-center">Ngày tạo</th>
+                                    <th class="text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var (item, index) in Model.Select((c, i) => (c, i + 1)))
+                                {
+                                    <tr>
+                                        <td class="col-index">@index</td>
+                                        <td><strong>@item.Name</strong></td>
+                                        <td style="max-width:320px; white-space:normal; font-size:11px; color:var(--muted);">
+                                            @(string.IsNullOrWhiteSpace(item.Description) ? "—" : item.Description)
+                                        </td>
+                                        <td class="text-center">
+                                            @if (item.CourtCount > 0)
+                                            {
+                                                <span class="status-badge status-badge--active">@item.CourtCount sân</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-badge" style="background:#f1f5f3; color:#6b7c74;">0 sân</span>
+                                            }
+                                        </td>
+                                        <td class="text-center col-date">@item.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-center">
+                                            <div style="display:inline-flex; gap:6px;">
+                                                <button type="button"
+                                                        class="button button--small button--dark btn-edit-category"
+                                                        style="padding:4px 10px; font-size:11px;"
+                                                        data-id="@item.Id"
+                                                        data-name="@item.Name"
+                                                        data-desc="@(item.Description ?? "")">
+                                                    Sửa
+                                                </button>
+
+                                                @if (item.CourtCount > 0)
+                                                {
+                                                    <button type="button"
+                                                            class="button button--small"
+                                                            style="padding:4px 10px; font-size:11px; opacity:0.45; cursor:not-allowed;"
+                                                            title="Không thể xóa vì đang có sân trực thuộc"
+                                                            onclick="alert('Không thể xóa danh mục này vì đang có sân thể thao trực thuộc!')">
+                                                        Xóa
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <form asp-action="DeleteCategory" method="post" style="display:inline;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="submit"
+                                                                class="button button--small button--danger"
+                                                                style="padding:4px 10px; font-size:11px;"
+                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?')">
+                                                            Xóa
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</section>
+
+@* ─── MODAL THÊM DANH MỤC ─── *@
+<div id="addCategoryModal" class="category-modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+    <div class="category-modal-box">
+        <div class="category-modal-header">
+            <h3 id="addModalTitle">Thêm mới danh mục môn thể thao</h3>
+            <button type="button" class="category-modal-close" onclick="closeAddModal()" aria-label="Đóng">&times;</button>
+        </div>
+        <form asp-action="CreateCategory" method="post">
+            @Html.AntiForgeryToken()
+            <div class="category-modal-body">
+                <div class="form-field">
+                    <label for="createName">Tên danh mục / Môn thể thao <span style="color:#c0392b;">*</span></label>
+                    <input type="text" id="createName" name="Name" class="input-text" required maxlength="100" placeholder="VD: Bóng bàn, Bóng rổ, Bơi lội…" />
+                </div>
+                <div class="form-field">
+                    <label for="createDesc">Mô tả danh mục</label>
+                    <textarea id="createDesc" name="Description" maxlength="500" placeholder="Mô tả tiêu chuẩn sân, cơ sở vật chất đặc trưng…"></textarea>
+                </div>
+            </div>
+            <div class="category-modal-footer">
+                <button type="button" class="button button--small" style="background:#e4e9e2; color:var(--ink);" onclick="closeAddModal()">Hủy</button>
+                <button type="submit" class="button button--small button--dark">Lưu danh mục</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ─── MODAL SỬA DANH MỤC ─── *@
+<div id="editCategoryModal" class="category-modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="category-modal-box">
+        <div class="category-modal-header">
+            <h3 id="editModalTitle">Chỉnh sửa danh mục môn thể thao</h3>
+            <button type="button" class="category-modal-close" onclick="closeEditModal()" aria-label="Đóng">&times;</button>
+        </div>
+        <form asp-action="UpdateCategory" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editId" name="Id" />
+            <div class="category-modal-body">
+                <div class="form-field">
+                    <label for="editName">Tên danh mục / Môn thể thao <span style="color:#c0392b;">*</span></label>
+                    <input type="text" id="editName" name="Name" class="input-text" required maxlength="100" />
+                </div>
+                <div class="form-field">
+                    <label for="editDesc">Mô tả danh mục</label>
+                    <textarea id="editDesc" name="Description" maxlength="500"></textarea>
+                </div>
+            </div>
+            <div class="category-modal-footer">
+                <button type="button" class="button button--small" style="background:#e4e9e2; color:var(--ink);" onclick="closeEditModal()">Hủy</button>
+                <button type="submit" class="button button--small button--dark">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openAddModal() {
+            document.getElementById('addCategoryModal').classList.add('is-active');
+            setTimeout(function () { document.getElementById('createName').focus(); }, 100);
+        }
+
+        function closeAddModal() {
+            document.getElementById('addCategoryModal').classList.remove('is-active');
+        }
+
+        function openEditModal(id, name, desc) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editDesc').value = desc || '';
+            document.getElementById('editCategoryModal').classList.add('is-active');
+            setTimeout(function () { document.getElementById('editName').focus(); }, 100);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editCategoryModal').classList.remove('is-active');
+        }
+
+        document.querySelectorAll('.btn-edit-category').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = this.getAttribute('data-id');
+                var name = this.getAttribute('data-name');
+                var desc = this.getAttribute('data-desc');
+                openEditModal(id, name, desc);
+            });
+        });
+
+        // Đóng modal khi nhấn Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeAddModal();
+                closeEditModal();
+            }
+        });
+
+        // Đóng modal khi click nền
+        window.addEventListener('click', function (e) {
+            var addModal = document.getElementById('addCategoryModal');
+            var editModal = document.getElementById('editCategoryModal');
+            if (e.target === addModal) closeAddModal();
+            if (e.target === editModal) closeEditModal();
+        });
+    </script>
+}

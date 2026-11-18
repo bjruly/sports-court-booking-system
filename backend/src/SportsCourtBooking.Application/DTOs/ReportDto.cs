@@ -49,3 +49,38 @@ public class BookingStatusReportDto
     public decimal TotalAmount { get; set; }
     public double Percent { get; set; }
 }
+
+public class CategoryDetailReportDto
+{
+    public int CourtTypeId { get; set; }
+    public string CourtTypeName { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int TotalCourts { get; set; }
+    public int ActiveCourts { get; set; }
+    public decimal MinPricePerHour { get; set; }
+    public decimal MaxPricePerHour { get; set; }
+    
+    public int TotalBookings { get; set; }
+    public int SuccessfulBookings { get; set; }
+    public int PendingBookings { get; set; }
+    public int CancelledBookings { get; set; }
+    public double SuccessRate { get; set; }
+    
+    public decimal Revenue { get; set; }
+    public decimal PendingRevenue { get; set; }
+    public double ContributionPercent { get; set; }
+    public decimal AverageOrderValue { get; set; }
+
+    public List<CategoryCourtItemDto> Courts { get; set; } = new();
+}
+
+public class CategoryCourtItemDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
+    public decimal PricePerHour { get; set; }
+    public CourtStatus Status { get; set; }
+    public int TotalBookings { get; set; }
+    public decimal Revenue { get; set; }
+}

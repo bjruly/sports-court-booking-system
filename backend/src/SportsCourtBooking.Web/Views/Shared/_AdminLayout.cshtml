@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1414" />
+    <title>@ViewData["Title"] · Sân Nhà Admin</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-dark.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="admin-dark-body">
+    @{
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    }
+
+    <!-- ─── TOP HEADER ─── -->
+    <header class="adm-header">
+        <a class="adm-brand" asp-controller="Admin" asp-action="Index">
+            <span class="adm-brand-logo">S</span>
+            <span>SÂN NHÀ.</span>
+        </a>
+
+        <div class="adm-search-wrap">
+            <span class="adm-search-icon">🔍</span>
+            <input type="text"
+                   class="adm-search-input"
+                   placeholder="Tìm kiếm nhanh... (sân, đơn đặt, khách hàng, ...)" />
+            <kbd class="adm-search-kbd">Ctrl + K</kbd>
+        </div>
+
+        <div class="adm-header-right">
+            <button type="button" class="adm-icon-btn" title="Thông báo" aria-label="Thông báo">
+                <span>🔔</span>
+                <span class="adm-notif-dot"></span>
+            </button>
+
+            <button type="button" class="adm-icon-btn" title="Giao diện tối" aria-label="Đổi giao diện">
+                <span>🌙</span>
+            </button>
+
+            <div class="adm-user-profile">
+                <div class="adm-avatar">👤</div>
+                <div class="adm-user-info">
+                    <span class="adm-user-name">@(User.Identity?.Name ?? "Quản Trị Viên")</span>
+                    <span class="adm-user-role">Admin</span>
+                </div>
+                <span style="font-size:10px; color:var(--d-text-sub);">▼</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ─── WRAPPER (SIDEBAR + MAIN) ─── -->
+    <div class="adm-wrapper">
+        <aside class="adm-sidebar">
+            <ul class="adm-menu">
+                <li>
+                    <span class="adm-menu-label">HỆ THỐNG</span>
+                    <a class="adm-menu-link @(currentAction == "Index" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Index">
+                        <span class="adm-menu-icon">🏠</span>
+                        <span>Tổng quan</span>
+                    </a>
+                </li>
+
+                <li>
+                    <span class="adm-menu-label">NGƯỜI DÙNG</span>
+                    <a class="adm-menu-link @(currentAction == "Customers" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Customers">
+                        <span class="adm-menu-icon">👥</span>
+                        <span>Khách hàng</span>
+                    </a>
+                </li>
+
+                <li>
+                    <span class="adm-menu-label">DANH MỤC</span>
+                    <a class="adm-menu-link @(currentAction == "Categories" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Categories">
+                        <span class="adm-menu-icon">⚽</span>
+                        <span>Môn thể thao & Loại sân</span>
+                    </a>
+                </li>
+
+                <li>
+                    <span class="adm-menu-label">BÁO CÁO THỐNG KÊ</span>
+                    <a class="adm-menu-link @(currentAction == "Reports" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Reports">
+                        <span class="adm-menu-icon">📊</span>
+                        <span>Báo cáo tổng hợp</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="adm-menu-link @(currentAction == "CategoryReport" ? "active" : "")"
+                       asp-controller="Admin" asp-action="CategoryReport">
+                        <span class="adm-menu-icon">📈</span>
+                        <span>Báo cáo danh mục</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Bottom Promo Card matching image -->
+            <div class="adm-sidebar-card">
+                <p class="adm-sidebar-card-title">Sân bóng SGU</p>
+                <p class="adm-sidebar-card-sub">Thể thao kết nối<br />Cộng đồng</p>
+            </div>
+        </aside>
+
+        <main class="adm-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -19,11 +19,10 @@
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open>
             <summary>Quản lý danh mục</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Môn thể thao</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Loại sân</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item" asp-controller="Admin" asp-action="Categories">Môn thể thao & Loại sân</a>
             </div>
         </details>
 
@@ -39,6 +38,7 @@
             <summary>Báo cáo thống kê</summary>
             <div class="admin-submenu">
                 <a class="admin-menu-item" asp-controller="Admin" asp-action="Reports">Báo cáo tổng hợp</a>
+                <a class="admin-menu-item" asp-controller="Admin" asp-action="CategoryReport">Báo cáo danh mục</a>
             </div>
         </details>
 
