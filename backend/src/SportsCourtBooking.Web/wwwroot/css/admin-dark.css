@@ -170,6 +170,117 @@ body.admin-dark-body {
   background-color: var(--d-card);
 }
 
+/* User Dropdown */
+.adm-user-dropdown-wrap {
+  position: relative;
+}
+
+.adm-user-dropdown-wrap:hover .adm-user-dropdown-menu,
+.adm-user-dropdown-wrap:focus-within .adm-user-dropdown-menu {
+  display: block;
+}
+
+.adm-user-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  min-width: 210px;
+  background: #111b17;
+  border: 1px solid var(--d-border-light);
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  animation: admFadeIn 0.15s ease-out;
+}
+
+.adm-user-dropdown-header {
+  padding: 6px 10px 8px;
+}
+
+.adm-user-dropdown-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--d-text);
+}
+
+.adm-user-dropdown-email {
+  font-size: 11px;
+  color: var(--d-text-sub);
+  margin-top: 2px;
+}
+
+.adm-user-dropdown-divider {
+  height: 1px;
+  background: var(--d-border);
+  margin: 4px 0 6px;
+}
+
+.adm-user-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: var(--d-text-sub);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.adm-user-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--d-text);
+}
+
+.adm-user-dropdown-logout {
+  color: #f87171 !important;
+}
+
+.adm-user-dropdown-logout:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #ef4444 !important;
+}
+
+/* Header Direct Logout Button */
+.adm-header-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--d-green-btn);
+  color: #071f15;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 15px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.adm-header-logout-btn:hover {
+  background-color: var(--d-green-btn-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(46, 213, 115, 0.35);
+}
+
+.adm-header-logout-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.adm-header-logout-btn:hover svg {
+  transform: translateX(1px);
+}
+
 .adm-avatar {
   width: 34px;
   height: 34px;

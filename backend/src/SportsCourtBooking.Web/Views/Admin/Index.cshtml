@@ -26,11 +26,6 @@
             </svg>
             <span>@todayStr</span>
         </div>
-
-        <form asp-controller="Auth" asp-action="Logout" method="post" style="display:inline; margin:0;">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="adm-btn-logout">Đăng xuất</button>
-        </form>
     </div>
 </div>
 
