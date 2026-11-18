@@ -101,3 +101,27 @@ public interface IReviewService
     Task<(bool Success, string Message)> DeleteReviewAsync(int reviewId);
 }
 
+public interface IFacilityService
+{
+    /// <summary>Lấy danh sách cơ sở thể thao kèm bộ lọc tìm kiếm và trạng thái (UC13, UC23).</summary>
+    Task<List<FacilityItemDto>> GetAllFacilitiesAsync(string? search = null, string? filter = null);
+
+    /// <summary>Thống kê số lượng cơ sở theo các trạng thái.</summary>
+    Task<FacilityStatsDto> GetFacilityStatsAsync();
+
+    /// <summary>Lấy chi tiết một cơ sở theo Id.</summary>
+    Task<FacilityItemDto?> GetFacilityByIdAsync(int id);
+
+    /// <summary>Thêm mới cơ sở thể thao (UC13).</summary>
+    Task<(bool Success, string Message, FacilityItemDto? Data)> CreateFacilityAsync(CreateFacilityRequest request);
+
+    /// <summary>Cập nhật thông tin cơ sở thể thao (UC13).</summary>
+    Task<(bool Success, string Message)> UpdateFacilityAsync(UpdateFacilityRequest request);
+
+    /// <summary>Duyệt cơ sở thể thao (UC23).</summary>
+    Task<(bool Success, string Message)> ApproveFacilityAsync(int facilityId);
+
+    /// <summary>Khóa hoặc mở khóa cơ sở thể thao kèm lý do (UC23).</summary>
+    Task<(bool Success, string Message, bool? IsActive)> ToggleLockFacilityAsync(int facilityId, string? reason);
+}
+

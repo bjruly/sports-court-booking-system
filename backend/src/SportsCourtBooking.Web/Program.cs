@@ -28,6 +28,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IFacilityService, FacilityService>();
 builder.Services.AddHostedService<PendingBookingExpirationWorker>();
 
 // Đăng nhập bằng cookie xác thực (được mã hóa/ký bởi ASP.NET Core, người dùng không tự sửa được)

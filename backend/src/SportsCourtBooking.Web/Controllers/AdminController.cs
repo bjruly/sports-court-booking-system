@@ -13,17 +13,20 @@ public class AdminController : Controller
     private readonly IReportService _reportService;
     private readonly ICategoryService _categoryService;
     private readonly IReviewService _reviewService;
+    private readonly IFacilityService _facilityService;
 
     public AdminController(
         IUserService userService,
         IReportService reportService,
         ICategoryService categoryService,
-        IReviewService reviewService)
+        IReviewService reviewService,
+        IFacilityService facilityService)
     {
         _userService = userService;
         _reportService = reportService;
         _categoryService = categoryService;
         _reviewService = reviewService;
+        _facilityService = facilityService;
     }
 
     [HttpGet]
@@ -187,5 +190,69 @@ public class AdminController : Controller
             TempData["ErrorMessage"] = message;
 
         return RedirectToAction(nameof(Reviews), new { search = returnSearch, filter = returnFilter });
+    }
+
+    // ─── Quản lý cơ sở thể thao (UC13, UC23) ─────────────────────────────────
+
+    [HttpGet]
+    public async Task<IActionResult> Facilities(string? search, string? filter)
+    {
+        ViewData["Search"] = search;
+        ViewData["Filter"] = filter ?? "all";
+        ViewBag.Stats = await _facilityService.GetFacilityStatsAsync();
+        var facilities = await _facilityService.GetAllFacilitiesAsync(search, filter);
+        return View(facilities);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateFacility(CreateFacilityRequest request)
+    {
+        var (success, message, _) = await _facilityService.CreateFacilityAsync(request);
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
+
+        return RedirectToAction(nameof(Facilities));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateFacility(UpdateFacilityRequest request)
+    {
+        var (success, message) = await _facilityService.UpdateFacilityAsync(request);
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
+
+        return RedirectToAction(nameof(Facilities));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ApproveFacility(int id, string? returnSearch, string? returnFilter)
+    {
+        var (success, message) = await _facilityService.ApproveFacilityAsync(id);
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
+
+        return RedirectToAction(nameof(Facilities), new { search = returnSearch, filter = returnFilter });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleLockFacility(int id, string? reason, string? returnSearch, string? returnFilter)
+    {
+        var (success, message, _) = await _facilityService.ToggleLockFacilityAsync(id, reason);
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
+
+        return RedirectToAction(nameof(Facilities), new { search = returnSearch, filter = returnFilter });
     }
 }

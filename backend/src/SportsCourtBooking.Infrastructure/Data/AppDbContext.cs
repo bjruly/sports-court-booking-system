@@ -16,10 +16,26 @@ public class AppDbContext : DbContext
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<Facility> Facilities => Set<Facility>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // 0. Cấu hình bảng Facility (UC13, UC23)
+        modelBuilder.Entity<Facility>(entity =>
+        {
+            entity.HasKey(f => f.Id);
+            entity.Property(f => f.Name).IsRequired().HasMaxLength(150);
+            entity.Property(f => f.Address).IsRequired().HasMaxLength(255);
+            entity.Property(f => f.PhoneNumber).IsRequired().HasMaxLength(30);
+            entity.Property(f => f.SuspensionReason).HasMaxLength(500);
+
+            entity.HasOne(f => f.Owner)
+                  .WithMany()
+                  .HasForeignKey(f => f.OwnerId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
 
         // 1. Cấu hình bảng User
         modelBuilder.Entity<User>(entity =>
@@ -50,6 +66,11 @@ public class AppDbContext : DbContext
                   .WithMany(ct => ct.Courts)
                   .HasForeignKey(c => c.CourtTypeId)
                   .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(c => c.Facility)
+                  .WithMany(f => f.Courts)
+                  .HasForeignKey(c => c.FacilityId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // 4. Cấu hình bảng Booking

@@ -964,6 +964,141 @@ body.admin-dark-body {
   background-color: #0c1615;
 }
 
+/* ─── Modal Dialogs (Facilities, Categories, Reviews) ───────────────────── */
+.adm-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: admFadeIn 0.15s ease-out;
+}
+
+.adm-modal {
+  background: #111e1b;
+  border: 1px solid var(--d-border-light);
+  border-radius: 12px;
+  width: 100%;
+  color: var(--d-text);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+  animation: admSlideUp 0.18s ease-out;
+}
+
+.adm-modal-header {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--d-border);
+  background: #0d1715;
+}
+
+.adm-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.adm-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--d-text-sub);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.adm-modal-close:hover {
+  color: #fff;
+}
+
+.adm-modal-body {
+  padding: 20px;
+}
+
+.adm-modal-footer {
+  padding: 14px 20px;
+  background: #0a1311;
+  border-top: 1px solid var(--d-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.adm-btn-cancel {
+  background: var(--d-card);
+  color: var(--d-text-sub);
+  border: 1px solid var(--d-border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adm-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.adm-form-group {
+  margin-bottom: 14px;
+}
+
+.adm-form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--d-text-sub);
+  margin-bottom: 6px;
+}
+
+.adm-form-input, .adm-form-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #091311;
+  border: 1px solid var(--d-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.adm-form-input:focus, .adm-form-textarea:focus {
+  border-color: var(--d-green);
+  box-shadow: 0 0 0 2px rgba(46, 213, 115, 0.2);
+}
+
+.adm-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--d-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adm-action-btn:hover {
+  transform: translateY(-1px);
+}
+
 /* ─── Responsive Media Queries ───────────────────────────────────────────── */
 @media (max-width: 1200px) {
   .adm-kpi-grid, .adm-bottom-stats {

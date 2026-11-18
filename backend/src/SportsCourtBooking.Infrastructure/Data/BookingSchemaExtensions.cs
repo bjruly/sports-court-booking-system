@@ -58,6 +58,27 @@ public static class BookingSchemaExtensions
             ADD COLUMN IF NOT EXISTS "HiddenReason" character varying(500) NULL,
             ADD COLUMN IF NOT EXISTS "HiddenAt" timestamp with time zone NULL,
             ADD COLUMN IF NOT EXISTS "IsReported" boolean NOT NULL DEFAULT false;
+
+        -- UC13, UC23: Cấu trúc bảng Facilities và liên kết Courts
+        CREATE TABLE IF NOT EXISTS "Facilities" (
+            "Id" serial PRIMARY KEY,
+            "Name" character varying(150) NOT NULL,
+            "Address" character varying(255) NOT NULL,
+            "PhoneNumber" character varying(30) NOT NULL,
+            "Description" text NULL,
+            "OpenTime" character varying(10) NOT NULL DEFAULT '06:00',
+            "CloseTime" character varying(10) NOT NULL DEFAULT '22:00',
+            "ImageUrl" character varying(500) NULL,
+            "OwnerId" integer NULL REFERENCES "Users"("Id") ON DELETE SET NULL,
+            "IsApproved" boolean NOT NULL DEFAULT true,
+            "IsActive" boolean NOT NULL DEFAULT true,
+            "SuspensionReason" character varying(500) NULL,
+            "CreatedAt" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "UpdatedAt" timestamp with time zone NULL
+        );
+
+        ALTER TABLE "Courts"
+            ADD COLUMN IF NOT EXISTS "FacilityId" integer NULL REFERENCES "Facilities"("Id") ON DELETE SET NULL;
         """;
 
     public static async Task EnsureBookingSchemaAsync(this AppDbContext db, CancellationToken cancellationToken = default)
@@ -121,6 +142,78 @@ public static class BookingSchemaExtensions
 
             await db.Reviews.AddRangeAsync(sampleReviews, cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
+        }
+
+        // Seed dữ liệu mẫu cho Facilities nếu chưa có để phục vụ demo UC13, UC23
+        if (!await db.Facilities.AnyAsync(cancellationToken))
+        {
+            var seedTime = DateTime.UtcNow.AddMonths(-1);
+            var sampleFacilities = new List<Facility>
+            {
+                new()
+                {
+                    Name = "CLB Thể Thao SGU - Cơ sở An Dương Vương",
+                    Address = "105 An Dương Vương, Phường 4, Quận 5, TP.HCM",
+                    PhoneNumber = "028 3835 4409",
+                    Description = "Cụm sân thể thao trong nhà trung tâm TP.HCM, trang bị sàn gỗ thảm Yonex và hệ thống chiếu sáng chuẩn quốc tế.",
+                    OpenTime = "06:00",
+                    CloseTime = "22:30",
+                    IsApproved = true,
+                    IsActive = true,
+                    CreatedAt = seedTime
+                },
+                new()
+                {
+                    Name = "Khu Liên Hợp Thể Thao Kỳ Hòa",
+                    Address = "238 Ba Tháng Hai, Phường 12, Quận 10, TP.HCM",
+                    PhoneNumber = "090 987 6543",
+                    Description = "Tổ hợp sân bóng đá mini cỏ nhân tạo và cụm sân Pickleball ngoài trời thoáng đãng, bãi xe ô tô rộng rãi.",
+                    OpenTime = "05:30",
+                    CloseTime = "23:00",
+                    IsApproved = true,
+                    IsActive = true,
+                    CreatedAt = seedTime.AddDays(5)
+                },
+                new()
+                {
+                    Name = "Cụm Sân Thể Thao Rạch Miễu",
+                    Address = "Số 1 Hoa Phượng, Phường 2, Quận Phú Nhuận, TP.HCM",
+                    PhoneNumber = "091 234 5678",
+                    Description = "Cơ sở mới đăng ký tham gia nền tảng Sân Nhà. Đang nộp hồ sơ giấy phép kinh doanh chờ phê duyệt.",
+                    OpenTime = "06:00",
+                    CloseTime = "22:00",
+                    IsApproved = false, // Chờ phê duyệt UC23
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow.AddHours(-18)
+                },
+                new()
+                {
+                    Name = "Sân Thể Thao Bình Thạnh VIP",
+                    Address = "12 Chu Văn An, Phường 12, Quận Bình Thạnh, TP.HCM",
+                    PhoneNumber = "093 333 4455",
+                    Description = "Cơ sở có 3 sân bóng đá mini và 2 sân cầu lông.",
+                    OpenTime = "06:00",
+                    CloseTime = "22:00",
+                    IsApproved = true,
+                    IsActive = false, // Tạm khóa vi phạm UC23
+                    SuspensionReason = "Cơ sở chưa hoàn tất nghiệm thu an toàn PCCC và nhận phản ánh chất lượng từ nhiều khách hàng.",
+                    CreatedAt = seedTime.AddDays(10)
+                }
+            };
+
+            await db.Facilities.AddRangeAsync(sampleFacilities, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+
+            // Gán các sân hiện có vào cơ sở 1 và cơ sở 2
+            var courts = await db.Courts.ToListAsync(cancellationToken);
+            if (courts.Count >= 4)
+            {
+                courts[0].FacilityId = sampleFacilities[0].Id;
+                courts[1].FacilityId = sampleFacilities[0].Id;
+                courts[2].FacilityId = sampleFacilities[1].Id;
+                courts[3].FacilityId = sampleFacilities[1].Id;
+                await db.SaveChangesAsync(cancellationToken);
+            }
         }
     }
 }
