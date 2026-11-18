@@ -156,12 +156,34 @@ public class BookingService : IBookingService
             .ToListAsync();
     }
 
-    public async Task<List<BookingDto>> GetBookingsByUserAsync(int userId)
+    public async Task<List<BookingDto>> GetBookingsByUserAsync(
+        int userId,
+        BookingStatus? status = null,
+        DateOnly? fromDate = null,
+        DateOnly? toDate = null)
     {
         await _expirationService.ExpireOverdueAsync();
 
-        return await _context.Bookings
-            .Where(b => b.UserId == userId)
+        var query = _context.Bookings
+            .AsNoTracking()
+            .Where(b => b.UserId == userId);
+
+        if (status.HasValue)
+        {
+            query = query.Where(b => b.Status == status.Value);
+        }
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(b => b.BookingDate >= fromDate.Value);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(b => b.BookingDate <= toDate.Value);
+        }
+
+        return await query
             .OrderByDescending(b => b.BookingDate)
             .ThenBy(b => b.StartTime)
             .Select(b => new BookingDto
@@ -177,9 +199,11 @@ public class BookingService : IBookingService
                 EndTime = b.EndTime,
                 TotalPrice = b.TotalPrice,
                 Status = b.Status,
+                CheckInAt = b.CheckInAt,
                 VoucherCode = b.VoucherCode,
                 DiscountAmount = b.DiscountAmount
-            }).ToListAsync();
+            })
+            .ToListAsync();
     }
 
     public async Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
@@ -683,4 +707,75 @@ public class BookingService : IBookingService
         => GetBookingScope(bookingId, ownerId)
             .Select(b => (BookingStatus?)b.Status)
             .FirstOrDefaultAsync();
+            public async Task<(bool Success, string Message)> CancelOwnBookingAsync(
+    int bookingId,
+    int userId)
+{
+    await _expirationService.ExpireOverdueAsync();
+
+    var nowUtc = DateTime.UtcNow;
+    var nowVietnam = nowUtc.AddHours(7);
+
+    var today = DateOnly.FromDateTime(nowVietnam);
+    var currentTime = TimeOnly.FromDateTime(nowVietnam);
+
+    var updated = await _context.Bookings
+        .Where(b =>
+            b.Id == bookingId
+            && b.UserId == userId
+
+            && b.User != null
+            && b.User.IsActive
+
+            && (
+                b.Status == BookingStatus.Pending
+                || b.Status == BookingStatus.Confirmed
+            )
+
+            && (
+                b.Status != BookingStatus.Pending
+                || (
+                    b.ExpiresAt.HasValue
+                    && b.ExpiresAt.Value > nowUtc
+                )
+            )
+
+            && (
+                b.BookingDate > today
+                || (
+                    b.BookingDate == today
+                    && b.StartTime > currentTime
+                )
+            )
+
+            && (
+                b.Payment == null
+                || b.Payment.Status != PaymentStatus.Paid
+            )
+        )
+        .ExecuteUpdateAsync(setters => setters
+            .SetProperty(b => b.Status, BookingStatus.Cancelled)
+            .SetProperty(b => b.ExpiresAt, (DateTime?)null)
+            .SetProperty(b => b.UpdatedAt, nowUtc)
+        );
+
+    if (updated == 0)
+    {
+        return (
+            false,
+            "Không thể hủy đơn. Tài khoản hoặc đơn không còn đáp ứng điều kiện hủy. Vui lòng tải lại trang hoặc liên hệ nhân viên."
+        );
+    }
+
+    _logger.LogInformation(
+        "Người dùng {UserId} đã tự hủy đơn {BookingId}",
+        userId,
+        bookingId
+    );
+
+    return (
+        true,
+        "Đã hủy đơn đặt sân. Khung giờ đã được mở lại."
+    );
+}
 }

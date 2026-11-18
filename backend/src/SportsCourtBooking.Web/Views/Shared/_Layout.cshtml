@@ -40,6 +40,7 @@
             <div class="header-actions">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
+                    <a class="header-login" asp-controller="Account" asp-action="Profile">Hồ sơ cá nhân</a>
                     <span class="header-user">Xin chào, <strong>@User.Identity?.Name</strong></span>
                     <form class="inline-form" asp-controller="Auth" asp-action="Logout" method="post">
                         <button class="button button--small button--dark" type="submit">Đăng xuất</button>
@@ -53,6 +54,7 @@
             </div>
             @if (User.Identity?.IsAuthenticated == true)
             {
+                <a class="mobile-account" asp-controller="Account" asp-action="Profile">Hồ sơ</a>
                 if (User.IsInRole("Admin"))
                 {
                     <a class="mobile-account" asp-controller="Admin" asp-action="Index" aria-label="Trang quản trị">Trang quản trị <span aria-hidden="true">↗</span></a>

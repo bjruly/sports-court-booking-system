@@ -10,7 +10,17 @@ public sealed class CourtCatalogViewModel
 
     public DateOnly PlayDate { get; init; }
 
+    public int? StartHour { get; init; }
+
+    public int? EndHour { get; init; }
+
     public IReadOnlyList<CourtCardViewModel> Courts { get; init; } = [];
+
+    public decimal? MinPrice { get; init; }
+
+    public decimal? MaxPrice { get; init; }
+
+    public string SortBy { get; init; } = "default";
 }
 
 public sealed class CourtCardViewModel

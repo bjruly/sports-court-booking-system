@@ -32,6 +32,7 @@ builder.Services.AddScoped<IOwnerFacilityService, OwnerFacilityService>();
 builder.Services.AddScoped<IVoucherService, OwnerVoucherService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOwnerRevenueReportService, OwnerRevenueReportService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddHostedService<PendingBookingExpirationWorker>();
 
 // Đăng nhập bằng cookie xác thực (được mã hóa/ký bởi ASP.NET Core, người dùng không tự sửa được)

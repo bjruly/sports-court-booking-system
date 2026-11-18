@@ -17,8 +17,15 @@ public interface IBookingService
     Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null, bool includeInactive = false);
     Task<List<BookingDto>> GetOwnerBookingsAsync(int ownerId, DateOnly? date = null, int? courtId = null, BookingStatus? status = null);
     Task<List<BookingDto>> GetOwnerBookingsForCalendarAsync(int ownerId, DateOnly startDate, DateOnly endDate, int? courtId = null);
-    Task<List<BookingDto>> GetBookingsByUserAsync(int userId);
+    Task<List<BookingDto>> GetBookingsByUserAsync(
+        int userId,
+        BookingStatus? status = null,
+        DateOnly? fromDate = null,
+        DateOnly? toDate = null);
     Task<BookingDetailDto?> GetOwnBookingAsync(int bookingId, int userId);
+    Task<(bool Success, string Message)> CancelOwnBookingAsync(
+    int bookingId,
+    int userId);
     Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime);
     Task<(bool Success, string Message, BookingDto? Data)> CreateBookingAsync(CreateBookingRequest request);
     Task<(bool Success, string Message, BookingDto? Data)> CreateOwnerWalkInBookingAsync(int ownerId, OwnerWalkInBookingRequest request);
