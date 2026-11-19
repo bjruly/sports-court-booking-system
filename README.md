@@ -28,17 +28,17 @@ Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`,
 ## Trạng thái triển khai
 
 - Đã kết nối PostgreSQL: danh sách sân, lịch khung giờ, đăng ký, đăng nhập (cookie, mật khẩu băm PBKDF2) và tạo đơn đặt sân đều lưu/đọc từ database.
-- Quy tắc đặt sân nằm tập trung ở `Application/Rules/BookingRules.cs`: giờ mở cửa 06:00–22:00, tối đa 4 giờ liên tiếp, phụ thu 50.000₫/giờ từ 17:00, không đặt giờ đã qua (tính theo giờ Việt Nam), chống đặt trùng khi nhiều người bấm cùng lúc.
+- Quy tắc đặt sân nằm tập trung ở `Application/Rules/BookingRules.cs`: giờ mở cửa 06:00–22:00, tối đa 4 giờ liên tiếp, phụ thu cao điểm mặc định 50.000₫/giờ từ 17:00 (có thể cấu hình riêng theo sân), không đặt giờ đã qua (tính theo giờ Việt Nam), chống đặt trùng khi nhiều người bấm cùng lúc.
 - Booking `Pending` giữ khung giờ tối đa 10 phút; tác vụ nền quét mỗi 15 giây và chuyển đơn quá hạn sang `Expired`. Các lần kiểm tra lịch cũng hết hạn đơn cũ trước khi xác định tình trạng khung giờ. PostgreSQL dùng ràng buộc `EXCLUDE` với khoảng thời gian nửa mở `[bắt đầu, kết thúc)` để chặn booking `Pending`/`Confirmed` bị trùng trên cùng sân. Khởi động ứng dụng cài `btree_gist` và áp dụng schema theo cách idempotent.
 - Đã có: Admin/Staff xem, xác nhận và hủy đơn tại trang "Quản lý lịch đặt" (hủy thì nhả khung giờ ngay); lưới lịch của khách không còn hiện đơn đã hủy hoặc hết hạn là "đã đặt".
 - Đã có dashboard `/Admin` cho tài khoản Admin với menu bên trái theo các phân hệ; hiện chỉ mục theo dõi đơn đặt liên kết tới chức năng đang có, các mục còn lại được đánh dấu chưa triển khai.
-- Đã có khung dashboard `/Owner` dành cho vai trò `CourtOwner`; các mục quản lý cơ sở, sân, đặt sân, lịch, giá, voucher, đánh giá, báo cáo và tài khoản hiện được đánh dấu chưa triển khai. Có sẵn tài khoản Chủ Sân mẫu để đăng nhập thử.
-- Chưa làm: thanh toán, đánh giá, hoàn tiền và hủy đơn do khách tự thực hiện, dashboard quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
+- Đã có dashboard `/Owner`, thống kê lượt đặt và trạng thái theo từng sân/tháng, quản lý cơ sở, sân/đơn, lịch tuần, đặt hộ khách vãng lai, check-in, voucher, đánh giá, báo cáo doanh thu, hồ sơ cá nhân và đổi mật khẩu. Chủ sân có thể tạo/sửa cơ sở và gán sân vào cơ sở; sân cũ chưa được tự gán để tránh suy đoán sai và có thể gán khi chỉnh sửa. Chỉ xóa được cơ sở chưa có sân liên kết; cần chuyển sân sang cơ sở khác trước khi xóa. Địa chỉ cơ sở được lưu riêng với vị trí cụ thể của từng sân. Chủ sân có thể cập nhật họ tên/số điện thoại; email đăng nhập hiện chỉ xem được. Khi đổi mật khẩu cần nhập mật khẩu hiện tại, mật khẩu mới từ 8 đến 100 ký tự và xác nhận lại mật khẩu. Báo cáo phân biệt giá trị booking đã xác nhận/hoàn thành với Payment đã thu/đã hoàn; Payment đã thu từ đơn hủy/hết hạn được đánh dấu để chủ sân rà soát hoàn tiền. Khách có thể đánh giá một lần cho mỗi booking đã xác nhận sau khi giờ chơi kết thúc; đánh giá có thể được chỉnh sửa. Chủ sân xem đánh giá theo sân và gửi/cập nhật phản hồi. Các đánh giá cũ chưa gắn booking vẫn được giữ để chủ sân xem và phản hồi. Chủ sân cấu hình giờ bắt đầu cao điểm và phụ thu riêng theo sân (mặc định 17:00/+50.000₫ mỗi giờ), đồng thời tạo voucher giảm theo phần trăm hoặc số tiền, thời hạn và giới hạn lượt dùng. Thời hạn voucher được kiểm tra theo ngày khách áp dụng mã, không phải ngày ra sân. Tổng tiền và mức giảm được lưu vào booking, không thay đổi nếu voucher được sửa sau đó. Lượt dùng được nhả khi đơn bị hủy hoặc hết hạn. Có sẵn tài khoản Chủ Sân mẫu để đăng nhập thử.
+- Chưa làm: thanh toán, hoàn tiền và hủy đơn do khách tự thực hiện, dashboard quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
 
 ## Tính năng mục tiêu
 
 - Khách hàng tìm kiếm cơ sở và sân, xem lịch trống, đặt sân, thanh toán, hủy đặt và đánh giá.
-- Chủ sân quản lý cơ sở, sân, giá, lịch đặt, voucher và doanh thu.
+- Chủ sân quản lý cơ sở, sân, giá, lịch đặt, đặt hộ khách và check-in, voucher và doanh thu.
 - Quản trị viên duyệt cơ sở, quản lý người dùng/danh mục và theo dõi thống kê.
 - Đơn đặt có cơ chế giữ chỗ tạm thời; thanh toán và trạng thái đơn được đồng bộ theo quy trình nghiệp vụ.
 
@@ -48,10 +48,10 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 
 ### Phạm vi MVP đã chốt
 
-- Khách cần có tài khoản và đăng nhập để đặt sân; người mới có thể đăng ký. Khách vãng lai/đặt hộ để giai đoạn sau.
+- Khách đặt sân trực tuyến cần có tài khoản và đăng nhập; Chủ sân có thể đặt hộ khách tại quầy bằng thông tin liên hệ, không cần tạo tài khoản.
 - Luồng MVP: đăng nhập → xem danh sách sân → xem lịch trống và giá → chọn giờ → tạo booking `PENDING`.
 - Mỗi khung giờ dài 1 giờ; một booking gồm tối đa 4 khung liên tiếp trên cùng một sân trong cùng ngày.
-- Booking `PENDING` chưa phải là booking đã xác nhận hoặc đã thanh toán. Thanh toán thật, voucher, hủy/hoàn tiền và các tích hợp ngoài hệ thống nằm ngoài MVP.
+- Booking `PENDING` chưa phải là booking đã xác nhận hoặc đã thanh toán. Thanh toán thật, hủy/hoàn tiền và các tích hợp ngoài hệ thống nằm ngoài MVP; voucher hiện chỉ điều chỉnh tổng tiền của booking, chưa có quy trình thanh toán.
 - Quy tắc hết hạn 10 phút và ràng buộc chống trùng đã được áp dụng trong code. Đã xác minh build solution, 49 unit tests và ràng buộc `EXCLUDE` trên PostgreSQL; vẫn cần kiểm thử tích hợp đầy đủ luồng đặt đồng thời và hết hạn trước khi triển khai.
 
 | Bước                                  | Trình tự công việc                                                                                                                                                                                         | Điều kiện hoàn tất để chuyển bước                                                                                                                  |

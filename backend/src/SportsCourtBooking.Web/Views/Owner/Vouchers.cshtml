@@ -1,0 +1,94 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
+@model List<OwnerVoucherDto>
+
+@{
+    ViewData["Title"] = "Quản lý voucher";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var today = VietnamClock.Today;
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading owner-list-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ VOUCHER</p>
+                    <h1>Voucher của tôi</h1>
+                    <p class="page-subtitle">Mã giảm giá áp dụng trên các sân thuộc tài khoản của bạn.</p>
+                </div>
+                <a class="button button--primary" asp-action="CreateVoucher">+ Tạo voucher</a>
+            </header>
+
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">@Model.Count VOUCHER</p>
+                @if (Model.Count == 0)
+                {
+                    <div class="empty-state owner-courts-empty" role="status">
+                        <span class="empty-state-icon" aria-hidden="true">%</span>
+                        <h3>Chưa có voucher nào</h3>
+                        <p>Tạo mã giảm giá để khách áp dụng khi đặt sân.</p>
+                        <a class="button button--small button--dark" asp-action="CreateVoucher">Tạo voucher</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table owner-courts-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã</th>
+                                    <th>Mức giảm</th>
+                                    <th>Thời hạn</th>
+                                    <th>Lượt dùng</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var voucher in Model)
+                                {
+                                    var statusLabel = !voucher.IsActive
+                                        ? "Đã tắt"
+                                        : today < voucher.StartDate
+                                            ? "Chưa bắt đầu"
+                                            : today > voucher.EndDate
+                                                ? "Hết hạn"
+                                                : voucher.UsageLimit.HasValue && voucher.UsedCount >= voucher.UsageLimit.Value
+                                                    ? "Hết lượt"
+                                                    : "Đang áp dụng";
+                                    <tr>
+                                        <td><strong>@voucher.Code</strong></td>
+                                        <td>
+                                            @(voucher.DiscountType == VoucherDiscountType.Percentage
+                                                ? $"{voucher.DiscountValue.ToString("0.##", culture)}%"
+                                                : $"{voucher.DiscountValue.ToString("N0", culture)} đ")
+                                        </td>
+                                        <td>@voucher.StartDate.ToString("dd/MM/yyyy") – @voucher.EndDate.ToString("dd/MM/yyyy")</td>
+                                        <td>@voucher.UsedCount / @(voucher.UsageLimit?.ToString() ?? "∞")</td>
+                                        <td><span class="status-badge">@statusLabel</span></td>
+                                        <td>
+                                            <div class="owner-court-actions">
+                                                <a class="text-link" asp-action="EditVoucher" asp-route-id="@voucher.Id">Sửa</a>
+                                                <form asp-action="ToggleVoucherStatus" asp-route-id="@voucher.Id" method="post" class="owner-status-form">
+                                                    <button class="button button--small button--outline" type="submit">
+                                                        @(voucher.IsActive ? "Ngừng áp dụng" : "Kích hoạt")
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</section>

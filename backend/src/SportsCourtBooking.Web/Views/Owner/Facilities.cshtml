@@ -1,0 +1,83 @@
+@using SportsCourtBooking.Application.DTOs
+@model List<OwnerFacilityDto>
+
+@{
+    ViewData["Title"] = "Quản lý cơ sở";
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading owner-list-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ CƠ SỞ</p>
+                    <h1>Cơ sở của tôi</h1>
+                    <p class="page-subtitle">Quản lý địa chỉ và các địa điểm có sân trực thuộc.</p>
+                </div>
+                <a class="button button--primary" asp-action="CreateFacility">+ Thêm cơ sở</a>
+            </header>
+
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">@Model.Count CƠ SỞ</p>
+                @if (Model.Count == 0)
+                {
+                    <div class="empty-state owner-courts-empty" role="status">
+                        <span class="empty-state-icon" aria-hidden="true">⌂</span>
+                        <h3>Chưa có cơ sở nào</h3>
+                        <p>Tạo cơ sở để quản lý địa chỉ và gắn các sân hiện có hoặc sân mới vào đúng địa điểm.</p>
+                        <a class="button button--small button--dark" asp-action="CreateFacility">Thêm cơ sở</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table owner-facility-table">
+                            <thead>
+                                <tr>
+                                    <th>Tên cơ sở</th>
+                                    <th>Địa chỉ</th>
+                                    <th>Số sân</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var facility in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@facility.Name</strong>
+                                            @if (!string.IsNullOrWhiteSpace(facility.Description))
+                                            {
+                                                <small class="owner-facility-description">@facility.Description</small>
+                                            }
+                                        </td>
+                                        <td>@facility.Address</td>
+                                        <td>@facility.CourtCount</td>
+                                        <td>
+                                            <div class="owner-facility-actions">
+                                                <a class="text-link" asp-action="EditFacility" asp-route-id="@facility.Id">Sửa</a>
+                                                @if (facility.CourtCount == 0)
+                                                {
+                                                    <form asp-action="DeleteFacility" asp-route-id="@facility.Id" method="post">
+                                                        <button class="button button--small button--outline owner-facility-delete"
+                                                                type="submit">Xóa</button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <small class="owner-facility-delete-hint">Chuyển sân để xóa</small>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</section>

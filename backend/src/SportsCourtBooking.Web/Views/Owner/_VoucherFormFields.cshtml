@@ -1,0 +1,49 @@
+@using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
+@model OwnerVoucherFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="owner-form-summary" role="alert"></div>
+<div class="owner-form-grid">
+    <div class="owner-form-field">
+        <label asp-for="Code">Mã voucher <span aria-hidden="true">*</span></label>
+        <input asp-for="Code" class="filter-input" maxlength="30" autocomplete="off" />
+        <span asp-validation-for="Code" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="DiscountType">Loại giảm giá <span aria-hidden="true">*</span></label>
+        <select asp-for="DiscountType" class="filter-input">
+            <option value="@VoucherDiscountType.Percentage">Phần trăm (%)</option>
+            <option value="@VoucherDiscountType.FixedAmount">Số tiền (đ)</option>
+        </select>
+        <span asp-validation-for="DiscountType" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="DiscountValue">Mức giảm <span aria-hidden="true">*</span></label>
+        <input asp-for="DiscountValue" class="filter-input" type="number" min="0.01" step="0.01" />
+        <span asp-validation-for="DiscountValue" class="field-validation-error"></span>
+        <small>Giảm theo phần trăm tối đa 100%; giảm số tiền không vượt quá tổng giá trị đơn.</small>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="UsageLimit">Giới hạn lượt dùng</label>
+        <input asp-for="UsageLimit" class="filter-input" type="number" min="1" step="1" placeholder="Để trống nếu không giới hạn" />
+        <span asp-validation-for="UsageLimit" class="field-validation-error"></span>
+        <small>Giới hạn tính tổng lượt áp dụng trên tất cả sân của bạn; đơn đã hủy hoặc hết hạn không tính.</small>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="StartDate">Ngày bắt đầu <span aria-hidden="true">*</span></label>
+        <input asp-for="StartDate" class="filter-input" type="date" />
+        <span asp-validation-for="StartDate" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
+        <label asp-for="EndDate">Ngày kết thúc <span aria-hidden="true">*</span></label>
+        <input asp-for="EndDate" class="filter-input" type="date" />
+        <span asp-validation-for="EndDate" class="field-validation-error"></span>
+        <small>Thời hạn được kiểm tra theo ngày khách áp dụng mã, không phải ngày ra sân.</small>
+    </div>
+    <div class="owner-form-field owner-form-field--full">
+        <label class="checkbox-field">
+            <input asp-for="IsActive" />
+            <span>Cho phép khách sử dụng voucher</span>
+        </label>
+    </div>
+</div>

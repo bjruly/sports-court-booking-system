@@ -31,6 +31,19 @@ public class BookingRulesTests
         Assert.Equal(340_000m, total);
     }
 
+    [Fact]
+    public void CalculateTotalPrice_UsesConfiguredPeakHourAndSurcharge()
+    {
+        var total = BookingRules.CalculateTotalPrice(
+            80_000m,
+            new TimeOnly(16, 0),
+            new TimeOnly(19, 0),
+            peakStartHour: 18,
+            peakSurcharge: 25_000m);
+
+        Assert.Equal(265_000m, total);
+    }
+
     // ---------- Chọn giờ ----------
 
     [Fact]
@@ -155,6 +168,25 @@ public class BookingRulesTests
     public void CanConfirm_OnlyPendingBookings(BookingStatus status, bool expected)
     {
         Assert.Equal(expected, BookingRules.CanConfirm(status));
+    }
+
+    [Theory]
+    [InlineData(BookingStatus.Confirmed, true, false, true)]
+    [InlineData(BookingStatus.Pending, true, false, false)]
+    [InlineData(BookingStatus.Cancelled, true, false, false)]
+    [InlineData(BookingStatus.Completed, true, false, false)]
+    [InlineData(BookingStatus.Confirmed, false, false, false)]
+    [InlineData(BookingStatus.Confirmed, true, true, false)]
+    public void CanCheckIn_RequiresConfirmedBookingForTodayNotPreviouslyCheckedIn(
+        BookingStatus status,
+        bool isToday,
+        bool alreadyCheckedIn,
+        bool expected)
+    {
+        var bookingDate = isToday ? Today : Tomorrow;
+        DateTime? checkedInAt = alreadyCheckedIn ? Now : null;
+
+        Assert.Equal(expected, BookingRules.CanCheckIn(status, bookingDate, checkedInAt, Today));
     }
 
     [Theory]

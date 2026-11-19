@@ -1,0 +1,68 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Web.Models
+@model List<CourtDto>
+
+@{
+    ViewData["Title"] = "Quản lý bảng giá";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading owner-list-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ BẢNG GIÁ</p>
+                    <h1>Giá theo khung giờ</h1>
+                    <p class="page-subtitle">Giá cao điểm được áp dụng mỗi ngày từ giờ bắt đầu đã cấu hình cho từng sân.</p>
+                </div>
+            </header>
+
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">@Model.Count SÂN</p>
+                @if (Model.Count == 0)
+                {
+                    <div class="empty-state owner-courts-empty" role="status">
+                        <span class="empty-state-icon" aria-hidden="true">▦</span>
+                        <h3>Chưa có sân để cấu hình giá</h3>
+                        <p>Thêm sân trước khi thiết lập giá theo khung giờ.</p>
+                        <a class="button button--small button--dark" asp-action="CreateCourt">Thêm sân</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table owner-courts-table">
+                            <thead>
+                                <tr>
+                                    <th>Sân</th>
+                                    <th>Giá cơ bản / giờ</th>
+                                    <th>Bắt đầu cao điểm</th>
+                                    <th>Phụ thu / giờ</th>
+                                    <th>Giá cao điểm / giờ</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var court in Model)
+                                {
+                                    <tr>
+                                        <td><strong>@court.Name</strong></td>
+                                        <td>@court.PricePerHour.ToString("N0", culture) đ</td>
+                                        <td>@($"{court.PeakStartHour:00}:00")</td>
+                                        <td>@court.PeakSurcharge.ToString("N0", culture) đ</td>
+                                        <td>@((court.PricePerHour + court.PeakSurcharge).ToString("N0", culture)) đ</td>
+                                        <td><a class="text-link" asp-action="EditCourt" asp-route-id="@court.Id">Điều chỉnh giá</a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</section>

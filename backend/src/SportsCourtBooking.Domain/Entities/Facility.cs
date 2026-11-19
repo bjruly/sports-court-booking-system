@@ -13,8 +13,6 @@ public class Facility : BaseEntity
     public bool IsApproved { get; set; } = true;
     public bool IsActive { get; set; } = true;
     public string? SuspensionReason { get; set; }
-
-    // Navigation properties
     public User? Owner { get; set; }
     public ICollection<Court> Courts { get; set; } = new List<Court>();
 }

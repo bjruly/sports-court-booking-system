@@ -1,0 +1,108 @@
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Web.Models
+@model OwnerReviewsViewModel
+
+@{
+    ViewData["Title"] = "Đánh giá khách hàng";
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading owner-list-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> PHẢN HỒI KHÁCH HÀNG</p>
+                    <h1>Đánh giá</h1>
+                    <p class="page-subtitle">Xem đánh giá và phản hồi của khách hàng về các sân của bạn.</p>
+                </div>
+            </header>
+
+            <form method="get" class="review-filter">
+                <label for="courtId">Lọc theo sân</label>
+                <select id="courtId" name="courtId" class="form-control">
+                    <option value="">Tất cả sân</option>
+                    @foreach (var court in Model.Courts)
+                    {
+                        <option value="@court.Id" selected="@(Model.SelectedCourtId == court.Id)">
+                            @court.Name
+                        </option>
+                    }
+                </select>
+                <button class="button button--outline" type="submit">Lọc</button>
+            </form>
+
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">@Model.Reviews.Count ĐÁNH GIÁ</p>
+                @if (Model.Reviews.Count == 0)
+                {
+                    <div class="empty-state owner-courts-empty" role="status">
+                        <span class="empty-state-icon" aria-hidden="true">★</span>
+                        <h3>Chưa có đánh giá</h3>
+                        <p>Đánh giá của khách sẽ xuất hiện tại đây sau khi họ gửi.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="owner-review-list">
+                        @foreach (var review in Model.Reviews)
+                        {
+                            <article class="owner-review-card">
+                                <header class="owner-review-heading">
+                                    <div>
+                                        <h2>@review.CourtName</h2>
+                                        <p>
+                                            @review.CustomerName ·
+                                            @VietnamClock.ToVietnamTime(review.CreatedAt).ToString("dd/MM/yyyy HH:mm")
+                                        </p>
+                                    </div>
+                                    <span class="owner-review-rating" aria-label="@review.Rating trên 5 sao">
+                                        @review.Rating/5 ★
+                                    </span>
+                                </header>
+
+                                @if (review.BookingDate.HasValue)
+                                {
+                                    <p class="review-booking-time">
+                                        Lịch đặt: @review.BookingDate.Value.ToString("dd/MM/yyyy")
+                                        @if (review.StartTime.HasValue && review.EndTime.HasValue)
+                                        {
+                                            <span>· @review.StartTime.Value.ToString("HH:mm")–@review.EndTime.Value.ToString("HH:mm")</span>
+                                        }
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p class="review-booking-time">Đánh giá cũ, chưa liên kết với lịch đặt.</p>
+                                }
+
+                                <p class="owner-review-comment">
+                                    @(string.IsNullOrWhiteSpace(review.Comment) ? "Khách không để lại nhận xét." : review.Comment)
+                                </p>
+
+                                <form asp-action="ReplyToReview" asp-route-id="@review.Id" method="post" class="owner-review-reply">
+                                    <input type="hidden" name="courtId" value="@Model.SelectedCourtId" />
+                                    <label for="reply-@review.Id">
+                                        @(string.IsNullOrWhiteSpace(review.OwnerReply) ? "Phản hồi khách hàng" : "Cập nhật phản hồi")
+                                    </label>
+                                    <textarea id="reply-@review.Id" name="reply" rows="3" maxlength="1000" required
+                                              placeholder="Viết phản hồi...">@review.OwnerReply</textarea>
+                                    @if (review.OwnerRepliedAt.HasValue)
+                                    {
+                                        <small>
+                                            Đã phản hồi @VietnamClock.ToVietnamTime(review.OwnerRepliedAt.Value).ToString("dd/MM/yyyy HH:mm")
+                                        </small>
+                                    }
+                                    <button class="button button--small button--primary" type="submit">
+                                        @(string.IsNullOrWhiteSpace(review.OwnerReply) ? "Gửi phản hồi" : "Lưu phản hồi")
+                                    </button>
+                                </form>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</section>

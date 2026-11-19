@@ -27,21 +27,37 @@ public static class BookingRules
     /// <summary>Chỉ đơn đang chờ xác nhận (Pending) mới được xác nhận.</summary>
     public static bool CanConfirm(BookingStatus status) => status == BookingStatus.Pending;
 
+    public static bool CanCheckIn(
+        BookingStatus status,
+        DateOnly bookingDate,
+        DateTime? checkInAt,
+        DateOnly today)
+        => status == BookingStatus.Confirmed && bookingDate == today && !checkInAt.HasValue;
+
     /// <summary>Đơn Pending hoặc Confirmed mới được hủy; đơn đã hủy, hết hạn, hoàn thành thì không.</summary>
     public static bool CanCancel(BookingStatus status)
         => status == BookingStatus.Pending || status == BookingStatus.Confirmed;
 
     /// <summary>Giá 1 khung giờ = giá cơ bản của sân + phụ thu (nếu là giờ cao điểm).</summary>
-    public static decimal GetSlotPrice(decimal basePricePerHour, int startHour)
-        => basePricePerHour + (startHour >= PeakStartHour ? PeakSurcharge : 0m);
+    public static decimal GetSlotPrice(
+        decimal basePricePerHour,
+        int startHour,
+        int peakStartHour = PeakStartHour,
+        decimal peakSurcharge = PeakSurcharge)
+        => basePricePerHour + (startHour >= peakStartHour ? peakSurcharge : 0m);
 
     /// <summary>Tổng tiền = cộng giá từng khung giờ trong khoảng [startTime, endTime).</summary>
-    public static decimal CalculateTotalPrice(decimal basePricePerHour, TimeOnly startTime, TimeOnly endTime)
+    public static decimal CalculateTotalPrice(
+        decimal basePricePerHour,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        int peakStartHour = PeakStartHour,
+        decimal peakSurcharge = PeakSurcharge)
     {
         decimal total = 0m;
         for (var hour = startTime.Hour; hour < endTime.Hour; hour++)
         {
-            total += GetSlotPrice(basePricePerHour, hour);
+            total += GetSlotPrice(basePricePerHour, hour, peakStartHour, peakSurcharge);
         }
 
         return total;

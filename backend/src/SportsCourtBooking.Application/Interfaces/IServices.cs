@@ -15,23 +15,29 @@ public interface IBookingService
     /// <param name="includeInactive">false: chỉ lấy đơn đang giữ giờ (Pending/Confirmed/Completed), dùng cho lưới lịch của khách.
     /// true: lấy cả đơn đã hủy/hết hạn, dùng cho trang quản trị.</param>
     Task<List<BookingDto>> GetBookingsByDateAsync(DateOnly date, int? courtId = null, bool includeInactive = false);
+    Task<List<BookingDto>> GetOwnerBookingsAsync(int ownerId, DateOnly? date = null, int? courtId = null, BookingStatus? status = null);
+    Task<List<BookingDto>> GetOwnerBookingsForCalendarAsync(int ownerId, DateOnly startDate, DateOnly endDate, int? courtId = null);
     Task<List<BookingDto>> GetBookingsByUserAsync(
-    int userId,
-    BookingStatus? status = null,
-    DateOnly? fromDate = null,
-    DateOnly? toDate = null);
+        int userId,
+        BookingStatus? status = null,
+        DateOnly? fromDate = null,
+        DateOnly? toDate = null);
     Task<BookingDetailDto?> GetOwnBookingAsync(int bookingId, int userId);
     Task<(bool Success, string Message)> CancelOwnBookingAsync(
     int bookingId,
     int userId);
     Task<bool> IsTimeSlotAvailableAsync(int courtId, DateOnly date, TimeOnly startTime, TimeOnly endTime);
     Task<(bool Success, string Message, BookingDto? Data)> CreateBookingAsync(CreateBookingRequest request);
+    Task<(bool Success, string Message, BookingDto? Data)> CreateOwnerWalkInBookingAsync(int ownerId, OwnerWalkInBookingRequest request);
 
     /// <summary>Admin/Staff xác nhận đơn Pending còn hạn giữ chỗ.</summary>
     Task<(bool Success, string Message)> ConfirmBookingAsync(int bookingId, int actorUserId);
+    Task<(bool Success, string Message)> ConfirmOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
+    Task<(bool Success, string Message)> CheckInOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
 
     /// <summary>Admin/Staff hủy đơn Pending hoặc Confirmed; khung giờ được nhả ngay.</summary>
     Task<(bool Success, string Message)> CancelBookingAsync(int bookingId, int actorUserId);
+    Task<(bool Success, string Message)> CancelOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
 }
 
 public interface IAuthService
@@ -54,6 +60,11 @@ public interface IUserService
 
     /// <summary>Khóa hoặc mở khóa tài khoản. Trả về (Success, Message, trạng thái IsActive mới).</summary>
     Task<(bool Success, string Message, bool? IsActive)> ToggleLockAsync(int targetUserId, int? adminUserId);
+    Task<OwnerProfileDto?> GetOwnerProfileAsync(int ownerId);
+    Task<(bool Success, string Message, OwnerProfileDto? Profile)> UpdateOwnerProfileAsync(
+        int ownerId,
+        OwnerProfileUpdateRequest request);
+    Task<(bool Success, string Message)> ChangeOwnerPasswordAsync(int ownerId, OwnerChangePasswordRequest request);
 }
 
 public interface IReportService
@@ -83,6 +94,57 @@ public interface ICategoryService
     Task<(bool Success, string Message)> DeleteCategoryAsync(int id);
 }
 
+public interface IOwnerDashboardService
+{
+    Task<OwnerDashboardDto> GetDashboardAsync(int ownerId);
+}
+
+public interface IOwnerCourtStatisticsService
+{
+    Task<OwnerCourtStatisticsDto> GetMonthlyStatisticsAsync(int ownerId, int year, int month);
+}
+
+public interface IOwnerRevenueReportService
+{
+    Task<OwnerRevenueReportDto> GetMonthlyReportAsync(
+        int ownerId,
+        int year,
+        int month,
+        int? courtId = null);
+}
+
+public interface IOwnerCourtService
+{
+    Task<List<CourtDto>> GetOwnerCourtsAsync(int ownerId);
+    Task<List<CourtTypeDto>> GetCourtTypesAsync();
+    Task<CourtDto?> GetOwnerCourtAsync(int courtId, int ownerId);
+    Task<(bool Success, string Message)> CreateOwnerCourtAsync(int ownerId, OwnerCourtRequest request);
+    Task<(bool Success, string Message)> UpdateOwnerCourtAsync(int courtId, int ownerId, OwnerCourtRequest request);
+    Task<(bool Success, string Message)> UpdateOwnerCourtStatusAsync(int courtId, int ownerId, CourtStatus status);
+}
+
+public interface IOwnerFacilityService
+{
+    Task<List<OwnerFacilityDto>> GetOwnerFacilitiesAsync(int ownerId);
+    Task<OwnerFacilityDto?> GetOwnerFacilityAsync(int facilityId, int ownerId);
+    Task<(bool Success, string Message)> CreateOwnerFacilityAsync(int ownerId, OwnerFacilityRequest request);
+    Task<(bool Success, string Message)> UpdateOwnerFacilityAsync(
+        int facilityId,
+        int ownerId,
+        OwnerFacilityRequest request);
+    Task<(bool Success, string Message)> DeleteOwnerFacilityAsync(int facilityId, int ownerId);
+}
+
+public interface IVoucherService
+{
+    Task<List<OwnerVoucherDto>> GetOwnerVouchersAsync(int ownerId);
+    Task<OwnerVoucherDto?> GetOwnerVoucherAsync(int voucherId, int ownerId);
+    Task<(bool Success, string Message)> CreateOwnerVoucherAsync(int ownerId, OwnerVoucherRequest request);
+    Task<(bool Success, string Message)> UpdateOwnerVoucherAsync(int voucherId, int ownerId, OwnerVoucherRequest request);
+    Task<(bool Success, string Message, bool? IsActive)> ToggleOwnerVoucherAsync(int voucherId, int ownerId);
+    Task<VoucherApplicationDto> ValidateForCourtAsync(int courtId, DateOnly applicationDate, decimal subtotal, string code);
+}
+
 public interface IReviewService
 {
     /// <summary>UC26: Lấy danh sách đánh giá phục vụ kiểm duyệt, hỗ trợ tìm kiếm và lọc vi phạm/đã ẩn.</summary>
@@ -99,6 +161,11 @@ public interface IReviewService
 
     /// <summary>UC26: Xóa vĩnh viễn đánh giá vi phạm.</summary>
     Task<(bool Success, string Message)> DeleteReviewAsync(int reviewId);
+
+    Task<List<OwnerReviewDto>> GetOwnerReviewsAsync(int ownerId, int? courtId = null);
+    Task<CustomerReviewFormDto?> GetCustomerReviewFormAsync(int bookingId, int userId);
+    Task<(bool Success, string Message)> SaveCustomerReviewAsync(int bookingId, int userId, CustomerReviewRequest request);
+    Task<(bool Success, string Message)> ReplyToReviewAsync(int reviewId, int ownerId, string reply);
 }
 
 public interface IFacilityService
@@ -124,4 +191,3 @@ public interface IFacilityService
     /// <summary>Khóa hoặc mở khóa cơ sở thể thao kèm lý do (UC23).</summary>
     Task<(bool Success, string Message, bool? IsActive)> ToggleLockFacilityAsync(int facilityId, string? reason);
 }
-

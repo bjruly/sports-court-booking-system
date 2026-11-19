@@ -33,12 +33,16 @@ public class CourtService : ICourtService
         {
             Id = c.Id,
             Name = c.Name,
+            FacilityId = c.FacilityId,
+            FacilityName = c.Facility != null ? c.Facility.Name : null,
             CourtTypeId = c.CourtTypeId,
             CourtTypeName = c.CourtType != null ? c.CourtType.Name : string.Empty,
             Location = c.Location,
             Description = c.Description,
             ImageUrl = c.ImageUrl,
             PricePerHour = c.PricePerHour,
+            PeakStartHour = c.PeakStartHour,
+            PeakSurcharge = c.PeakSurcharge,
             Status = c.Status
         }).ToListAsync();
     }
@@ -52,12 +56,16 @@ public class CourtService : ICourtService
         {
             Id = c.Id,
             Name = c.Name,
+            FacilityId = c.FacilityId,
+            FacilityName = c.Facility?.Name,
             CourtTypeId = c.CourtTypeId,
             CourtTypeName = c.CourtType?.Name ?? string.Empty,
             Location = c.Location,
             Description = c.Description,
             ImageUrl = c.ImageUrl,
             PricePerHour = c.PricePerHour,
+            PeakStartHour = c.PeakStartHour,
+            PeakSurcharge = c.PeakSurcharge,
             Status = c.Status
         };
     }

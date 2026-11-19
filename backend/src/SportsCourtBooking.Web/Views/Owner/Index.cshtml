@@ -1,5 +1,14 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Web.Models
+@model OwnerDashboardDto
+
 @{
     ViewData["Title"] = "Tổng quan Chủ Sân";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var activeCourtPercent = Model.TotalCourts > 0
+        ? (int)Math.Round((double)Model.ActiveCourts / Model.TotalCourts * 100)
+        : 0;
 }
 
 <section class="admin-page">
@@ -11,16 +20,16 @@
                 <div>
                     <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> KHU VỰC CHỦ SÂN</p>
                     <h1>Tổng quan</h1>
-                    <p class="page-subtitle">Xin chào, @User.Identity?.Name. Quản lý cơ sở và hoạt động kinh doanh sân tại đây.</p>
+                    <p class="page-subtitle">Xin chào, @User.Identity?.Name. Đây là không gian quản lý hoạt động sân của bạn.</p>
                 </div>
             </header>
 
-            <section class="admin-welcome-card">
+            <section class="admin-welcome-card owner-welcome-card">
                 <div class="admin-welcome-copy">
-                    <p class="admin-section-label">TRANG QUẢN LÝ CHỦ SÂN</p>
+                    <p class="admin-section-label">DASHBOARD CHỦ SÂN</p>
                     <h2>Chào mừng trở lại</h2>
-                    <p>Theo dõi sân, đơn đặt và hoạt động kinh doanh tại các cơ sở của bạn.</p>
-                    <a class="button button--small button--dark" asp-controller="Home" asp-action="Index">Về trang tìm sân</a>
+                    <p>Theo dõi sân, lịch đặt và tình hình kinh doanh tại một nơi.</p>
+                    <a class="button button--small button--dark" asp-controller="Home" asp-action="Index">Khám phá trang tìm sân</a>
                 </div>
                 <div class="admin-welcome-art">
                     <div class="hero-art admin-hero-art" role="img" aria-label="Minh họa sân thể thao">
@@ -32,31 +41,108 @@
                             <div class="hero-court-net"></div>
                             <span class="hero-court-label">GAME<br />ON</span>
                         </div>
-                        <div class="floating-note floating-note--top"><span class="floating-note-icon">✳</span><span><strong>Ra sân thôi</strong><small>Trận vui bắt đầu từ đây</small></span></div>
-                        <div class="floating-note floating-note--bottom"><span class="status-pulse"></span><span><strong>Giờ trống hôm nay</strong><small>Chọn sân, xem lịch ngay</small></span><span class="note-arrow">↗</span></div>
+                        <div class="floating-note floating-note--top"><span class="floating-note-icon">✳</span><span><strong>Quản lý sân</strong><small>Không gian dành riêng cho bạn</small></span></div>
+                        <div class="floating-note floating-note--bottom"><span class="status-pulse"></span><span><strong>Lịch đặt sân</strong><small>Theo dõi hoạt động mỗi ngày</small></span><span class="note-arrow">↗</span></div>
                         <span class="hero-art-spark hero-art-spark--one">✳</span>
                         <span class="hero-art-spark hero-art-spark--two">✳</span>
                     </div>
                 </div>
             </section>
 
-            <section class="owner-stats-grid" aria-label="Thống kê Chủ Sân">
+            <section class="owner-stats-grid" aria-label="Chỉ số hoạt động">
                 <article class="owner-stat-card">
-                    <p class="admin-section-label">CHƯA TRIỂN KHAI</p>
-                    <h2>Thống kê sân</h2>
-                    <p>Số liệu sân sẽ hiển thị khi chức năng quản lý sân được triển khai.</p>
+                    <p class="admin-section-label">TỔNG SỐ SÂN</p>
+                    <div class="owner-stat-value">@Model.TotalCourts</div>
+                    <p class="owner-stat-caption">@Model.ActiveCourts sân đang hoạt động</p>
                 </article>
                 <article class="owner-stat-card">
-                    <p class="admin-section-label">CHƯA TRIỂN KHAI</p>
-                    <h2>Đơn đặt</h2>
-                    <p>Thông tin đơn đặt tại cơ sở của bạn chưa được tích hợp.</p>
+                    <p class="admin-section-label">ĐẶT SÂN HÔM NAY</p>
+                    <div class="owner-stat-value">@Model.TodayBookings</div>
+                    <p class="owner-stat-caption">Đơn chưa bị hủy hoặc hết hạn</p>
                 </article>
                 <article class="owner-stat-card">
-                    <p class="admin-section-label">CHƯA TRIỂN KHAI</p>
-                    <h2>Doanh thu</h2>
-                    <p>Báo cáo doanh thu sẽ được bổ sung sau.</p>
+                    <p class="admin-section-label">ĐƠN CHỜ XÁC NHẬN</p>
+                    <div class="owner-stat-value">@Model.PendingBookings</div>
+                    <p class="owner-stat-caption">Đơn đang chờ xử lý</p>
+                </article>
+                <article class="owner-stat-card">
+                    <p class="admin-section-label">DOANH THU THÁNG</p>
+                    <div class="owner-stat-value owner-stat-value--currency">@Model.MonthlyRevenue.ToString("N0", culture) <span>đ</span></div>
+                    <p class="owner-stat-caption">Đơn đã xác nhận hoặc hoàn thành</p>
                 </article>
             </section>
+
+            <section class="owner-panel-grid" aria-label="Hoạt động và tình trạng sân">
+                <article class="owner-panel">
+                    <header class="owner-panel-heading">
+                        <div>
+                            <p class="admin-section-label">HOẠT ĐỘNG</p>
+                            <h2>Đơn đặt gần đây</h2>
+                        </div>
+                        <a class="text-link" asp-action="Bookings">Xem tất cả <span aria-hidden="true">↗</span></a>
+                    </header>
+                    @if (Model.RecentBookings.Count == 0)
+                    {
+                        <div class="owner-empty-state">
+                            <span class="owner-empty-icon" aria-hidden="true">—</span>
+                            <h3>Chưa có đơn đặt sân</h3>
+                            <p>Đơn đặt tại các sân của bạn sẽ hiển thị ở đây.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-wrapper owner-bookings-table">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Khách hàng</th>
+                                        <th>Sân</th>
+                                        <th>Ngày, giờ</th>
+                                        <th class="text-right">Thành tiền</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var booking in Model.RecentBookings)
+                                    {
+                                        <tr>
+                                            <td><strong>@booking.CustomerName</strong></td>
+                                            <td>@booking.CourtName</td>
+                                            <td>@booking.BookingDate.ToString("dd/MM/yyyy") · @booking.StartTime.ToString("HH:mm")</td>
+                                            <td class="text-right">@booking.TotalPrice.ToString("N0", culture) đ</td>
+                                            <td><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </article>
+
+                <article class="owner-panel">
+                    <header class="owner-panel-heading">
+                        <div>
+                            <p class="admin-section-label">SÂN CỦA TÔI</p>
+                            <h2>Tình trạng sân</h2>
+                        </div>
+                    </header>
+                    <div class="owner-court-status">
+                        <div class="owner-status-line"><span>Đang hoạt động</span><strong>@Model.ActiveCourts</strong></div>
+                        <div class="owner-status-track" role="progressbar" aria-label="Tỷ lệ sân đang hoạt động" aria-valuenow="@activeCourtPercent" aria-valuemin="0" aria-valuemax="100">
+                            <span style="width: @activeCourtPercent%"></span>
+                        </div>
+                        <p class="owner-status-caption">@activeCourtPercent% tổng số sân</p>
+                        <div class="owner-status-line"><span>Đang bảo trì</span><strong>@Model.MaintenanceCourts</strong></div>
+                        <div class="owner-status-line"><span>Ngừng hoạt động</span><strong>@Model.InactiveCourts</strong></div>
+                        @if (Model.TotalCourts == 0)
+                        {
+                            <p class="owner-status-empty">Tài khoản hiện chưa được gán sân nào.</p>
+                        }
+                    </div>
+                </article>
+            </section>
+
+            <p class="owner-preview-note" role="note">Số liệu và đơn đặt chỉ bao gồm các sân thuộc tài khoản chủ sân này.</p>
         </div>
     </div>
 </section>

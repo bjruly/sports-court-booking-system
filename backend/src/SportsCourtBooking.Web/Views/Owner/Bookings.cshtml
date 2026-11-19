@@ -1,0 +1,162 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Application.Rules
+@using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
+@model OwnerBookingsViewModel
+
+@{
+    ViewData["Title"] = "Quản lý đặt sân";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var selectedDate = Model.SelectedDate?.ToString("yyyy-MM-dd");
+    var selectedStatus = Model.SelectedStatus?.ToString();
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ ĐẶT SÂN</p>
+                    <h1>Danh sách đơn</h1>
+                    <p class="page-subtitle">Theo dõi và xử lý đơn đặt tại các sân bạn sở hữu.</p>
+                </div>
+            </header>
+
+            <section class="admin-status-card admin-status-card--block owner-booking-filters">
+                <form class="owner-booking-filter" asp-action="Bookings" method="get">
+                    <label>
+                        <span>NGÀY ĐẶT</span>
+                        <input type="date" name="date" value="@selectedDate" />
+                    </label>
+                    <label>
+                        <span>SÂN</span>
+                        <select name="courtId">
+                            <option value="">Tất cả sân</option>
+                            @foreach (var court in Model.Courts)
+                            {
+                                <option value="@court.Id" selected="@(Model.SelectedCourtId == court.Id)">@court.Name</option>
+                            }
+                        </select>
+                    </label>
+                    <label>
+                        <span>TRẠNG THÁI</span>
+                        <select name="status">
+                            <option value="">Tất cả trạng thái</option>
+                            @foreach (var status in Enum.GetValues<BookingStatus>())
+                            {
+                                <option value="@status" selected="@(Model.SelectedStatus == status)">@BookingStatusDisplay.Label(status)</option>
+                            }
+                        </select>
+                    </label>
+                    <div class="owner-booking-filter-actions">
+                        <button class="button button--small button--dark" type="submit">Lọc đơn</button>
+                        @if (Model.SelectedDate.HasValue || Model.SelectedCourtId.HasValue || Model.SelectedStatus.HasValue)
+                        {
+                            <a class="text-link" asp-action="Bookings">Xóa bộ lọc</a>
+                        }
+                    </div>
+                </form>
+            </section>
+
+            <section class="admin-status-card admin-status-card--block owner-booking-results">
+                <div class="owner-booking-results-heading">
+                    <div>
+                        <p class="admin-section-label">@Model.Bookings.Count ĐƠN ĐẶT</p>
+                        <h2>Đơn đặt sân</h2>
+                    </div>
+                    <p>Chỉ hiển thị đơn thuộc các sân của bạn.</p>
+                </div>
+                @if (Model.Bookings.Count == 0)
+                {
+                    <div class="empty-state owner-bookings-empty" role="status">
+                        <span class="empty-state-icon" aria-hidden="true">▦</span>
+                        <h3>Không tìm thấy đơn đặt sân</h3>
+                        <p>Thử thay đổi ngày, sân hoặc trạng thái lọc.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="booking-table-wrap owner-bookings-table-wrap">
+                        <table class="booking-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Ngày, giờ</th>
+                                    <th>Sân</th>
+                                    <th>Khách hàng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var booking in Model.Bookings)
+                                {
+                                    <tr>
+                                        <td>#@booking.Id</td>
+                                        <td>@booking.BookingDate.ToString("dd/MM/yyyy") · @booking.StartTime.ToString("HH:mm")–@booking.EndTime.ToString("HH:mm")</td>
+                                        <td>@booking.CourtName</td>
+                                        <td>
+                                            <strong>@booking.CustomerName</strong>
+                                            @if (!string.IsNullOrWhiteSpace(booking.CustomerPhone))
+                                            {
+                                                <small class="owner-booking-phone">@booking.CustomerPhone</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @booking.TotalPrice.ToString("N0", culture) đ
+                                            @if (!string.IsNullOrWhiteSpace(booking.VoucherCode))
+                                            {
+                                                <small class="owner-booking-phone">Voucher @booking.VoucherCode · giảm @booking.DiscountAmount.ToString("N0", culture) đ</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span>
+                                            @if (booking.CheckInAt.HasValue)
+                                            {
+                                                <small class="owner-checkin-time">Check-in lúc @VietnamClock.ToVietnamTime(booking.CheckInAt.Value).ToString("HH:mm")</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="booking-actions">
+                                                @if (BookingRules.CanCheckIn(booking.Status, booking.BookingDate, booking.CheckInAt, VietnamClock.Today))
+                                                {
+                                                    <form class="inline-form" method="post" asp-action="CheckInBooking"
+                                                          asp-route-id="@booking.Id" asp-route-date="@selectedDate"
+                                                          asp-route-courtId="@Model.SelectedCourtId" asp-route-status="@selectedStatus"
+                                                          onsubmit="return confirm('Xác nhận khách đã đến sân?');">
+                                                        <button class="button button--small button--primary" type="submit">Check-in</button>
+                                                    </form>
+                                                }
+                                                @if (BookingRules.CanConfirm(booking.Status))
+                                                {
+                                                    <form class="inline-form" method="post" asp-action="ConfirmBooking"
+                                                          asp-route-id="@booking.Id" asp-route-date="@selectedDate"
+                                                          asp-route-courtId="@Model.SelectedCourtId" asp-route-status="@selectedStatus">
+                                                        <button class="button button--small button--dark" type="submit">Xác nhận</button>
+                                                    </form>
+                                                }
+                                                @if (BookingRules.CanCancel(booking.Status))
+                                                {
+                                                    <form class="inline-form" method="post" asp-action="CancelBooking"
+                                                          asp-route-id="@booking.Id" asp-route-date="@selectedDate"
+                                                          asp-route-courtId="@Model.SelectedCourtId" asp-route-status="@selectedStatus"
+                                                          onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn này?');">
+                                                        <button class="button button--small button--outline" type="submit">Hủy đơn</button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</section>

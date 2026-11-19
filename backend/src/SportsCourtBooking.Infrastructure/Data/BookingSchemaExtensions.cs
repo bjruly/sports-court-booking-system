@@ -11,6 +11,32 @@ public static class BookingSchemaExtensions
         ALTER TABLE "Bookings"
             ADD COLUMN IF NOT EXISTS "ExpiresAt" timestamp with time zone NULL;
 
+        ALTER TABLE "Bookings"
+            ADD COLUMN IF NOT EXISTS "GuestName" character varying(100) NULL;
+
+        ALTER TABLE "Bookings"
+            ADD COLUMN IF NOT EXISTS "GuestPhone" character varying(20) NULL;
+
+        ALTER TABLE "Bookings"
+            ADD COLUMN IF NOT EXISTS "CheckInAt" timestamp with time zone NULL;
+
+        ALTER TABLE "Bookings"
+            ALTER COLUMN "UserId" DROP NOT NULL;
+
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1
+                FROM pg_constraint
+                WHERE conname = 'ck_bookings_customer_identity'
+                  AND conrelid = '"Bookings"'::regclass
+            ) THEN
+                ALTER TABLE "Bookings"
+                ADD CONSTRAINT ck_bookings_customer_identity
+                CHECK ("UserId" IS NOT NULL OR ("GuestName" IS NOT NULL AND "GuestPhone" IS NOT NULL));
+            END IF;
+        END $$;
+
         UPDATE "Bookings"
         SET "ExpiresAt" = "CreatedAt" + interval '10 minutes'
         WHERE "Status" = 1 AND "ExpiresAt" IS NULL;

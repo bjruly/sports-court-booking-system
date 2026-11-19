@@ -13,11 +13,16 @@ public class BookingController : Controller
 {
     private readonly IBookingService _bookingService;
     private readonly ICourtService _courtService;
+    private readonly IReviewService _reviewService;
 
-    public BookingController(IBookingService bookingService, ICourtService courtService)
+    public BookingController(
+        IBookingService bookingService,
+        ICourtService courtService,
+        IReviewService reviewService)
     {
         _bookingService = bookingService;
         _courtService = courtService;
+        _reviewService = reviewService;
     }
 
     // Xem lịch đặt của tất cả khách theo ngày và sân (chỉ nhân viên / quản trị viên, vì có tên khách hàng)
@@ -74,29 +79,95 @@ public class BookingController : Controller
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Index), new { date = date?.ToString("yyyy-MM-dd"), courtId });
     }
-[Authorize]
-[HttpGet]
-public async Task<IActionResult> Details(int id)
-{
-    var userId = User.GetUserId();
 
-    if (userId is null)
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> Details(int id)
     {
-        return Challenge();
+        var userId = User.GetUserId();
+
+        if (userId is null)
+        {
+            return Challenge();
+        }
+
+        var booking = await _bookingService.GetOwnBookingAsync(id, userId.Value);
+
+        if (booking is null)
+        {
+            return NotFound();
+        }
+
+        return View(booking);
     }
 
-    var booking = await _bookingService.GetOwnBookingAsync(
-        id,
-        userId.Value
-    );
-
-    if (booking is null)
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> Review(int id)
     {
-        return NotFound();
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Challenge();
+        }
+
+        var form = await _reviewService.GetCustomerReviewFormAsync(id, userId.Value);
+        if (form is null)
+        {
+            return NotFound();
+        }
+
+        return View(CreateReviewFormViewModel(form));
     }
 
-    return View(booking);
-}
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Review(int id, CustomerReviewFormViewModel model)
+    {
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Challenge();
+        }
+
+        var form = await _reviewService.GetCustomerReviewFormAsync(id, userId.Value);
+        if (form is null)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(CreateReviewFormViewModel(form, model));
+        }
+
+        var result = await _reviewService.SaveCustomerReviewAsync(id, userId.Value, model);
+        if (!result.Success)
+        {
+            TempData["ErrorMessage"] = result.Message;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private static CustomerReviewFormViewModel CreateReviewFormViewModel(
+        CustomerReviewFormDto form,
+        CustomerReviewFormViewModel? submitted = null)
+        => new()
+        {
+            BookingId = form.BookingId,
+            CourtName = form.CourtName,
+            BookingDate = form.BookingDate,
+            StartTime = form.StartTime,
+            EndTime = form.EndTime,
+            IsEditing = form.IsEditing,
+            Rating = submitted?.Rating ?? form.Rating,
+            Comment = submitted is null ? form.Comment : submitted.Comment
+        };
+
     // Lịch đặt của chính người dùng đang đăng nhập
     [Authorize]
 [HttpPost]

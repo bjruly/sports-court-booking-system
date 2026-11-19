@@ -1,0 +1,181 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Web.Models
+@model OwnerRevenueReportViewModel
+
+@{
+    ViewData["Title"] = "Báo cáo doanh thu";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var currentYear = VietnamClock.Today.Year;
+    var firstYear = Math.Max(1, currentYear - 10);
+    var lastYear = Math.Min(9998, currentYear + 1);
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading owner-list-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> BÁO CÁO CHỦ SÂN</p>
+                    <h1>Báo cáo doanh thu</h1>
+                    <p class="page-subtitle">Theo dõi giá trị booking và các khoản thanh toán theo tháng diễn ra booking.</p>
+                </div>
+                <button type="button" class="button button--outline" onclick="window.print()">In báo cáo</button>
+            </header>
+
+            <form method="get" class="owner-report-filter">
+                <div class="form-group">
+                    <label for="month">Tháng</label>
+                    <select id="month" name="month" class="form-control"
+                            onchange="this.form.submit()" aria-label="Tháng">
+                        @for (var month = 1; month <= 12; month++)
+                        {
+                            <option value="@month" selected="@(month == Model.SelectedMonth)">
+                                Tháng @month.ToString("00")
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="year">Năm</label>
+                    <select id="year" name="year" class="form-control"
+                            onchange="this.form.submit()" aria-label="Năm">
+                        @if (Model.SelectedYear < firstYear || Model.SelectedYear > lastYear)
+                        {
+                            <option value="@Model.SelectedYear" selected>@Model.SelectedYear</option>
+                        }
+                        @for (var year = lastYear; year >= firstYear; year--)
+                        {
+                            <option value="@year" selected="@(year == Model.SelectedYear)">@year</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="courtId">Sân</label>
+                    <select id="courtId" name="courtId" class="form-control"
+                            onchange="this.form.submit()" aria-label="Sân">
+                        <option value="" selected="@(!Model.SelectedCourtId.HasValue)">Tất cả sân</option>
+                        @foreach (var court in Model.Courts)
+                        {
+                            <option value="@court.Id" selected="@(Model.SelectedCourtId == court.Id)">
+                                @court.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+            </form>
+
+            <div class="owner-report-note" role="note">
+                Báo cáo theo ngày diễn ra booking. Giá trị booking chỉ gồm đơn đã xác nhận/hoàn thành và đã trừ voucher.
+                Khoản đã thu tính Payment ở trạng thái Paid; khoản đã hoàn hiển thị riêng.
+                Tiền đã thu từ đơn hủy/hết hạn được đánh dấu để chủ sân rà soát hoàn tiền.
+                Ứng dụng hiện chưa có luồng thanh toán/hoàn tiền tự động nên các số này có thể bằng 0.
+            </div>
+
+            <section class="admin-stats-grid owner-report-kpis" aria-label="Tổng quan doanh thu tháng">
+                <article class="admin-stat-card">
+                    <p class="admin-section-label">GIÁ TRỊ BOOKING THÀNH CÔNG</p>
+                    <div class="admin-stat-value">@Model.Report.BookingValue.ToString("N0", culture) <span>đ</span></div>
+                    <p class="admin-stat-sub">
+                        @Model.Report.ConfirmedBookings đã xác nhận · @Model.Report.CompletedBookings hoàn thành
+                    </p>
+                </article>
+                <article class="admin-stat-card">
+                    <p class="admin-section-label">ĐÃ THU (CHƯA HOÀN)</p>
+                    <div class="admin-stat-value">@Model.Report.CollectedAmount.ToString("N0", culture) <span>đ</span></div>
+                    <p class="admin-stat-sub">Theo các booking trong tháng được chọn</p>
+                </article>
+                <article class="admin-stat-card">
+                    <p class="admin-section-label">ĐÃ HOÀN TIỀN</p>
+                    <div class="admin-stat-value">@Model.Report.RefundedAmount.ToString("N0", culture) <span>đ</span></div>
+                    <p class="admin-stat-sub">Payment đang ở trạng thái Refunded</p>
+                </article>
+                <article class="admin-stat-card owner-report-warning">
+                    <p class="admin-section-label">ĐÃ THU TỪ ĐƠN HỦY / HẾT HẠN</p>
+                    <div class="admin-stat-value">@Model.Report.CollectedForCancelledBookings.ToString("N0", culture) <span>đ</span></div>
+                    <p class="admin-stat-sub">
+                        Cần rà soát hoàn · @Model.Report.CancelledBookings đơn hủy · @Model.Report.ExpiredBookings hết hạn
+                    </p>
+                </article>
+            </section>
+
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">THEO SÂN</p>
+                @if (Model.Report.CourtReports.Count == 0)
+                {
+                    <div class="empty-state owner-courts-empty" role="status">
+                        <h3>Chưa có booking trong tháng này</h3>
+                        <p>Thử chọn tháng khác hoặc bỏ bộ lọc sân.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Sân</th>
+                                    <th class="text-center">Booking</th>
+                                    <th class="text-right">Giá trị booking</th>
+                                    <th class="text-right">Đã thu</th>
+                                    <th class="text-right">Đã hoàn</th>
+                                    <th class="text-right">Đơn hủy/hết hạn đã thu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var court in Model.Report.CourtReports)
+                                {
+                                    <tr>
+                                        <td><strong>@court.CourtName</strong></td>
+                                        <td class="text-center">@court.SuccessfulBookings / @court.TotalBookings</td>
+                                        <td class="text-right">@court.BookingValue.ToString("N0", culture) đ</td>
+                                        <td class="text-right">@court.CollectedAmount.ToString("N0", culture) đ</td>
+                                        <td class="text-right">@court.RefundedAmount.ToString("N0", culture) đ</td>
+                                        <td class="text-right">@court.CollectedForCancelledBookings.ToString("N0", culture) đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">THEO NGÀY BOOKING</p>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th class="text-center">Booking thành công / tổng</th>
+                                <th class="text-right">Giá trị booking</th>
+                                <th class="text-right">Đã thu</th>
+                                <th class="text-right">Đã hoàn</th>
+                                <th class="text-right">Đơn hủy/hết hạn đã thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var day in Model.Report.DailyReports)
+                            {
+                                <tr>
+                                    <td>@day.Date.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">@day.SuccessfulBookings / @day.TotalBookings</td>
+                                    <td class="text-right">@day.BookingValue.ToString("N0", culture) đ</td>
+                                    <td class="text-right">@day.CollectedAmount.ToString("N0", culture) đ</td>
+                                    <td class="text-right">@day.RefundedAmount.ToString("N0", culture) đ</td>
+                                    <td class="text-right">@day.CollectedForCancelledBookings.ToString("N0", culture) đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <p class="owner-preview-note">
+                Tổng booking: @Model.Report.TotalBookings · Chờ xác nhận: @Model.Report.PendingBookings
+            </p>
+        </div>
+    </div>
+</section>

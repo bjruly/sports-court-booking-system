@@ -1,0 +1,92 @@
+@using SportsCourtBooking.Application.Rules
+@using SportsCourtBooking.Web.Models
+@model OwnerWalkInBookingViewModel
+
+@{
+    ViewData["Title"] = "Đặt sân hộ khách";
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> LỊCH HOẠT ĐỘNG</p>
+                    <h1>Đặt sân hộ khách</h1>
+                    <p class="page-subtitle">Đơn tạo tại quầy được xác nhận ngay và giữ lịch cho khách.</p>
+                </div>
+                <a class="button button--outline" asp-action="Calendar" asp-route-date="@Model.BookingDate.ToString("yyyy-MM-dd")">← Quay lại lịch</a>
+            </header>
+
+            <section class="admin-status-card admin-status-card--block owner-court-form-panel owner-walkin-panel">
+                <form asp-action="CreateWalkInBooking" method="post" class="owner-court-form">
+                    <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+                    <div class="owner-walkin-fields">
+                        <label>
+                            <span>SÂN</span>
+                            <select asp-for="CourtId">
+                                <option value="0">Chọn sân</option>
+                                @foreach (var court in Model.Courts)
+                                {
+                                    <option value="@court.Id">@court.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CourtId" class="field-validation"></span>
+                        </label>
+                        <label>
+                            <span>NGÀY ĐẶT</span>
+                            <input asp-for="BookingDate" type="date" />
+                            <span asp-validation-for="BookingDate" class="field-validation"></span>
+                        </label>
+                        <label>
+                            <span>GIỜ BẮT ĐẦU</span>
+                            <select asp-for="StartHour">
+                                @for (var hour = BookingRules.OpeningHour; hour < BookingRules.ClosingHour; hour++)
+                                {
+                                    <option value="@hour">@($"{hour:00}:00")</option>
+                                }
+                            </select>
+                            <span asp-validation-for="StartHour" class="field-validation"></span>
+                        </label>
+                        <label>
+                            <span>GIỜ KẾT THÚC</span>
+                            <select asp-for="EndHour">
+                                @for (var hour = BookingRules.OpeningHour + 1; hour <= BookingRules.ClosingHour; hour++)
+                                {
+                                    <option value="@hour">@($"{hour:00}:00")</option>
+                                }
+                            </select>
+                            <span asp-validation-for="EndHour" class="field-validation"></span>
+                        </label>
+                        <label>
+                            <span>TÊN KHÁCH</span>
+                            <input asp-for="GuestName" autocomplete="name" placeholder="Nguyễn Văn A" />
+                            <span asp-validation-for="GuestName" class="field-validation"></span>
+                        </label>
+                        <label>
+                            <span>SỐ ĐIỆN THOẠI</span>
+                            <input asp-for="GuestPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0901234567" />
+                            <span asp-validation-for="GuestPhone" class="field-validation"></span>
+                        </label>
+                        <label class="owner-walkin-note">
+                            <span>GHI CHÚ (KHÔNG BẮT BUỘC)</span>
+                            <textarea asp-for="Note" rows="3" placeholder="Thông tin thêm cho đơn đặt"></textarea>
+                            <span asp-validation-for="Note" class="field-validation"></span>
+                        </label>
+                    </div>
+                    <p class="owner-walkin-confirmation">Đơn sẽ ở trạng thái <strong>Đã xác nhận</strong>. Hệ thống kiểm tra trùng lịch và tính giá theo khung giờ trước khi lưu.</p>
+                    <div class="owner-court-form-actions">
+                        <button class="button button--primary" type="submit">Tạo đơn xác nhận</button>
+                        <a class="button button--outline" asp-action="Calendar" asp-route-date="@Model.BookingDate.ToString("yyyy-MM-dd")">Hủy</a>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
