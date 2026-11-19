@@ -1,0 +1,297 @@
+@model List<SportsCourtBooking.Application.DTOs.CourtOwnerItemDto>
+@{
+    ViewData["Title"] = "Quản lý chủ sân";
+    var currentFilter = (string)(ViewData["Filter"] ?? "all");
+    var currentSearch = (string)(ViewData["Search"] ?? "");
+    var stats = (SportsCourtBooking.Application.DTOs.CourtOwnerStatsDto?)ViewBag.Stats;
+}
+
+<div class="adm-page-top">
+    <div>
+        <p class="adm-eyebrow">QUẢN LÝ NGƯỜI DÙNG</p>
+        <h1 class="adm-heading-title">Chủ sân & Đối tác</h1>
+        <p class="adm-heading-desc">Quản lý danh sách đối tác chủ sân, phê duyệt tài khoản mới và kiểm soát quyền truy cập hệ thống.</p>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="adm-alert adm-alert--success">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="adm-alert adm-alert--error">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+<!-- ─── 4 KPI CARDS THỐNG KÊ CHỦ SÂN ─── -->
+<div class="adm-kpi-grid" style="margin-bottom: 24px;">
+    <!-- Tổng chủ sân -->
+    <div class="adm-kpi-card">
+        <div class="adm-kpi-left">
+            <div class="adm-kpi-icon adm-kpi-icon--blue">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+            </div>
+            <div class="adm-kpi-meta">
+                <span class="adm-kpi-label">Tổng số chủ sân</span>
+                <span class="adm-kpi-value">@(stats?.TotalOwners ?? 0)</span>
+            </div>
+        </div>
+        <div class="adm-kpi-sub">Đối tác toàn hệ thống</div>
+    </div>
+
+    <!-- Đang hoạt động -->
+    <div class="adm-kpi-card">
+        <div class="adm-kpi-left">
+            <div class="adm-kpi-icon adm-kpi-icon--green">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <div class="adm-kpi-meta">
+                <span class="adm-kpi-label">Đang hoạt động</span>
+                <span class="adm-kpi-value" style="color: #4ade80;">@(stats?.ActiveOwners ?? 0)</span>
+            </div>
+        </div>
+        <div class="adm-kpi-sub">Đã duyệt & đang vận hành</div>
+    </div>
+
+    <!-- Chờ duyệt / Đã khóa -->
+    <div class="adm-kpi-card">
+        <div class="adm-kpi-left">
+            <div class="adm-kpi-icon" style="background: rgba(234, 179, 8, 0.16); color: #facc15;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <div class="adm-kpi-meta">
+                <span class="adm-kpi-label">Chờ duyệt / Khóa</span>
+                <span class="adm-kpi-value" style="color: #facc15;">@(stats?.PendingApprovalOwners ?? 0)</span>
+            </div>
+        </div>
+        <div class="adm-kpi-sub">Cần phê duyệt hoặc mở khóa</div>
+    </div>
+
+    <!-- Cơ sở trực thuộc -->
+    <div class="adm-kpi-card">
+        <div class="adm-kpi-left">
+            <div class="adm-kpi-icon" style="background: rgba(168, 85, 247, 0.16); color: #c084fc;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </div>
+            <div class="adm-kpi-meta">
+                <span class="adm-kpi-label">Tổng cơ sở thể thao</span>
+                <span class="adm-kpi-value" style="color: #c084fc;">@(stats?.TotalFacilities ?? 0)</span>
+            </div>
+        </div>
+        <div class="adm-kpi-sub">Thuộc quyền quản lý</div>
+    </div>
+</div>
+
+<!-- ─── BỘ LỌC VÀ TÌM KIẾM ─── -->
+<div class="adm-card" style="padding: 16px 20px; margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <!-- Tabs lọc nhanh -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="@Url.Action("Owners", new { search = currentSearch, filter = "all" })"
+               class="adm-tab-pill @(currentFilter == "all" ? "active" : "")">
+                Tất cả (@(stats?.TotalOwners ?? 0))
+            </a>
+            <a href="@Url.Action("Owners", new { search = currentSearch, filter = "active" })"
+               class="adm-tab-pill @(currentFilter == "active" ? "active" : "")">
+                Đang hoạt động (@(stats?.ActiveOwners ?? 0))
+            </a>
+            <a href="@Url.Action("Owners", new { search = currentSearch, filter = "pending" })"
+               class="adm-tab-pill @(currentFilter == "pending" ? "active" : "")"
+               style="@(stats?.PendingApprovalOwners > 0 ? "border-color: rgba(234, 179, 8, 0.4); color: #facc15;" : "")">
+                Chờ duyệt / Đã khóa (@(stats?.PendingApprovalOwners ?? 0))
+            </a>
+        </div>
+
+        <!-- Form tìm kiếm -->
+        <form method="get" asp-action="Owners" style="display: flex; gap: 8px; margin: 0; min-width: 320px;">
+            <input type="hidden" name="filter" value="@currentFilter" />
+            <div style="position: relative; flex: 1;">
+                <input type="text"
+                       name="search"
+                       value="@currentSearch"
+                       placeholder="Tìm kiếm theo tên, email, SĐT..."
+                       class="adm-form-input"
+                       style="padding-left: 36px; height: 38px;" />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--d-text-sub)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                     style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%);">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+            <button type="submit" class="adm-btn-create" style="height: 38px; padding: 0 16px;">
+                Tìm
+            </button>
+            @if (!string.IsNullOrWhiteSpace(currentSearch))
+            {
+                <a href="@Url.Action("Owners", new { filter = currentFilter })" class="adm-tab-pill" style="height: 38px; display: inline-flex; align-items: center;">
+                    Đặt lại
+                </a>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- ─── BẢNG DANH SÁCH CHỦ SÂN ─── -->
+<div class="adm-card">
+    <div class="adm-card-header">
+        <div>
+            <h2 class="adm-card-title">Danh sách chủ sân & đối tác</h2>
+            <p class="adm-card-sub">Tổng cộng @Model.Count chủ sân phù hợp điều kiện lọc</p>
+        </div>
+    </div>
+
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <thead>
+                <tr>
+                    <th style="width: 45px; text-align: center;">#</th>
+                    <th>CHỦ SÂN / LIÊN HỆ</th>
+                    <th>SỐ ĐIỆN THOẠI</th>
+                    <th style="text-align: center;">QUY MÔ SÂN</th>
+                    <th style="text-align: center;">NGÀY THAM GIA</th>
+                    <th style="text-align: center;">TRẠNG THÁI</th>
+                    <th style="text-align: center; width: 180px;">THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 48px; color: var(--d-text-sub);">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px; opacity: 0.5;">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                            <p style="margin: 0; font-size: 14px;">Không tìm thấy chủ sân nào phù hợp.</p>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    var idx = 1;
+                    foreach (var owner in Model)
+                    {
+                        <tr>
+                            <td style="text-align: center; color: var(--d-text-sub); font-weight: 600;">@idx</td>
+                            <td>
+                                <div style="font-weight: 700; color: #fff; font-size: 13.5px; margin-bottom: 3px;">
+                                    @owner.FullName
+                                </div>
+                                <div style="font-size: 12px; color: var(--d-text-sub); display: flex; align-items: center; gap: 5px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                    <span>@owner.Email</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-size: 12.5px; color: #e6ede9; display: flex; align-items: center; gap: 6px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--d-green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                    </svg>
+                                    <span>@(string.IsNullOrWhiteSpace(owner.PhoneNumber) ? "Chưa cập nhật" : owner.PhoneNumber)</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="font-size: 12px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(56, 189, 248, 0.2);">
+                                    <span>@owner.FacilityCount cơ sở</span>
+                                    <span>•</span>
+                                    <span>@owner.CourtCount sân</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center; color: var(--d-text-sub); font-size: 12px;">
+                                @owner.CreatedAt.ToString("dd/MM/yyyy")
+                            </td>
+                            <td style="text-align: center;">
+                                @if (owner.IsActive)
+                                {
+                                    <span style="display:inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; background: rgba(34, 197, 94, 0.16); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3);">
+                                        Đang hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="display:inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; background: rgba(234, 179, 8, 0.16); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3);">
+                                        Chờ duyệt / Khóa
+                                    </span>
+                                }
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                    @if (!owner.IsActive)
+                                    {
+                                        <!-- Nút Duyệt & Kích hoạt -->
+                                        <form asp-action="ApproveOwner" method="post" style="display:inline; margin:0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@owner.Id" />
+                                            <input type="hidden" name="returnSearch" value="@currentSearch" />
+                                            <input type="hidden" name="returnFilter" value="@currentFilter" />
+                                            <button type="submit"
+                                                    class="adm-btn-create"
+                                                    style="padding: 5px 12px; font-size: 11.5px; background: #22c55e; color: #071f15; height: 30px; font-weight: 700;"
+                                                    onclick="return confirm('Xác nhận PHÊ DUYỆT và KÍCH HOẠT tài khoản chủ sân cho @owner.FullName?');"
+                                                    title="Phê duyệt tài khoản">
+                                                Duyệt tài khoản
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <!-- Nút Khóa tài khoản -->
+                                        <form asp-action="ToggleLockOwner" method="post" style="display:inline; margin:0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@owner.Id" />
+                                            <input type="hidden" name="returnSearch" value="@currentSearch" />
+                                            <input type="hidden" name="returnFilter" value="@currentFilter" />
+                                            <button type="submit"
+                                                    class="adm-action-btn"
+                                                    style="color: #f87171; border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.1); padding: 5px 10px; font-size: 11.5px; height: 30px; display: inline-flex; align-items: center; gap: 4px;"
+                                                    onclick="return confirm('Bạn có chắc muốn KHÓA tài khoản của chủ sân @owner.FullName? Chủ sân sẽ không thể đăng nhập quản lý.');"
+                                                    title="Khóa tài khoản chủ sân">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                </svg>
+                                                <span>Khóa</span>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                        idx++;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

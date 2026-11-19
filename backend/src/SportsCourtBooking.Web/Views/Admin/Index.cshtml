@@ -43,7 +43,7 @@
             </div>
             <div class="adm-kpi-meta">
                 <span class="adm-kpi-label">Tổng sân</span>
-                <span class="adm-kpi-val">@(Model.TotalCourts > 0 ? Model.TotalCourts : 5)</span>
+                <span class="adm-kpi-val">@Model.TotalCourts</span>
                 <span class="adm-kpi-sub">Sân đang hoạt động</span>
             </div>
         </div>
@@ -68,15 +68,15 @@
             </div>
             <div class="adm-kpi-meta">
                 <span class="adm-kpi-label">Lượt đặt hôm nay</span>
-                <span class="adm-kpi-val">@(Model.TotalBookings > 0 ? Model.TotalBookings : 48)</span>
-                <span class="adm-kpi-sub">So với hôm qua</span>
+                <span class="adm-kpi-val">@Model.TotalBookings</span>
+                <span class="adm-kpi-sub">Tổng số lượt đặt</span>
             </div>
         </div>
         <div class="adm-kpi-right">
             <svg width="58" height="26" viewBox="0 0 58 26" fill="none">
                 <path d="M2 20 C 12 22, 22 18, 32 14 S 45 4, 56 6" stroke="#3b82f6" stroke-width="2" fill="none" stroke-linecap="round"/>
             </svg>
-            <span class="adm-trend-badge adm-trend--blue">↑ +12%</span>
+            <span class="adm-trend-badge adm-trend--blue">↑ +0%</span>
         </div>
     </div>
 
@@ -92,15 +92,15 @@
             </div>
             <div class="adm-kpi-meta">
                 <span class="adm-kpi-label">Doanh thu hôm nay</span>
-                <span class="adm-kpi-val">@(Model.TotalRevenue > 0 ? Model.TotalRevenue.ToString("N0") : "24.000.000")đ</span>
-                <span class="adm-kpi-sub">So với hôm qua</span>
+                <span class="adm-kpi-val">@Model.TotalRevenue.ToString("N0")đ</span>
+                <span class="adm-kpi-sub">Doanh thu phát sinh</span>
             </div>
         </div>
         <div class="adm-kpi-right">
             <svg width="58" height="26" viewBox="0 0 58 26" fill="none">
                 <path d="M2 18 C 14 24, 22 12, 36 20 S 48 8, 56 4" stroke="#a855f7" stroke-width="2" fill="none" stroke-linecap="round"/>
             </svg>
-            <span class="adm-trend-badge adm-trend--purple">↑ +18%</span>
+            <span class="adm-trend-badge adm-trend--purple">↑ +0%</span>
         </div>
     </div>
 
@@ -115,8 +115,8 @@
             </div>
             <div class="adm-kpi-meta">
                 <span class="adm-kpi-label">Khách hàng mới</span>
-                <span class="adm-kpi-val">@(Model.TotalCustomers > 0 ? Model.TotalCustomers : 36)</span>
-                <span class="adm-kpi-sub">So với hôm qua</span>
+                <span class="adm-kpi-val">@Model.TotalCustomers</span>
+                <span class="adm-kpi-sub">Tài khoản khách hàng</span>
             </div>
         </div>
         <div class="adm-kpi-right">
@@ -232,10 +232,10 @@
                 <tfoot>
                     <tr>
                         <td colspan="2">TỔNG CỘNG</td>
-                        <td style="text-align: center;">@(Model.TotalCourts > 0 ? Model.TotalCourts : 4) sân</td>
-                        <td style="text-align: center;">@(Model.TotalBookings > 0 ? Model.TotalBookings : 2)</td>
-                        <td style="text-align: center;">@(Model.ConfirmedBookings > 0 ? Model.ConfirmedBookings : 1)</td>
-                        <td style="text-align: right;">@(Model.TotalRevenue > 0 ? Model.TotalRevenue.ToString("N0") : "300,000") đ</td>
+                        <td style="text-align: center;">@Model.TotalCourts sân</td>
+                        <td style="text-align: center;">@Model.TotalBookings</td>
+                        <td style="text-align: center;">@Model.ConfirmedBookings</td>
+                        <td style="text-align: right;">@Model.TotalRevenue.ToString("N0") đ</td>
                         <td style="text-align: center;">100%</td>
                     </tr>
                 </tfoot>
@@ -387,7 +387,7 @@
             </div>
             <div class="adm-b-meta">
                 <span class="adm-b-label">Tổng doanh thu</span>
-                <span class="adm-b-val">@(Model.TotalRevenue > 0 ? Model.TotalRevenue.ToString("N0") : "300,000") đ</span>
+                <span class="adm-b-val">@Model.TotalRevenue.ToString("N0") đ</span>
                 <span class="adm-b-sub">Chờ duyệt: @Model.PendingRevenue.ToString("N0") đ</span>
             </div>
         </div>
