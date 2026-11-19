@@ -39,6 +39,7 @@
                                     <th>Tên cơ sở</th>
                                     <th>Địa chỉ</th>
                                     <th>Số sân</th>
+                                    <th>Trạng thái</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
@@ -55,6 +56,20 @@
                                         </td>
                                         <td>@facility.Address</td>
                                         <td>@facility.CourtCount</td>
+                                        <td>
+                                            @if (!facility.IsApproved)
+                                            {
+                                                <span class="status-badge status-badge--pending">Chờ Admin duyệt</span>
+                                            }
+                                            else if (!facility.IsActive)
+                                            {
+                                                <span class="status-badge status-badge--cancelled">Đang tạm khóa</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-badge status-badge--confirmed">Đã duyệt</span>
+                                            }
+                                        </td>
                                         <td>
                                             <div class="owner-facility-actions">
                                                 <a class="text-link" asp-action="EditFacility" asp-route-id="@facility.Id">Sửa</a>

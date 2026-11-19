@@ -157,6 +157,49 @@ public class OwnerWalkInBookingTests
     }
 
     [Fact]
+    public async Task CreateBookingAsync_RejectsCourtAtUnapprovedFacility()
+    {
+        await using var context = CreateContext();
+        await context.Database.EnsureCreatedAsync();
+        var facility = new Facility
+        {
+            Id = 20,
+            OwnerId = 3,
+            Name = "Cơ sở chờ duyệt",
+            Address = "Địa chỉ kiểm thử",
+            IsApproved = false,
+            IsActive = true
+        };
+        context.Facilities.Add(facility);
+        context.Courts.Add(new Court
+        {
+            Id = 20,
+            OwnerId = 3,
+            FacilityId = facility.Id,
+            Name = "Sân chờ duyệt",
+            CourtTypeId = 1,
+            Location = "Khu A",
+            PricePerHour = 80_000,
+            Status = CourtStatus.Active
+        });
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var result = await service.CreateBookingAsync(new CreateBookingRequest
+        {
+            UserId = 2,
+            CourtId = 20,
+            BookingDate = VietnamClock.Today.AddDays(1),
+            StartTime = new TimeOnly(10, 0),
+            EndTime = new TimeOnly(11, 0)
+        });
+
+        Assert.False(result.Success);
+        Assert.Contains("chưa được Admin phê duyệt", result.Message);
+        Assert.Empty(await context.Bookings.ToListAsync());
+    }
+
+    [Fact]
     public async Task CreateBookingAsync_AppliesVoucherAndStoresDiscountSnapshot()
     {
         await using var context = CreateContext();

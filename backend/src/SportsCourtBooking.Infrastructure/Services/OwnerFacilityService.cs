@@ -28,6 +28,8 @@ public class OwnerFacilityService : IOwnerFacilityService
                 Name = facility.Name,
                 Address = facility.Address,
                 Description = facility.Description,
+                IsApproved = facility.IsApproved,
+                IsActive = facility.IsActive,
                 CourtCount = facility.Courts.Count
             })
             .ToListAsync();
@@ -44,6 +46,8 @@ public class OwnerFacilityService : IOwnerFacilityService
                 Name = facility.Name,
                 Address = facility.Address,
                 Description = facility.Description,
+                IsApproved = facility.IsApproved,
+                IsActive = facility.IsActive,
                 CourtCount = facility.Courts.Count
             })
             .SingleOrDefaultAsync();
@@ -69,7 +73,9 @@ public class OwnerFacilityService : IOwnerFacilityService
             OwnerId = ownerId,
             Name = name,
             Address = address,
-            Description = description
+            Description = description,
+            IsApproved = false,
+            IsActive = true
         });
         await _context.SaveChangesAsync();
 

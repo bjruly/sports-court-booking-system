@@ -29,7 +29,18 @@ public class OwnerFacilityServiceTests
         Assert.Equal("Cơ sở Trung tâm", facility.Name);
         Assert.Equal("123 Đường A", facility.Address);
         Assert.Equal("Sân trong nhà", facility.Description);
+        Assert.False(facility.IsApproved);
+        Assert.True(facility.IsActive);
         Assert.Empty(await service.GetOwnerFacilitiesAsync(4));
+
+        var adminService = new FacilityService(context);
+        var pendingForAdmin = await adminService.GetAllFacilitiesAsync(filter: "pending");
+        Assert.Contains(pendingForAdmin, item => item.Id == facility.Id);
+
+        var approval = await adminService.ApproveFacilityAsync(facility.Id);
+        Assert.True(approval.Success, approval.Message);
+        var approvedFacility = await service.GetOwnerFacilityAsync(facility.Id, 3);
+        Assert.True(approvedFacility?.IsApproved);
 
         var updateResult = await service.UpdateOwnerFacilityAsync(facility.Id, 3, new OwnerFacilityRequest
         {

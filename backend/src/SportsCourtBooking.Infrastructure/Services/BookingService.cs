@@ -291,7 +291,9 @@ public class BookingService : IBookingService
             await _expirationService.ExpireOverdueAsync();
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var courtQuery = _context.Courts.Where(court => court.Id == courtId);
+            var courtQuery = _context.Courts
+                .Include(court => court.Facility)
+                .Where(court => court.Id == courtId);
             if (ownerId.HasValue)
             {
                 courtQuery = courtQuery.Where(court => court.OwnerId == ownerId.Value);
@@ -301,6 +303,12 @@ public class BookingService : IBookingService
             if (court == null || court.Status != CourtStatus.Active)
             {
                 return (false, "Sân không tồn tại, không thuộc quyền quản lý của bạn hoặc đang tạm ngưng hoạt động.", null);
+            }
+
+            if (court.FacilityId.HasValue
+                && (court.Facility is null || !court.Facility.IsApproved || !court.Facility.IsActive))
+            {
+                return (false, "Cơ sở của sân chưa được Admin phê duyệt hoặc đang tạm khóa.", null);
             }
 
             // 2. Chống đặt trùng khi nhiều người bấm cùng lúc: khóa theo (sân, ngày) trong suốt transaction.

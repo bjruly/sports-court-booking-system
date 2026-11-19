@@ -26,7 +26,9 @@ public class CourtService : ICourtService
 
         if (onlyActive)
         {
-            query = query.Where(c => c.Status == CourtStatus.Active);
+            query = query.Where(c =>
+                c.Status == CourtStatus.Active
+                && (c.FacilityId == null || (c.Facility!.IsApproved && c.Facility.IsActive)));
         }
 
         return await query.OrderBy(c => c.Id).Select(c => new CourtDto
@@ -50,7 +52,12 @@ public class CourtService : ICourtService
 
     public async Task<CourtDto?> GetCourtByIdAsync(int id)
     {
-        var c = await _context.Courts.Include(x => x.CourtType).FirstOrDefaultAsync(x => x.Id == id);
+        var c = await _context.Courts
+            .Include(x => x.CourtType)
+            .Include(x => x.Facility)
+            .FirstOrDefaultAsync(x =>
+                x.Id == id
+                && (x.FacilityId == null || (x.Facility!.IsApproved && x.Facility.IsActive)));
         if (c == null) return null;
 
         return new CourtDto
