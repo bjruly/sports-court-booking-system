@@ -23,21 +23,6 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // 0. Cấu hình bảng Facility (UC13, UC23)
-        modelBuilder.Entity<Facility>(entity =>
-        {
-            entity.HasKey(f => f.Id);
-            entity.Property(f => f.Name).IsRequired().HasMaxLength(150);
-            entity.Property(f => f.Address).IsRequired().HasMaxLength(255);
-            entity.Property(f => f.PhoneNumber).IsRequired().HasMaxLength(30);
-            entity.Property(f => f.SuspensionReason).HasMaxLength(500);
-
-            entity.HasOne(f => f.Owner)
-                  .WithMany()
-                  .HasForeignKey(f => f.OwnerId)
-                  .OnDelete(DeleteBehavior.SetNull);
-        });
-
         // 1. Cấu hình bảng User
         modelBuilder.Entity<User>(entity =>
         {
@@ -60,7 +45,14 @@ public class AppDbContext : DbContext
             entity.HasKey(facility => facility.Id);
             entity.Property(facility => facility.Name).IsRequired().HasMaxLength(150);
             entity.Property(facility => facility.Address).IsRequired().HasMaxLength(255);
+            entity.Property(facility => facility.PhoneNumber).IsRequired().HasMaxLength(30);
             entity.Property(facility => facility.Description).HasMaxLength(1000);
+            entity.Property(facility => facility.OpenTime).IsRequired().HasMaxLength(10).HasDefaultValue("06:00");
+            entity.Property(facility => facility.CloseTime).IsRequired().HasMaxLength(10).HasDefaultValue("22:00");
+            entity.Property(facility => facility.ImageUrl).HasMaxLength(500);
+            entity.Property(facility => facility.IsApproved).HasDefaultValue(true);
+            entity.Property(facility => facility.IsActive).HasDefaultValue(true);
+            entity.Property(facility => facility.SuspensionReason).HasMaxLength(500);
             entity.HasIndex(facility => facility.OwnerId);
 
             entity.HasOne(facility => facility.Owner)
@@ -88,20 +80,15 @@ public class AppDbContext : DbContext
                   .HasForeignKey(c => c.OwnerId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(court => court.Facility)
-                .WithMany(facility => facility.Courts)
-                .HasForeignKey(court => court.FacilityId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             entity.HasOne(c => c.CourtType)
                   .WithMany(ct => ct.Courts)
                   .HasForeignKey(c => c.CourtTypeId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(c => c.Facility)
+            entity.HasOne(court => court.Facility)
                   .WithMany(f => f.Courts)
                   .HasForeignKey(c => c.FacilityId)
-                  .OnDelete(DeleteBehavior.SetNull);
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Voucher>(entity =>
@@ -186,6 +173,9 @@ public class AppDbContext : DbContext
             entity.Property(r => r.Comment).HasMaxLength(500);
             entity.Property(r => r.OwnerReply).HasMaxLength(1000);
             entity.Property(r => r.OwnerRepliedAt).HasColumnType("timestamp with time zone");
+            entity.Property(r => r.HiddenReason).HasMaxLength(500);
+            entity.Property(r => r.IsHidden).HasDefaultValue(false);
+            entity.Property(r => r.IsReported).HasDefaultValue(false);
             entity.HasIndex(r => r.BookingId).IsUnique();
             entity.ToTable(table =>
             {

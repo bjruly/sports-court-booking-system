@@ -65,12 +65,8 @@ using (var scope = app.Services.CreateScope())
     {
         try
         {
-            // Có file migration thì chạy migration; chưa có (chưa chạy "dotnet ef migrations add") thì
-            // tạo bảng trực tiếp từ model, kèm dữ liệu mẫu (HasData).
-            if (db.Database.GetMigrations().Any())
-                db.Database.Migrate();
-            else
-                db.Database.EnsureCreated();
+            await db.BaselineExistingDatabaseAsync();
+            db.Database.Migrate();
 
             if (!await db.Users.AnyAsync(user => user.Email == SeedCredentials.OwnerEmail))
             {

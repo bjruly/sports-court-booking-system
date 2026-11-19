@@ -18,7 +18,7 @@
 
 - **Ứng dụng web:** ASP.NET Core MVC, Razor và C#.
 - **Nghiệp vụ:** các lớp Application và Domain bằng C#.
-- **Framework hiện tại:** .NET 8 (`net8.0`), EF Core 8 với **PostgreSQL** (Npgsql). Thư mục migration là `SportsCourtBooking.Infrastructure/Data/Migrations` (chưa có file nào, xem mục "Tạo migration PostgreSQL").
+- **Framework hiện tại:** .NET 8 (`net8.0`), EF Core 8 với **PostgreSQL** (Npgsql). Migration EF Core nằm trong `SportsCourtBooking.Infrastructure/Data/Migrations`.
 - **Cache/giữ chỗ:** Redis là thành phần tùy chọn theo đề xuất trong báo cáo.
 - **Tích hợp dự kiến:** VNPay/MoMo, email/SMS và dịch vụ bản đồ.
 - **Triển khai/chạy cục bộ:** Docker và Docker Compose (web + PostgreSQL 16 + pgAdmin).
@@ -163,13 +163,15 @@ Muốn kết nối bằng công cụ cài trên máy (DBeaver, DataGrip...): hos
 
 ### Tạo migration PostgreSQL
 
-Thư mục `Data/Migrations` hiện chưa có file nào (các migration cũ viết cho SQL Server đã bị xóa vì không chạy được trên PostgreSQL). Khi chưa có migration, ứng dụng tự tạo bảng và dữ liệu mẫu từ model bằng `EnsureCreated`. Để dùng migration (cần .NET 8 SDK và công cụ `dotnet-ef`):
+`InitialSchema` là baseline cho schema hiện tại. Database mới sẽ tự chạy migration khi ứng dụng khởi động. Để tạo migration cho thay đổi model tiếp theo (cần .NET 8 SDK và `dotnet-ef` phiên bản 8):
 
 ```bash
-dotnet ef migrations add InitialCreate --project backend/src/SportsCourtBooking.Infrastructure --startup-project backend/src/SportsCourtBooking.Web --output-dir Data/Migrations
+dotnet ef migrations add TenThayDoi --project backend/src/SportsCourtBooking.Infrastructure --startup-project backend/src/SportsCourtBooking.Web --output-dir Data/Migrations
 ```
 
-Nếu database đã được tạo bằng `EnsureCreated` trước khi có migration, chạy `docker compose down -v` để xóa dữ liệu rồi `docker compose up --build` lại.
+Commit các file migration cùng thay đổi model. Ứng dụng sẽ áp dụng migration mới khi khởi động; không sửa schema trực tiếp bằng SQL hoặc `EnsureCreated` thay cho migration.
+
+Khi khởi động, ứng dụng tự áp dụng migration. Nếu phát hiện đầy đủ 8 bảng cốt lõi đã có từ trước nhưng chưa có lịch sử migration, ứng dụng ghi nhận `InitialSchema` làm baseline thay vì tạo lại bảng; database một phần sẽ dừng khởi động để tránh áp dụng sai. Hãy sao lưu database trước khi nâng cấp. Baseline ghi nhận cấu trúc hiện tại, không tái tạo lịch sử theo thứ tự các thay đổi cũ. Không dùng `docker compose down -v` để xử lý migration vì lệnh đó xóa volume database.
 
 ### Lưu ý
 
