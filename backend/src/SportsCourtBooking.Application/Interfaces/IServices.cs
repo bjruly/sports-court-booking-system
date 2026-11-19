@@ -60,19 +60,6 @@ public interface IUserService
 
     /// <summary>Khóa hoặc mở khóa tài khoản. Trả về (Success, Message, trạng thái IsActive mới).</summary>
     Task<(bool Success, string Message, bool? IsActive)> ToggleLockAsync(int targetUserId, int? adminUserId);
-
-    /// <summary>Lấy danh sách chủ sân (Role = CourtOwner) cho Admin quản lý, kèm số lượng cơ sở và sân.</summary>
-    Task<List<CourtOwnerItemDto>> GetCourtOwnersAsync(string? search = null, string? filter = null);
-
-    /// <summary>Lấy thống kê số lượng chủ sân.</summary>
-    Task<CourtOwnerStatsDto> GetCourtOwnerStatsAsync();
-
-    /// <summary>Admin duyệt và kích hoạt tài khoản chủ sân.</summary>
-    Task<(bool Success, string Message)> ApproveOwnerAsync(int ownerId, int adminId);
-
-    /// <summary>Admin khóa hoặc mở khóa tài khoản chủ sân.</summary>
-    Task<(bool Success, string Message, bool? IsActive)> ToggleLockOwnerAsync(int ownerId, int adminId);
-
     Task<OwnerProfileDto?> GetOwnerProfileAsync(int ownerId);
     Task<(bool Success, string Message, OwnerProfileDto? Profile)> UpdateOwnerProfileAsync(
         int ownerId,
