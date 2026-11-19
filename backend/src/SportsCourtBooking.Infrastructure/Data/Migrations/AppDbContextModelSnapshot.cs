@@ -117,6 +117,11 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<int?>("FacilityId")
                         .HasColumnType("integer");
 
@@ -171,6 +176,7 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                             CourtTypeId = 1,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Thảm Yonex, đèn LED chống chói",
+                            District = "Quận 7",
                             Location = "Khu A - Tầng 1",
                             Name = "Sân Cầu Lông VIP 1",
                             OwnerId = 3,
@@ -185,6 +191,7 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                             CourtTypeId = 1,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Thảm Yonex, quạt làm mát",
+                            District = "Bình Thạnh",
                             Location = "Khu A - Tầng 1",
                             Name = "Sân Cầu Lông VIP 2",
                             OwnerId = 3,
@@ -199,6 +206,7 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                             CourtTypeId = 2,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Cỏ mới thay, hệ thống thoát nước tốt",
+                            District = "Thủ Đức",
                             Location = "Khu B - Ngoài trời",
                             Name = "Sân Bóng Đá 5 Người - Sân A",
                             OwnerId = 3,
@@ -213,6 +221,7 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                             CourtTypeId = 3,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Mặt sân Acrylic chuẩn thi đấu",
+                            District = "Quận 10",
                             Location = "Khu C - Có mái che",
                             Name = "Sân Pickleball Số 1",
                             OwnerId = 3,

@@ -68,7 +68,7 @@ graph TD
 | **Bảo mật & Xác thực** | **Cookie Authentication** | ASP.NET Core Built-in | Quản lý phiên làm việc bằng Cookie được mã hóa (`SanNha.Auth`), hỗ trợ bảo vệ dữ liệu bằng Data Protection keys. |
 | **Băm mật khẩu** | **PBKDF2-HMAC-SHA256** | Custom Implementation | Thuật toán băm mật khẩu chuẩn NIST/OWASP với Salt ngẫu nhiên 128-bit và 100.000 vòng lặp. |
 | **Phân quyền người dùng** | **Role-Based Access Control (RBAC)** | Claims-based | Phân định quyền hạn chặt chẽ theo vai trò (`Admin`, `Staff`, `Customer`) qua thuộc tính `[Authorize(Roles = "...")]`. |
-| **Kiểm thử tự động** | **xUnit & Test SDK** | xUnit 2.5.3 | 49 unit tests tập trung vào quy tắc đặt sân, tính giá và băm mật khẩu; hiện chưa có kiểm thử tích hợp PostgreSQL. |
+| **Kiểm thử tự động** | **xUnit & Test SDK** | xUnit 2.5.3 | 104 unit tests và hai test tích hợp PostgreSQL cho đặt đồng thời/hết hạn booking. |
 | **Đóng gói & Vận hành** | **Docker & Docker Compose** | Engine v24+ | Đóng gói toàn bộ hệ thống gồm 3 containers (`web`, `db`, `pgadmin`), khởi tạo môi trường nhất quán chỉ bằng 1 câu lệnh. |
 
 ---
@@ -180,7 +180,7 @@ backend/
 │       └── wwwroot/                          # CSS, JS, hình ảnh, assets
 │
 └── tests/
-    └── SportsCourtBooking.Tests/             # 49 unit tests xUnit cho quy tắc đặt sân và băm mật khẩu
+    └── SportsCourtBooking.Tests/             # 104 unit tests + 2 PostgreSQL integration tests
 ```
 
 ---

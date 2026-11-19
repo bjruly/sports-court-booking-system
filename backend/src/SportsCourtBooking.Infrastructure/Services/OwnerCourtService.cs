@@ -32,6 +32,7 @@ public class OwnerCourtService : IOwnerCourtService
                 CourtTypeId = court.CourtTypeId,
                 CourtTypeName = court.CourtType!.Name,
                 Location = court.Location,
+                District = court.District,
                 Description = court.Description,
                 ImageUrl = court.ImageUrl,
                 PricePerHour = court.PricePerHour,
@@ -69,6 +70,7 @@ public class OwnerCourtService : IOwnerCourtService
                 CourtTypeId = court.CourtTypeId,
                 CourtTypeName = court.CourtType!.Name,
                 Location = court.Location,
+                District = court.District,
                 Description = court.Description,
                 ImageUrl = court.ImageUrl,
                 PricePerHour = court.PricePerHour,
@@ -93,6 +95,7 @@ public class OwnerCourtService : IOwnerCourtService
             Name = request.Name.Trim(),
             CourtTypeId = request.CourtTypeId,
             Location = request.Location.Trim(),
+            District = request.District.Trim(),
             Description = NormalizeOptional(request.Description),
             ImageUrl = NormalizeOptional(request.ImageUrl),
             PricePerHour = pricePerHour,
@@ -151,6 +154,8 @@ public class OwnerCourtService : IOwnerCourtService
             && request.FacilityId.HasValue
             && request.PricePerHour.HasValue
             && request.PricePerHour.Value > 0
+            && !string.IsNullOrWhiteSpace(request.District)
+            && request.District.Trim().Length is >= 2 and <= 100
             && request.PeakStartHour >= BookingRules.OpeningHour
             && request.PeakStartHour < BookingRules.ClosingHour
             && request.PeakSurcharge >= 0
@@ -167,6 +172,7 @@ public class OwnerCourtService : IOwnerCourtService
         court.Name = request.Name.Trim();
         court.CourtTypeId = request.CourtTypeId;
         court.Location = request.Location.Trim();
+        court.District = request.District.Trim();
         court.Description = NormalizeOptional(request.Description);
         court.ImageUrl = NormalizeOptional(request.ImageUrl);
         court.PricePerHour = pricePerHour;

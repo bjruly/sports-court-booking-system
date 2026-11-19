@@ -85,6 +85,7 @@ using (var scope = app.Services.CreateScope())
             await db.EnsureCourtOwnerSchemaAsync();
             await db.EnsureOwnerFacilitySchemaAsync();
             await db.EnsureCourtPricingSchemaAsync();
+            await db.EnsureCourtDistrictSchemaAsync();
             await db.EnsureVoucherSchemaAsync();
             await db.EnsureBookingSchemaAsync();
             await db.EnsureReviewSchemaAsync();

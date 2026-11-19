@@ -33,6 +33,11 @@
         <span asp-validation-for="Location" class="field-validation-error"></span>
     </div>
     <div class="owner-form-field">
+        <label asp-for="District">Quận/huyện <span aria-hidden="true">*</span></label>
+        <input asp-for="District" class="filter-input" autocomplete="off" placeholder="Ví dụ: Quận 7" />
+        <span asp-validation-for="District" class="field-validation-error"></span>
+    </div>
+    <div class="owner-form-field">
         <label asp-for="PricePerHour">Giá cơ bản / giờ (đ) <span aria-hidden="true">*</span></label>
         <input asp-for="PricePerHour" class="filter-input" type="number" min="1" step="1000" />
         <span asp-validation-for="PricePerHour" class="field-validation-error"></span>

@@ -67,6 +67,7 @@ public class AppDbContext : DbContext
             entity.HasKey(c => c.Id);
             entity.Property(c => c.Name).IsRequired().HasMaxLength(150);
             entity.Property(c => c.Location).IsRequired().HasMaxLength(255);
+            entity.Property(c => c.District).IsRequired().HasMaxLength(100);
             entity.Property(c => c.PricePerHour).HasColumnType("decimal(18,2)");
             entity.Property(c => c.PeakSurcharge).HasColumnType("decimal(18,2)");
             entity.ToTable(table => table.HasCheckConstraint(
@@ -220,10 +221,10 @@ public class AppDbContext : DbContext
 
         // Seed Courts
         modelBuilder.Entity<Court>().HasData(
-            new Court { Id = 1, OwnerId = 3, Name = "Sân Cầu Lông VIP 1", CourtTypeId = 1, Location = "Khu A - Tầng 1", PricePerHour = 80000, Status = CourtStatus.Active, Description = "Thảm Yonex, đèn LED chống chói", CreatedAt = seedDate },
-            new Court { Id = 2, OwnerId = 3, Name = "Sân Cầu Lông VIP 2", CourtTypeId = 1, Location = "Khu A - Tầng 1", PricePerHour = 80000, Status = CourtStatus.Active, Description = "Thảm Yonex, quạt làm mát", CreatedAt = seedDate },
-            new Court { Id = 3, OwnerId = 3, Name = "Sân Bóng Đá 5 Người - Sân A", CourtTypeId = 2, Location = "Khu B - Ngoài trời", PricePerHour = 250000, Status = CourtStatus.Active, Description = "Cỏ mới thay, hệ thống thoát nước tốt", CreatedAt = seedDate },
-            new Court { Id = 4, OwnerId = 3, Name = "Sân Pickleball Số 1", CourtTypeId = 3, Location = "Khu C - Có mái che", PricePerHour = 120000, Status = CourtStatus.Active, Description = "Mặt sân Acrylic chuẩn thi đấu", CreatedAt = seedDate }
+            new Court { Id = 1, OwnerId = 3, Name = "Sân Cầu Lông VIP 1", CourtTypeId = 1, Location = "Khu A - Tầng 1", District = "Quận 7", PricePerHour = 80000, Status = CourtStatus.Active, Description = "Thảm Yonex, đèn LED chống chói", CreatedAt = seedDate },
+            new Court { Id = 2, OwnerId = 3, Name = "Sân Cầu Lông VIP 2", CourtTypeId = 1, Location = "Khu A - Tầng 1", District = "Bình Thạnh", PricePerHour = 80000, Status = CourtStatus.Active, Description = "Thảm Yonex, quạt làm mát", CreatedAt = seedDate },
+            new Court { Id = 3, OwnerId = 3, Name = "Sân Bóng Đá 5 Người - Sân A", CourtTypeId = 2, Location = "Khu B - Ngoài trời", District = "Thủ Đức", PricePerHour = 250000, Status = CourtStatus.Active, Description = "Cỏ mới thay, hệ thống thoát nước tốt", CreatedAt = seedDate },
+            new Court { Id = 4, OwnerId = 3, Name = "Sân Pickleball Số 1", CourtTypeId = 3, Location = "Khu C - Có mái che", District = "Quận 10", PricePerHour = 120000, Status = CourtStatus.Active, Description = "Mặt sân Acrylic chuẩn thi đấu", CreatedAt = seedDate }
         );
 
         // Seed Users (Admin, Chủ Sân & Khách hàng mẫu)

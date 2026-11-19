@@ -792,6 +792,7 @@ public class OwnerController : Controller
             FacilityId = court.FacilityId,
             CourtTypeId = court.CourtTypeId,
             Location = court.Location,
+            District = court.District,
             Description = court.Description,
             ImageUrl = court.ImageUrl,
             PricePerHour = court.PricePerHour,

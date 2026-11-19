@@ -20,7 +20,7 @@
 | **Thành viên 2** | **Demo Luồng Khách hàng (User Flow)** | Trực tiếp thao tác: Tìm sân, lọc theo môn/ngày, xem bảng giá và lịch trống. |
 | **Thành viên 3** | **Demo Đặt sân & Quy tắc nghiệp vụ** | Chọn khung giờ, giải thích quy tắc giờ cao điểm, giới hạn 4 giờ, tạo đơn `Pending`. |
 | **Thành viên 4** | **Demo Luồng Quản trị (Admin Flow)** | Đăng nhập Admin, trang Quản lý lịch đặt, lọc theo ngày/sân, cơ chế Background Worker 10 phút. |
-| **Thành viên 5** | **Giải pháp Kỹ thuật & Kết quả Test** | Thuyết trình Concurrency (Advisory Lock, GiST Constraint), 49 bài Unit Tests, Docker, kết luận. |
+| **Thành viên 5** | **Giải pháp Kỹ thuật & Kết quả Test** | Thuyết trình Concurrency (Advisory Lock, GiST Constraint), 104 Unit Tests và test tích hợp PostgreSQL, Docker, kết luận. |
 
 *(Nếu nhóm phân công 1 người nói và 1 người thao tác máy chiếu, có thể linh hoạt theo kịch bản dưới đây).*
 
@@ -93,13 +93,13 @@
 * **Thao tác màn hình (Thành viên 5):**
   1. Mở cửa sổ Terminal (VS Code hoặc PowerShell).
   2. Gõ lệnh: `dotnet test backend/SportsCourtBooking.sln`
-  3. Kết quả chạy hiện tại: **Passed: 49, Failed: 0**; chạy lại trước buổi demo và cập nhật số nếu bộ test thay đổi.
+  3. Kết quả chạy hiện tại: **Passed: 106, Failed: 0** khi bật hai test PostgreSQL; chạy lại trước buổi demo và cập nhật số nếu bộ test thay đổi.
   4. Mở file [BookingSchemaExtensions.cs](file:///c:/Users/ASUS%20TUF/Documents/GitHub/sports-court-booking-system/backend/src/SportsCourtBooking.Infrastructure/Data/BookingSchemaExtensions.cs) hoặc [BookingService.cs](file:///c:/Users/ASUS%20TUF/Documents/GitHub/sports-court-booking-system/backend/src/SportsCourtBooking.Infrastructure/Services/BookingService.cs#L125-L128).
 * **Lời thoại gợi ý (Thành viên 5):**
   > *"Điểm sáng kỹ thuật quan trọng nhất của bài là **giải pháp chống đặt trùng giờ (Race Condition)**. Nhóm triển khai cơ chế phòng thủ 2 lớp:*  
   > *1. **Ở tầng Transaction**: Dùng `pg_advisory_xact_lock` theo mã sân và ngày để xếp hàng các yêu cầu gửi đến cùng lúc.*  
   > *2. **Ở tầng Database Constraint**: Dùng `EXCLUDE USING gist` với kiểu dữ liệu `tsrange` khoảng nửa mở `[)`. Dù có 2 request vượt qua được tầng ứng dụng thì CSDL PostgreSQL vẫn sẽ từ chối đơn thứ hai để bảo toàn tính toàn vẹn dữ liệu.*  
-  > *Về độ tin cậy, nhóm có **49 Unit Tests** bằng **xUnit**, tập trung vào quy tắc đặt sân, tính giá, thời gian và băm mật khẩu. Ngoài unit test, cần kiểm thử tích hợp PostgreSQL cho luồng đặt đồng thời và hết hạn.*
+  > *Về độ tin cậy, nhóm có **104 Unit Tests** bằng **xUnit**, tập trung vào quy tắc đặt sân, tính giá, thời gian và băm mật khẩu. Nhóm cũng có hai test tích hợp PostgreSQL cho luồng đặt đồng thời và hết hạn, có thể bật bằng biến môi trường khi chạy trong môi trường database test.*
   > *Nhóm 9 đã hoàn thành tốt mục tiêu đề ra cho học phần C#. Chúng em xin chân thành cảm ơn Thầy và rất mong nhận được những góp ý từ Thầy ạ!"*
 
 ---

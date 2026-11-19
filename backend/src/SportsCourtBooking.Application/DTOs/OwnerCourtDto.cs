@@ -21,6 +21,10 @@ public class OwnerCourtRequest
     [StringLength(255, ErrorMessage = "Địa điểm không được vượt quá 255 ký tự.")]
     public string Location { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "Vui lòng nhập quận/huyện.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Quận/huyện phải từ 2 đến 100 ký tự.")]
+    public string District { get; set; } = "Quận 10";
+
     [StringLength(1000, ErrorMessage = "Mô tả không được vượt quá 1000 ký tự.")]
     public string? Description { get; set; }
 

@@ -44,6 +44,7 @@
                                     <th>Cơ sở</th>
                                     <th>Môn thể thao</th>
                                     <th>Địa điểm</th>
+                                    <th>Quận/huyện</th>
                                     <th class="text-right">Giá / giờ</th>
                                     <th>Trạng thái</th>
                                     <th>Thao tác</th>
@@ -57,6 +58,7 @@
                                         <td>@(court.FacilityName ?? "Chưa gán cơ sở")</td>
                                         <td>@court.CourtTypeName</td>
                                         <td>@court.Location</td>
+                                        <td>@court.District</td>
                                         <td class="text-right">@court.PricePerHour.ToString("N0", culture) đ</td>
                                         <td><span class="status-badge @CourtStatusDisplay.CssClass(court.Status)">@CourtStatusDisplay.Label(court.Status)</span></td>
                                         <td>

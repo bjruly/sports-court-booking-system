@@ -400,13 +400,7 @@ public class HomeController : Controller
             FacilityName = string.IsNullOrWhiteSpace(c.Location) ? "Sports Center" : c.Location,
             CourtName = c.Name,
             Sport = string.IsNullOrWhiteSpace(c.CourtTypeName) ? "Cầu lông" : c.CourtTypeName,
-            District = c.Id switch
-            {
-                1 => "Quận 7",
-                2 => "Bình Thạnh",
-                3 => "Thủ Đức",
-                _ => "Quận 10"
-            },
+            District = string.IsNullOrWhiteSpace(c.District) ? "Chưa cập nhật" : c.District,
             City = "TP. Hồ Chí Minh",
             OpeningHours = $"{BookingRules.OpeningHour:00}:00–{BookingRules.ClosingHour:00}:00",
             StartingPrice = c.PricePerHour,
