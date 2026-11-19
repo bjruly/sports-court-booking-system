@@ -4,7 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b1414" />
-    <title>@ViewData["Title"] · Sân Nhà Admin</title>
+    @{
+        var pageController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var pageRoleTitle = string.Equals(pageController, "Owner", StringComparison.OrdinalIgnoreCase) ? "Chủ Sân" : "Admin";
+    }
+    <title>@ViewData["Title"] · Sân Nhà @pageRoleTitle</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin-dark.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
@@ -13,11 +17,15 @@
     @{
         var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var isOwner = string.Equals(currentController, "Owner", StringComparison.OrdinalIgnoreCase);
+            var brandController = isOwner ? "Owner" : "Admin";
+            var brandAction = "Index";
+            var roleLabel = isOwner ? "Chủ sân" : "Admin";
     }
 
     <!-- ─── TOP HEADER ─── -->
     <header class="adm-header">
-        <a class="adm-brand" asp-controller="Admin" asp-action="Index">
+        <a class="adm-brand" asp-controller="@brandController" asp-action="@brandAction">
             <span class="adm-brand-logo">S</span>
             <span>SÂN NHÀ.</span>
         </a>
@@ -31,7 +39,7 @@
             </span>
             <input type="text"
                    class="adm-search-input"
-                   placeholder="Tìm kiếm nhanh... (sân, đơn đặt, khách hàng, ...)" />
+                   placeholder="@(isOwner ? "Tìm kiếm nhanh... (sân, đơn đặt, voucher, ...)" : "Tìm kiếm nhanh... (sân, đơn đặt, khách hàng, ...)")" />
             <kbd class="adm-search-kbd">Ctrl + K</kbd>
         </div>
 
@@ -51,7 +59,7 @@
             </button>
 
             <div class="adm-user-dropdown-wrap">
-                <div class="adm-user-profile" id="admUserDropdownToggle" tabindex="0" title="Tài khoản quản trị">
+                <div class="adm-user-profile" id="admUserDropdownToggle" tabindex="0" title="@(isOwner ? "Tài khoản chủ sân" : "Tài khoản quản trị")">
                     <div class="adm-avatar">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -60,7 +68,7 @@
                     </div>
                     <div class="adm-user-info">
                         <span class="adm-user-name">@(User.Identity?.Name ?? "Quản Trị Viên")</span>
-                        <span class="adm-user-role">Admin</span>
+                        <span class="adm-user-role">@roleLabel</span>
                     </div>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--d-text-sub)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="6 9 12 15 18 9"></polyline>
@@ -70,9 +78,19 @@
                 <div class="adm-user-dropdown-menu">
                     <div class="adm-user-dropdown-header">
                         <div class="adm-user-dropdown-name">@(User.Identity?.Name ?? "Quản Trị Viên")</div>
-                        <div class="adm-user-dropdown-email">Vai trò: Quản trị hệ thống</div>
+                        <div class="adm-user-dropdown-email">Vai trò: @(isOwner ? "Chủ sân" : "Quản trị hệ thống")</div>
                     </div>
                     <div class="adm-user-dropdown-divider"></div>
+                    @if (isOwner)
+                    {
+                        <a asp-controller="Owner" asp-action="Profile" class="adm-user-dropdown-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Hồ sơ cá nhân</span>
+                        </a>
+                    }
                     <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="adm-user-dropdown-item adm-user-dropdown-logout">
@@ -91,6 +109,8 @@
 
     <!-- ─── WRAPPER (SIDEBAR + MAIN) ─── -->
     <div class="adm-wrapper">
+        @if (!isOwner)
+        {
         <aside class="adm-sidebar">
             <ul class="adm-menu">
                 <li>
@@ -201,6 +221,63 @@
                 <p class="adm-sidebar-card-sub">Thể thao kết nối<br />Cộng đồng</p>
             </div>
         </aside>
+        }
+        else
+        {
+        <aside class="adm-sidebar">
+            <ul class="adm-menu">
+                <li>
+                    <span class="adm-menu-label">TỔNG QUAN</span>
+                    <a class="adm-menu-link @(currentAction == "Index" ? "active" : "")" asp-controller="Owner" asp-action="Index">
+                        <span class="adm-menu-icon">▦</span><span>Bảng điều khiển</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "CourtStatistics" ? "active" : "")" asp-controller="Owner" asp-action="CourtStatistics">
+                        <span class="adm-menu-icon">↗</span><span>Thống kê sân</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "RevenueReport" ? "active" : "")" asp-controller="Owner" asp-action="RevenueReport">
+                        <span class="adm-menu-icon">₫</span><span>Doanh thu</span>
+                    </a>
+                </li>
+                <li>
+                    <span class="adm-menu-label">QUẢN LÝ SÂN</span>
+                    <a class="adm-menu-link @(currentAction is "Facilities" or "CreateFacility" or "EditFacility" ? "active" : "")" asp-controller="Owner" asp-action="Facilities">
+                        <span class="adm-menu-icon">⌂</span><span>Cơ sở thể thao</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction is "Courts" or "CreateCourt" or "EditCourt" or "Pricing" ? "active" : "")" asp-controller="Owner" asp-action="Courts">
+                        <span class="adm-menu-icon">◫</span><span>Danh sách sân</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction is "Calendar" or "CreateWalkInBooking" ? "active" : "")" asp-controller="Owner" asp-action="Calendar">
+                        <span class="adm-menu-icon">▦</span><span>Lịch & đặt hộ</span>
+                    </a>
+                </li>
+                <li>
+                    <span class="adm-menu-label">KINH DOANH</span>
+                    <a class="adm-menu-link @(currentAction == "Bookings" ? "active" : "")" asp-controller="Owner" asp-action="Bookings">
+                        <span class="adm-menu-icon">✓</span><span>Đơn đặt sân</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher" ? "active" : "")" asp-controller="Owner" asp-action="Vouchers">
+                        <span class="adm-menu-icon">%</span><span>Voucher</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "Reviews" ? "active" : "")" asp-controller="Owner" asp-action="Reviews">
+                        <span class="adm-menu-icon">☆</span><span>Đánh giá</span>
+                    </a>
+                </li>
+                <li>
+                    <span class="adm-menu-label">TÀI KHOẢN</span>
+                    <a class="adm-menu-link @(currentAction == "Profile" ? "active" : "")" asp-controller="Owner" asp-action="Profile">
+                        <span class="adm-menu-icon">○</span><span>Hồ sơ cá nhân</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "ChangePassword" ? "active" : "")" asp-controller="Owner" asp-action="ChangePassword">
+                        <span class="adm-menu-icon">⚿</span><span>Đổi mật khẩu</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="adm-sidebar-card">
+                <p class="adm-sidebar-card-title">Sân Nhà</p>
+                <p class="adm-sidebar-card-sub">Không gian quản lý<br />dành cho chủ sân</p>
+            </div>
+        </aside>
+        }
 
         <main class="adm-main">
             @RenderBody()

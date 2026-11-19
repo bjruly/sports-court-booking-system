@@ -877,6 +877,279 @@ body.admin-dark-body {
 }
 
 /* ─── Generic Dark Theme Support for Sub-pages ───────────────────────────── */
+.adm-main .admin-page-heading,
+.adm-main .owner-list-heading,
+.adm-main .owner-welcome-card,
+.adm-main .owner-stat-card,
+.adm-main .owner-panel,
+.adm-main .owner-review-card,
+.adm-main .owner-profile-card,
+.adm-main .owner-court-form-panel,
+.adm-main .owner-walkin-panel,
+.adm-main .owner-calendar-panel,
+.adm-main .owner-report-filter,
+.adm-main .owner-status-card,
+.adm-main .admin-status-card {
+  color: var(--d-text);
+}
+
+.adm-main .admin-page-heading .eyebrow,
+.adm-main .admin-page-heading .page-subtitle,
+.adm-main .owner-preview-note,
+.adm-main .owner-stat-caption,
+.adm-main .owner-status-caption,
+.adm-main .owner-status-empty,
+.adm-main .owner-status-line,
+.adm-main .owner-booking-results-heading > p,
+.adm-main .owner-review-heading p,
+.adm-main .owner-profile-hint,
+.adm-main .owner-report-note,
+.adm-main .owner-calendar-no-bookings,
+.adm-main .owner-calendar-day-heading span,
+.adm-main .owner-checkin-time {
+  color: var(--d-text-sub);
+}
+
+.adm-main .owner-welcome-card,
+.adm-main .owner-stat-card,
+.adm-main .owner-panel,
+.adm-main .owner-review-card,
+.adm-main .owner-profile-card,
+.adm-main .owner-court-form-panel,
+.adm-main .owner-walkin-panel,
+.adm-main .owner-calendar-day,
+.adm-main .owner-calendar-controls,
+.adm-main .owner-report-filter,
+.adm-main .owner-calendar-week-nav,
+.adm-main .admin-status-card {
+  background: var(--d-card);
+  border: 1px solid var(--d-border);
+  color: var(--d-text);
+  box-shadow: none;
+}
+
+.adm-main .owner-stat-value,
+.adm-main .owner-panel-heading h2,
+.adm-main .owner-status-line strong,
+.adm-main .owner-calendar-week-nav strong,
+.adm-main .owner-calendar-day-heading strong,
+.adm-main .owner-review-heading h2,
+.adm-main .owner-profile-form label,
+.adm-main .owner-calendar-filter label,
+.adm-main .owner-walkin-fields label,
+.adm-main .owner-booking-filter label,
+.adm-main .owner-form-field label {
+  color: #fff;
+}
+
+.adm-main .owner-status-track,
+.adm-main .owner-calendar-day-heading,
+.adm-main .owner-walkin-confirmation,
+.adm-main .owner-review-reply,
+.adm-main .owner-profile-form .form-group {
+  background: var(--d-card-inner);
+  border-color: var(--d-border);
+}
+
+.adm-main .owner-profile-form input,
+.adm-main .owner-profile-form input[readonly],
+.adm-main .owner-profile-form .form-group,
+.adm-main .owner-review-reply textarea,
+.adm-main .owner-calendar-filter input,
+.adm-main .owner-calendar-filter select,
+.adm-main .owner-walkin-fields input,
+.adm-main .owner-walkin-fields select,
+.adm-main .owner-walkin-fields textarea,
+.adm-main .owner-booking-filter input,
+.adm-main .owner-booking-filter select,
+.adm-main .owner-form-field input,
+.adm-main .owner-form-field select,
+.adm-main .owner-form-field textarea,
+.adm-main .filter-input,
+.adm-main select {
+  background: var(--d-card-inner);
+  border-color: var(--d-border);
+  color: var(--d-text);
+}
+
+.adm-main .owner-profile-form input[readonly] {
+  color: var(--d-text-sub);
+}
+
+/* Owner month/year filters */
+.adm-main .owner-report-filter {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--d-border);
+  border-radius: 14px;
+  background: var(--d-card);
+  align-items: end;
+}
+
+.adm-main .owner-report-filter:has(.form-group:nth-child(3)) {
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.adm-main .owner-report-filter .form-group {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  min-width: 0;
+}
+
+.adm-main .owner-report-filter label {
+  color: var(--d-text-sub);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adm-main .owner-report-filter select.form-control {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--d-border-light);
+  border-radius: 10px;
+  background: var(--d-card-inner);
+  color: #fff;
+  color-scheme: dark;
+  padding: 0 42px 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  appearance: auto;
+  cursor: pointer;
+}
+
+.adm-main .owner-report-filter select.form-control:hover,
+.adm-main .owner-report-filter select.form-control:focus {
+  border-color: var(--d-green);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+}
+
+.adm-main .owner-report-filter select.form-control option {
+  background: var(--d-card-inner);
+  color: #fff;
+}
+
+.adm-main .owner-calendar-booking {
+  background: #17382d;
+  color: #dff7e8;
+  border-left-color: var(--d-green);
+}
+
+.adm-main .owner-calendar-booking > small {
+  color: var(--d-text-sub);
+}
+
+.adm-main .admin-stats-grid,
+.adm-main .owner-report-kpis {
+  color: var(--d-text);
+}
+
+.adm-main .admin-stat-card {
+  background: var(--d-card);
+  border: 1px solid var(--d-border);
+  border-top: 3px solid var(--d-green);
+  box-shadow: none;
+  color: var(--d-text);
+}
+
+.adm-main .admin-stat-card:hover {
+  border-color: var(--d-border-light);
+  box-shadow: none;
+  transform: none;
+}
+
+.adm-main .admin-stat-value,
+.adm-main .admin-stat-sub strong,
+.adm-main .owner-report-kpis strong {
+  color: #fff;
+}
+
+.adm-main .admin-stat-sub,
+.adm-main .admin-status-card p,
+.adm-main .empty-state p,
+.adm-main .owner-report-note,
+.adm-main .owner-profile-hint,
+.adm-main .owner-booking-phone {
+  color: var(--d-text-sub);
+}
+
+.adm-main .booking-table-wrap,
+.adm-main .table-wrapper,
+.adm-main .booking-table {
+  background: var(--d-card);
+  border-color: var(--d-border);
+  color: var(--d-text);
+}
+
+.adm-main .booking-table th,
+.adm-main .booking-table td,
+.adm-main .booking-history-table th,
+.adm-main .booking-history-table td {
+  background: var(--d-card);
+  border-bottom: 1px solid var(--d-border);
+  color: var(--d-text);
+}
+
+.adm-main .booking-table th,
+.adm-main .booking-history-table th {
+  background: #142321;
+  color: var(--d-text-sub);
+}
+
+.adm-main .booking-table tbody tr:last-child td,
+.adm-main .booking-history-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.adm-main .booking-table tbody tr:hover td,
+.adm-main .booking-history-table tbody tr:hover td {
+  background: #152623;
+}
+
+.adm-main .owner-report-note,
+.adm-main .owner-walkin-confirmation,
+.adm-main .owner-empty-state,
+.adm-main .empty-state {
+  background: var(--d-card-inner);
+  border-color: var(--d-border);
+  color: var(--d-text-sub);
+}
+
+.adm-main .owner-report-warning {
+  border-top-color: var(--d-orange);
+}
+
+.adm-main .owner-calendar-day,
+.adm-main .owner-calendar-day-heading,
+.adm-main .owner-calendar-filter,
+.adm-main .owner-calendar-controls,
+.adm-main .owner-review-card,
+.adm-main .owner-review-reply,
+.adm-main .owner-profile-form .form-group,
+.adm-main .owner-walkin-panel,
+.adm-main .owner-court-form-panel {
+  background: var(--d-card);
+  border-color: var(--d-border);
+  color: var(--d-text);
+}
+
+.adm-main .owner-review-heading p,
+.adm-main .owner-review-reply small,
+.adm-main .owner-facility-description,
+.adm-main .owner-facility-delete-hint,
+.adm-main .owner-form-field small,
+.adm-main .owner-form-field label,
+.adm-main .owner-calendar-no-bookings,
+.adm-main .owner-calendar-day-heading span {
+  color: var(--d-text-sub);
+}
+
 .adm-main .admin-sidebar {
   display: none !important;
 }
@@ -1121,5 +1394,9 @@ body.admin-dark-body {
   }
   .adm-main {
     padding: 16px;
+  }
+  .adm-main .owner-report-filter,
+  .adm-main .owner-report-filter:has(.form-group:nth-child(3)) {
+    grid-template-columns: 1fr;
   }
 }
