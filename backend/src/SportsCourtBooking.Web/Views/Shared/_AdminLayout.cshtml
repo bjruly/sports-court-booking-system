@@ -44,13 +44,38 @@
         </div>
 
         <div class="adm-header-right">
-            <button type="button" class="adm-icon-btn" title="Thông báo" aria-label="Thông báo">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-                <span class="adm-notif-dot"></span>
-            </button>
+            <!-- Notification Dropdown -->
+            <div class="adm-notif-dropdown-wrap">
+                <button type="button" class="adm-icon-btn" id="admNotifBtn" title="Thông báo" aria-label="Thông báo" aria-haspopup="true" aria-expanded="false">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="adm-notif-badge" id="admNotifBadge" style="display: none;">0</span>
+                </button>
+
+                <div class="adm-notif-dropdown" id="admNotifDropdown" role="menu" aria-label="Danh sách thông báo">
+                    <div class="adm-notif-header">
+                        <div class="adm-notif-title-wrap">
+                            <span class="adm-notif-title">Thông báo</span>
+                            <span class="adm-notif-pill" id="admNotifPill" style="display: none;">0 mới</span>
+                        </div>
+                        <button type="button" class="adm-notif-mark-read" id="admMarkAllReadBtn">
+                            Đánh dấu đã đọc
+                        </button>
+                    </div>
+
+                    <div class="adm-notif-list" id="admNotifList">
+                        <div class="adm-notif-empty">Đang tải thông báo...</div>
+                    </div>
+
+                    <div class="adm-notif-footer">
+                        <a href="@(isOwner ? Url.Action("Bookings", "Owner") : Url.Action("Bookings", "Admin"))" class="adm-notif-view-all">
+                            Xem tất cả hoạt động →
+                        </a>
+                    </div>
+                </div>
+            </div>
 
             <button type="button" class="adm-icon-btn" title="Giao diện tối" aria-label="Đổi giao diện">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -293,6 +318,270 @@
             @RenderBody()
         </main>
     </div>
+
+    <!-- Floating toast alerts -->
+    <div id="admNotifToastContainer" class="adm-notif-toast-container"></div>
+
+    <script>
+    (function () {
+        const notifBtn = document.getElementById('admNotifBtn');
+        const notifDropdown = document.getElementById('admNotifDropdown');
+        const notifBadge = document.getElementById('admNotifBadge');
+        const notifPill = document.getElementById('admNotifPill');
+        const notifList = document.getElementById('admNotifList');
+        const markAllReadBtn = document.getElementById('admMarkAllReadBtn');
+        const toastContainer = document.getElementById('admNotifToastContainer');
+
+        const STORAGE_KEY = 'sanNha_read_notifications_v1';
+        let knownItemIds = new Set();
+        let isInitialLoad = true;
+
+        function getReadIds() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveReadIds(ids) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+            } catch (e) {}
+        }
+
+        function playChime() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.setValueAtTime(880, now + 0.08); // A5
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } catch (e) {}
+        }
+
+        function showToast(item) {
+            if (!toastContainer) return;
+            const toast = document.createElement('div');
+            toast.className = 'adm-notif-toast';
+
+            let iconText = '🔔';
+            if (item.type === 'booking') iconText = '📅';
+            else if (item.type === 'facility') iconText = '🏢';
+            else if (item.type === 'review') iconText = '⭐';
+
+            toast.innerHTML = `
+                <span style="font-size: 20px; line-height: 1;">${iconText}</span>
+                <div style="flex:1;">
+                    <strong style="display:block; font-size:13px; color:#fff; margin-bottom:2px;">${escapeHtml(item.title)}</strong>
+                    <p style="margin:0; font-size:12px; color:#94a3b8; line-height:1.4;">${escapeHtml(item.message)}</p>
+                    <small style="display:block; margin-top:3px; font-size:10px; color:#4ade80;">Vừa nhận thông báo mới</small>
+                </div>
+            `;
+
+            toast.onclick = () => {
+                markAsRead(item.id);
+                if (item.url && item.url !== '#') {
+                    window.location.href = item.url;
+                }
+            };
+
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 350);
+            }, 4500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function markAsRead(id) {
+            const readIds = getReadIds();
+            if (!readIds.includes(id)) {
+                readIds.push(id);
+                saveReadIds(readIds);
+            }
+            refreshBadgeUI();
+        }
+
+        function markAllAsRead() {
+            const readIds = getReadIds();
+            document.querySelectorAll('.adm-notif-item').forEach(el => {
+                const id = el.dataset.id;
+                if (id && !readIds.includes(id)) {
+                    readIds.push(id);
+                }
+                el.classList.remove('unread');
+                const dot = el.querySelector('.adm-notif-unread-dot');
+                if (dot) dot.remove();
+            });
+            saveReadIds(readIds);
+            refreshBadgeUI();
+        }
+
+        function refreshBadgeUI() {
+            const readIds = getReadIds();
+            let unreadCount = 0;
+            document.querySelectorAll('.adm-notif-item').forEach(el => {
+                const id = el.dataset.id;
+                if (id && !readIds.includes(id)) {
+                    unreadCount++;
+                    el.classList.add('unread');
+                } else {
+                    el.classList.remove('unread');
+                    const dot = el.querySelector('.adm-notif-unread-dot');
+                    if (dot) dot.remove();
+                }
+            });
+
+            if (notifBadge) {
+                if (unreadCount > 0) {
+                    notifBadge.style.display = 'flex';
+                    notifBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                } else {
+                    notifBadge.style.display = 'none';
+                }
+            }
+
+            if (notifPill) {
+                if (unreadCount > 0) {
+                    notifPill.style.display = 'inline-block';
+                    notifPill.textContent = unreadCount + ' mới';
+                } else {
+                    notifPill.style.display = 'none';
+                }
+            }
+        }
+
+        async function fetchNotifications() {
+            try {
+                const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data || !data.items) return;
+
+                const readIds = getReadIds();
+                let newlyDiscoveredItems = [];
+
+                if (!isInitialLoad) {
+                    data.items.forEach(item => {
+                        if (!knownItemIds.has(item.id) && !readIds.includes(item.id)) {
+                            newlyDiscoveredItems.push(item);
+                        }
+                    });
+                }
+
+                // Update known ids
+                data.items.forEach(item => knownItemIds.add(item.id));
+
+                // Render list
+                if (notifList) {
+                    if (data.items.length === 0) {
+                        notifList.innerHTML = '<div class="adm-notif-empty">Hiện tại không có thông báo mới nào.</div>';
+                    } else {
+                        notifList.innerHTML = data.items.map(item => {
+                            const isUnread = !readIds.includes(item.id);
+                            let iconClass = 'adm-notif-icon--system';
+                            let icon = '🔔';
+                            if (item.type === 'booking') { iconClass = 'adm-notif-icon--booking'; icon = '📅'; }
+                            else if (item.type === 'facility') { iconClass = 'adm-notif-icon--facility'; icon = '🏢'; }
+                            else if (item.type === 'review') { iconClass = 'adm-notif-icon--review'; icon = '⭐'; }
+
+                            return `
+                                <a href="${escapeHtml(item.url)}" class="adm-notif-item ${isUnread ? 'unread' : ''}" data-id="${escapeHtml(item.id)}">
+                                    <div class="adm-notif-icon ${iconClass}">${icon}</div>
+                                    <div class="adm-notif-body">
+                                        <div class="adm-notif-item-title">
+                                            <span>${escapeHtml(item.title)}</span>
+                                        </div>
+                                        <div class="adm-notif-msg">${escapeHtml(item.message)}</div>
+                                        <div class="adm-notif-time">${escapeHtml(item.timeAgo)}</div>
+                                    </div>
+                                    ${isUnread ? '<div class="adm-notif-unread-dot"></div>' : ''}
+                                </a>
+                            `;
+                        }).join('');
+
+                        // Click handler on item
+                        notifList.querySelectorAll('.adm-notif-item').forEach(el => {
+                            el.addEventListener('click', function () {
+                                const id = this.dataset.id;
+                                if (id) markAsRead(id);
+                            });
+                        });
+                    }
+                }
+
+                refreshBadgeUI();
+
+                // Alert if new notification arrived while user is active on the page
+                if (newlyDiscoveredItems.length > 0) {
+                    playChime();
+                    newlyDiscoveredItems.forEach(showToast);
+                }
+
+                isInitialLoad = false;
+            } catch (err) {
+                console.warn('Lỗi lấy thông báo:', err);
+            }
+        }
+
+        // Toggle dropdown
+        if (notifBtn && notifDropdown) {
+            notifBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const isOpen = notifDropdown.classList.contains('show');
+                if (isOpen) {
+                    notifDropdown.classList.remove('show');
+                    notifBtn.setAttribute('aria-expanded', 'false');
+                } else {
+                    notifDropdown.classList.add('show');
+                    notifBtn.setAttribute('aria-expanded', 'true');
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
+                    notifDropdown.classList.remove('show');
+                    notifBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                markAllAsRead();
+            });
+        }
+
+        // Initial fetch
+        fetchNotifications();
+
+        // Polling every 25 seconds for new notifications
+        setInterval(fetchNotifications, 25000);
+    })();
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
