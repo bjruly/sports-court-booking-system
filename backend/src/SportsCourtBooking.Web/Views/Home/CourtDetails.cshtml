@@ -6,8 +6,7 @@
 @{
     ViewData["Title"] = $"Danh sách sân tại {Model.Court.Location}";
     var culture = CultureInfo.GetCultureInfo("vi-VN");
-    var activeCourtsCount = Model.AvailableCourts.Count(c => c.Status == CourtStatus.Active);
-    var maintenanceCourtsCount = Model.AvailableCourts.Count(c => c.Status == CourtStatus.Maintenance);
+    var activeCourtsCount = Model.AvailableCourts.Count;
 }
 
 <section class="page-section">
@@ -33,11 +32,7 @@
                 <h1>@(!string.IsNullOrWhiteSpace(Model.Court.FacilityName) ? Model.Court.FacilityName : $"Cơ sở {Model.Court.Location}")</h1>
 
                 <p class="page-subtitle">
-                    Mở cửa @($"{BookingRules.OpeningHour:00}:00")–@($"{BookingRules.ClosingHour:00}:00") · Hiện có <strong>@activeCourtsCount sân sẵn sàng</strong>
-                    @if (maintenanceCourtsCount > 0)
-                    {
-                        <span style="color: #fbbf24;"> (@maintenanceCourtsCount sân đang bảo trì)</span>
-                    }
+                    Mở cửa @($"{BookingRules.OpeningHour:00}:00")–@($"{BookingRules.ClosingHour:00}:00") · Hiện có <strong>@activeCourtsCount sân sẵn sàng đón khách</strong>
                 </p>
             </div>
 
@@ -60,18 +55,10 @@
                 {
                     var c = Model.AvailableCourts[i];
                     var courtNumber = i + 1;
-                    var isMaintenance = c.Status == CourtStatus.Maintenance;
-                    <article class="court-choice-card" style="@(isMaintenance ? "opacity: 0.8; border-color: rgba(251, 191, 36, 0.35);" : "")">
+                    <article class="court-choice-card">
                         <div class="choice-top">
                             <span class="choice-tag">SÂN @courtNumber</span>
-                            @if (isMaintenance)
-                            {
-                                <span class="choice-status" style="color: #fbbf24; font-weight: 700;">🔧 Đang bảo trì</span>
-                            }
-                            else
-                            {
-                                <span class="choice-status">🟢 Đang hoạt động</span>
-                            }
+                            <span class="choice-status">🟢 Đang hoạt động</span>
                         </div>
                         <h3 class="choice-title">@c.Name</h3>
                         <p class="choice-desc">
@@ -89,22 +76,13 @@
                                 <span class="choice-peak-tag">⚡ Giờ cao điểm từ @($"{c.PeakStartHour:00}:00")</span>
                             }
                         </div>
-                        @if (isMaintenance)
-                        {
-                            <button type="button" class="button button--outline button--full choice-btn" disabled style="cursor: not-allowed; opacity: 0.65; border-color: rgba(251, 191, 36, 0.4); color: #fbbf24; font-weight: 600;">
-                                🔧 Sân đang bảo trì (Tạm ngưng)
-                            </button>
-                        }
-                        else
-                        {
-                            <a class="button button--primary button--full choice-btn"
-                               asp-controller="Home"
-                               asp-action="Schedule"
-                               asp-route-id="@c.Id"
-                               asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")">
-                                Đặt Sân @courtNumber ngay <span aria-hidden="true">→</span>
-                            </a>
-                        }
+                        <a class="button button--primary button--full choice-btn"
+                           asp-controller="Home"
+                           asp-action="Schedule"
+                           asp-route-id="@c.Id"
+                           asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")">
+                            Đặt Sân @courtNumber ngay <span aria-hidden="true">→</span>
+                        </a>
                     </article>
                 }
             </div>

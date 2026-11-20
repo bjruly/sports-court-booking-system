@@ -191,7 +191,8 @@ public class HomeController : Controller
         var court = allCourts.SingleOrDefault(item => item.Id == id);
         if (court is null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "Sân này đang bảo trì hoặc ngừng hoạt động. Vui lòng chọn sân khác.";
+            return RedirectToAction(nameof(Index));
         }
 
         var siblingCourts = allCourts
@@ -229,22 +230,38 @@ public class HomeController : Controller
             court.Location = $"{district}, TP. Hồ Chí Minh";
         }
 
-        // Lấy danh sách sân của cơ sở (bao gồm cả Active và Maintenance để hiển thị trực quan tình trạng sân)
-        var allCourts = await _courtService.GetAllCourtsAsync(onlyActive: false);
+        // Lấy danh sách sân đang hoạt động của cơ sở (chỉ lấy sân Active, ẩn hoàn toàn các sân bảo trì hoặc ngừng hoạt động)
+        var allActiveCourts = await _courtService.GetAllCourtsAsync(onlyActive: true);
         List<CourtDto> siblingCourts;
         if (court.FacilityId.HasValue)
         {
-            siblingCourts = allCourts
-                .Where(c => c.FacilityId == court.FacilityId.Value && (c.Status == CourtStatus.Active || c.Status == CourtStatus.Maintenance))
+            siblingCourts = allActiveCourts
+                .Where(c => c.FacilityId == court.FacilityId.Value)
                 .OrderBy(c => c.Id)
                 .ToList();
         }
         else
         {
-            siblingCourts = allCourts
-                .Where(c => c.CourtTypeId == court.CourtTypeId && c.District == court.District && (c.Status == CourtStatus.Active || c.Status == CourtStatus.Maintenance))
+            siblingCourts = allActiveCourts
+                .Where(c => c.CourtTypeId == court.CourtTypeId && c.District == court.District)
                 .OrderBy(c => c.Id)
                 .ToList();
+        }
+
+        // Nếu sân hiện tại đang bảo trì hoặc ngừng hoạt động:
+        if (court.Status != CourtStatus.Active)
+        {
+            // Nếu cơ sở còn sân khác đang hoạt động, chuyển sang sân hoạt động đầu tiên
+            var activeSibling = siblingCourts.FirstOrDefault();
+            if (activeSibling != null)
+            {
+                TempData["InfoMessage"] = $"Sân '{court.Name}' hiện đang bảo trì hoặc tạm ngưng hoạt động. Hệ thống đã tự động chuyển sang sân đang hoạt động cùng cơ sở.";
+                return RedirectToAction(nameof(CourtDetails), new { id = activeSibling.Id, date = date?.ToString("yyyy-MM-dd") });
+            }
+
+            // Nếu toàn bộ sân của cơ sở đều bảo trì / tạm ngưng, quay về trang chủ
+            TempData["ErrorMessage"] = "Toàn bộ sân tại cơ sở này hiện đang tạm ngưng hoặc bảo trì. Quý khách vui lòng chọn cơ sở khác.";
+            return RedirectToAction(nameof(Index));
         }
 
         if (siblingCourts.Count == 0)
@@ -272,7 +289,8 @@ public class HomeController : Controller
         var court = allCourts.SingleOrDefault(item => item.Id == id);
         if (court is null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "Sân này đang bảo trì hoặc ngừng hoạt động. Vui lòng chọn sân khác.";
+            return RedirectToAction(nameof(Index));
         }
 
         var playDate = date ?? VietnamClock.Today.AddDays(1);
