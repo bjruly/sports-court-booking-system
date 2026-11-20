@@ -1502,6 +1502,37 @@ body.admin-dark-body {
   text-decoration: underline;
 }
 
+.adm-notif-tabs {
+  display: flex;
+  padding: 6px 12px;
+  gap: 6px;
+  border-bottom: 1px solid var(--d-border);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.adm-notif-tab {
+  background: none;
+  border: none;
+  color: var(--d-text-sub);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adm-notif-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.adm-notif-tab.active {
+  color: var(--d-green);
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
 .adm-notif-list {
   max-height: 380px;
   overflow-y: auto;
@@ -1523,8 +1554,50 @@ body.admin-dark-body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   text-decoration: none;
   color: inherit;
-  transition: background 0.15s ease;
+  transition: all 0.22s ease;
   position: relative;
+  cursor: pointer;
+}
+
+.adm-notif-item.dismissing {
+  opacity: 0;
+  transform: translateX(40px);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+  border: none;
+}
+
+.adm-notif-item.read-dimmed {
+  opacity: 0.6;
+}
+.adm-notif-item.read-dimmed:hover {
+  opacity: 1;
+}
+
+.adm-notif-dismiss-btn {
+  background: none;
+  border: none;
+  color: var(--d-text-sub);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+  line-height: 1;
+  margin-left: 6px;
+}
+
+.adm-notif-item:hover .adm-notif-dismiss-btn {
+  opacity: 0.7;
+}
+
+.adm-notif-dismiss-btn:hover {
+  opacity: 1;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
 }
 
 .adm-notif-item:hover {

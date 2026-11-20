@@ -65,6 +65,15 @@
                         </button>
                     </div>
 
+                    <div class="adm-notif-tabs">
+                        <button type="button" class="adm-notif-tab active" data-filter="unread" id="admNotifTabUnread">
+                            Chưa đọc (<span id="admNotifTabUnreadCount">0</span>)
+                        </button>
+                        <button type="button" class="adm-notif-tab" data-filter="all" id="admNotifTabAll">
+                            Tất cả
+                        </button>
+                    </div>
+
                     <div class="adm-notif-list" id="admNotifList">
                         <div class="adm-notif-empty">Đang tải thông báo...</div>
                     </div>
@@ -415,6 +424,12 @@
                 .replace(/'/g, '&#039;');
         }
 
+        let currentFilter = 'unread'; // 'unread' | 'all'
+        let cachedItems = [];
+        const tabUnread = document.getElementById('admNotifTabUnread');
+        const tabAll = document.getElementById('admNotifTabAll');
+        const tabUnreadCount = document.getElementById('admNotifTabUnreadCount');
+
         function markAsRead(id) {
             const readIds = getReadIds();
             if (!readIds.includes(id)) {
@@ -426,33 +441,29 @@
 
         function markAllAsRead() {
             const readIds = getReadIds();
-            document.querySelectorAll('.adm-notif-item').forEach(el => {
+            const items = notifList.querySelectorAll('.adm-notif-item');
+            items.forEach(el => {
                 const id = el.dataset.id;
                 if (id && !readIds.includes(id)) {
                     readIds.push(id);
                 }
-                el.classList.remove('unread');
-                const dot = el.querySelector('.adm-notif-unread-dot');
-                if (dot) dot.remove();
+                el.classList.add('dismissing');
             });
             saveReadIds(readIds);
-            refreshBadgeUI();
+            setTimeout(() => {
+                refreshBadgeUI();
+                renderList();
+            }, 260);
         }
 
         function refreshBadgeUI() {
             const readIds = getReadIds();
-            let unreadCount = 0;
-            document.querySelectorAll('.adm-notif-item').forEach(el => {
-                const id = el.dataset.id;
-                if (id && !readIds.includes(id)) {
-                    unreadCount++;
-                    el.classList.add('unread');
-                } else {
-                    el.classList.remove('unread');
-                    const dot = el.querySelector('.adm-notif-unread-dot');
-                    if (dot) dot.remove();
-                }
-            });
+            const unreadItems = cachedItems.filter(item => !readIds.includes(item.id));
+            const unreadCount = unreadItems.length;
+
+            if (tabUnreadCount) {
+                tabUnreadCount.textContent = unreadCount;
+            }
 
             if (notifBadge) {
                 if (unreadCount > 0) {
@@ -473,6 +484,84 @@
             }
         }
 
+        function renderList() {
+            if (!notifList) return;
+            const readIds = getReadIds();
+            const unreadItems = cachedItems.filter(item => !readIds.includes(item.id));
+            const itemsToRender = currentFilter === 'unread' ? unreadItems : cachedItems;
+
+            if (itemsToRender.length === 0) {
+                if (currentFilter === 'unread') {
+                    notifList.innerHTML = `
+                        <div class="adm-notif-empty" style="padding: 32px 16px; text-align: center;">
+                            <span style="font-size: 26px; display: block; margin-bottom: 6px;">🎉</span>
+                            <strong style="color: #e2e8f0; display: block; margin-bottom: 4px; font-size: 13.5px;">Đã đọc hết thông báo</strong>
+                            <span style="color: #94a3b8; font-size: 12px;">Các thông báo đã đọc đã được tự động ẩn bớt.</span>
+                        </div>
+                    `;
+                } else {
+                    notifList.innerHTML = '<div class="adm-notif-empty">Hiện tại không có thông báo nào.</div>';
+                }
+                return;
+            }
+
+            notifList.innerHTML = itemsToRender.map(item => {
+                const isUnread = !readIds.includes(item.id);
+                let iconClass = 'adm-notif-icon--system';
+                let icon = '🔔';
+                if (item.type === 'booking') { iconClass = 'adm-notif-icon--booking'; icon = '📅'; }
+                else if (item.type === 'facility') { iconClass = 'adm-notif-icon--facility'; icon = '🏢'; }
+                else if (item.type === 'review') { iconClass = 'adm-notif-icon--review'; icon = '⭐'; }
+
+                return `
+                    <div class="adm-notif-item ${isUnread ? 'unread' : 'read-dimmed'}" data-id="${escapeHtml(item.id)}" data-url="${escapeHtml(item.url)}">
+                        <div class="adm-notif-icon ${iconClass}">${icon}</div>
+                        <div class="adm-notif-body">
+                            <div class="adm-notif-item-title">
+                                <span>${escapeHtml(item.title)}</span>
+                                <button type="button" class="adm-notif-dismiss-btn" title="Ẩn thông báo này" data-dismiss-id="${escapeHtml(item.id)}">✕</button>
+                            </div>
+                            <div class="adm-notif-msg">${escapeHtml(item.message)}</div>
+                            <div class="adm-notif-time">${escapeHtml(item.timeAgo)}</div>
+                        </div>
+                        ${isUnread ? '<div class="adm-notif-unread-dot"></div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Click on item to mark read, dismiss and navigate
+            notifList.querySelectorAll('.adm-notif-item').forEach(el => {
+                el.addEventListener('click', function (e) {
+                    if (e.target.closest('.adm-notif-dismiss-btn')) return;
+                    const id = this.dataset.id;
+                    const url = this.dataset.url;
+                    if (id) markAsRead(id);
+                    if (url && url !== '#') {
+                        window.location.href = url;
+                    }
+                });
+            });
+
+            // Click on dismiss button (✕)
+            notifList.querySelectorAll('.adm-notif-dismiss-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const id = this.dataset.dismissId;
+                    const itemEl = this.closest('.adm-notif-item');
+                    if (itemEl) {
+                        itemEl.classList.add('dismissing');
+                        setTimeout(() => {
+                            if (id) markAsRead(id);
+                            renderList();
+                        }, 250);
+                    } else if (id) {
+                        markAsRead(id);
+                        renderList();
+                    }
+                });
+            });
+        }
+
         async function fetchNotifications() {
             try {
                 const res = await fetch('/api/notifications', { credentials: 'same-origin' });
@@ -480,6 +569,7 @@
                 const data = await res.json();
                 if (!data || !data.items) return;
 
+                cachedItems = data.items;
                 const readIds = getReadIds();
                 let newlyDiscoveredItems = [];
 
@@ -491,48 +581,10 @@
                     });
                 }
 
-                // Update known ids
                 data.items.forEach(item => knownItemIds.add(item.id));
 
-                // Render list
-                if (notifList) {
-                    if (data.items.length === 0) {
-                        notifList.innerHTML = '<div class="adm-notif-empty">Hiện tại không có thông báo mới nào.</div>';
-                    } else {
-                        notifList.innerHTML = data.items.map(item => {
-                            const isUnread = !readIds.includes(item.id);
-                            let iconClass = 'adm-notif-icon--system';
-                            let icon = '🔔';
-                            if (item.type === 'booking') { iconClass = 'adm-notif-icon--booking'; icon = '📅'; }
-                            else if (item.type === 'facility') { iconClass = 'adm-notif-icon--facility'; icon = '🏢'; }
-                            else if (item.type === 'review') { iconClass = 'adm-notif-icon--review'; icon = '⭐'; }
-
-                            return `
-                                <a href="${escapeHtml(item.url)}" class="adm-notif-item ${isUnread ? 'unread' : ''}" data-id="${escapeHtml(item.id)}">
-                                    <div class="adm-notif-icon ${iconClass}">${icon}</div>
-                                    <div class="adm-notif-body">
-                                        <div class="adm-notif-item-title">
-                                            <span>${escapeHtml(item.title)}</span>
-                                        </div>
-                                        <div class="adm-notif-msg">${escapeHtml(item.message)}</div>
-                                        <div class="adm-notif-time">${escapeHtml(item.timeAgo)}</div>
-                                    </div>
-                                    ${isUnread ? '<div class="adm-notif-unread-dot"></div>' : ''}
-                                </a>
-                            `;
-                        }).join('');
-
-                        // Click handler on item
-                        notifList.querySelectorAll('.adm-notif-item').forEach(el => {
-                            el.addEventListener('click', function () {
-                                const id = this.dataset.id;
-                                if (id) markAsRead(id);
-                            });
-                        });
-                    }
-                }
-
                 refreshBadgeUI();
+                renderList();
 
                 // Alert if new notification arrived while user is active on the page
                 if (newlyDiscoveredItems.length > 0) {
@@ -557,6 +609,8 @@
                 } else {
                     notifDropdown.classList.add('show');
                     notifBtn.setAttribute('aria-expanded', 'true');
+                    refreshBadgeUI();
+                    renderList();
                 }
             });
 
@@ -565,6 +619,25 @@
                     notifDropdown.classList.remove('show');
                     notifBtn.setAttribute('aria-expanded', 'false');
                 }
+            });
+        }
+
+        // Tab click listeners
+        if (tabUnread && tabAll) {
+            tabUnread.addEventListener('click', function (e) {
+                e.stopPropagation();
+                currentFilter = 'unread';
+                tabUnread.classList.add('active');
+                tabAll.classList.remove('active');
+                renderList();
+            });
+
+            tabAll.addEventListener('click', function (e) {
+                e.stopPropagation();
+                currentFilter = 'all';
+                tabAll.classList.add('active');
+                tabUnread.classList.remove('active');
+                renderList();
             });
         }
 
