@@ -47,6 +47,28 @@
                     </form>
                 </div>
 
+                @if (Model.SiblingCourts.Count > 1)
+                {
+                    <div class="sibling-switch-box">
+                        <span class="sibling-switch-label">Đang xem: <strong>@Model.Court.CourtName</strong> · Chuyển đổi sân:</span>
+                        <div class="sibling-switch-pills">
+                            @for (int i = 0; i < Model.SiblingCourts.Count; i++)
+                            {
+                                var sib = Model.SiblingCourts[i];
+                                var isCurrent = sib.Id == Model.Court.Id;
+                                <a class="sibling-pill @(isCurrent ? "sibling-pill--active" : "")"
+                                   asp-controller="Home"
+                                   asp-action="Schedule"
+                                   asp-route-id="@sib.Id"
+                                   asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")">
+                                    Sân @(i + 1): @sib.CourtName
+                                    @(isCurrent ? " ✓" : "")
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <div class="schedule-toolbar">
                     <span class="selected-date">@Model.PlayDate.ToString("dddd, dd/MM/yyyy", culture)</span>
                     <div class="slot-legend" aria-label="Chú giải trạng thái">

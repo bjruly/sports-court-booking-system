@@ -103,7 +103,7 @@ public class HomeController : Controller
     }
     }
 
-    var allCourts = await LoadCourtCardsFromDbAsync();
+    var allCourts = await LoadCourtCardsFromDbAsync(homeCatalogOnly: true);
 
     var courts = allCourts
         .Where(court =>
@@ -187,15 +187,20 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Schedule(int id, DateOnly? date)
     {
-        var allCourts = await LoadCourtCardsFromDbAsync();
+        var allCourts = await LoadCourtCardsFromDbAsync(homeCatalogOnly: false);
         var court = allCourts.SingleOrDefault(item => item.Id == id);
         if (court is null)
         {
             return NotFound();
         }
 
+        var siblingCourts = allCourts
+            .Where(item => item.Sport == court.Sport && item.District == court.District)
+            .OrderBy(item => item.Id)
+            .ToArray();
+
         var playDate = date ?? VietnamClock.Today.AddDays(1);
-        var schedule = await CreateScheduleFromDbAsync(court, playDate);
+        var schedule = await CreateScheduleFromDbAsync(court, playDate, siblingCourts);
 
         // Thông báo thành công/lỗi sau khi đặt sân (TempData) được _Layout hiển thị chung cho mọi trang.
         return View(schedule);
@@ -213,15 +218,45 @@ public class HomeController : Controller
 
         var court = await _courtService.GetCourtByIdAsync(id);
 
-        if (court is null || court.Status != CourtStatus.Active)
+        if (court is null)
         {
             return NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(court.Location) || court.Location.StartsWith("Khu", StringComparison.OrdinalIgnoreCase))
+        {
+            var district = string.IsNullOrWhiteSpace(court.District) ? "TP. Hồ Chí Minh" : court.District;
+            court.Location = $"{district}, TP. Hồ Chí Minh";
+        }
+
+        // Lấy danh sách sân của cơ sở (bao gồm cả Active và Maintenance để hiển thị trực quan tình trạng sân)
+        var allCourts = await _courtService.GetAllCourtsAsync(onlyActive: false);
+        List<CourtDto> siblingCourts;
+        if (court.FacilityId.HasValue)
+        {
+            siblingCourts = allCourts
+                .Where(c => c.FacilityId == court.FacilityId.Value && (c.Status == CourtStatus.Active || c.Status == CourtStatus.Maintenance))
+                .OrderBy(c => c.Id)
+                .ToList();
+        }
+        else
+        {
+            siblingCourts = allCourts
+                .Where(c => c.CourtTypeId == court.CourtTypeId && c.District == court.District && (c.Status == CourtStatus.Active || c.Status == CourtStatus.Maintenance))
+                .OrderBy(c => c.Id)
+                .ToList();
+        }
+
+        if (siblingCourts.Count == 0)
+        {
+            siblingCourts = new List<CourtDto> { court };
         }
 
         var viewModel = new CourtDetailsViewModel
         {
             Court = court,
-            PlayDate = date ?? VietnamClock.Today.AddDays(1)
+            PlayDate = date ?? VietnamClock.Today.AddDays(1),
+            AvailableCourts = siblingCourts
         };
 
         return View(viewModel);
@@ -233,7 +268,7 @@ public class HomeController : Controller
         int[]? selectedHours,
         string? voucherCode)
     {
-        var allCourts = await LoadCourtCardsFromDbAsync();
+        var allCourts = await LoadCourtCardsFromDbAsync(homeCatalogOnly: false);
         var court = allCourts.SingleOrDefault(item => item.Id == id);
         if (court is null)
         {
@@ -387,33 +422,94 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 
-    // Chuyển đổi dữ liệu Sân từ PostgreSQL sang CourtCardViewModel của giao diện (chỉ lấy sân đang hoạt động)
-    private async Task<IReadOnlyList<CourtCardViewModel>> LoadCourtCardsFromDbAsync()
+    // Chuyển đổi dữ liệu Sân từ PostgreSQL sang CourtCardViewModel của giao diện (chỉ lấy sân và cơ sở đã được duyệt và đang hoạt động)
+    private async Task<IReadOnlyList<CourtCardViewModel>> LoadCourtCardsFromDbAsync(bool homeCatalogOnly = false)
     {
         var dbCourts = await _courtService.GetAllCourtsAsync(onlyActive: true);
-
         var visualClasses = new[] { "court-visual--green", "court-visual--blue", "court-visual--orange" };
 
-        return dbCourts.Select((c, index) => new CourtCardViewModel
+        if (homeCatalogOnly)
         {
-            Id = c.Id,
-            FacilityName = string.IsNullOrWhiteSpace(c.Location) ? "Sports Center" : c.Location,
-            CourtName = c.Name,
-            Sport = string.IsNullOrWhiteSpace(c.CourtTypeName) ? "Cầu lông" : c.CourtTypeName,
-            District = string.IsNullOrWhiteSpace(c.District) ? "Chưa cập nhật" : c.District,
-            City = "TP. Hồ Chí Minh",
-            OpeningHours = $"{BookingRules.OpeningHour:00}:00–{BookingRules.ClosingHour:00}:00",
-            StartingPrice = c.PricePerHour,
-            PeakStartHour = c.PeakStartHour,
-            PeakSurcharge = c.PeakSurcharge,
-            Description = c.Description ?? "Không gian thoáng, sân đạt chuẩn thi đấu.",
-            VisualClass = visualClasses[index % visualClasses.Length]
+            // Mỗi Cơ sở thể thao đại diện cho 1 tấm thẻ trên trang chủ
+            var facilityGroups = dbCourts
+                .GroupBy(c => c.FacilityId.HasValue ? $"fac_{c.FacilityId.Value}" : $"type_{c.CourtTypeId}_{c.District}")
+                .ToList();
+
+            var cards = new List<CourtCardViewModel>();
+            int cardIndex = 0;
+
+            foreach (var group in facilityGroups)
+            {
+                var groupList = group.OrderBy(c => c.Id).ToList();
+                var primaryCourt = groupList.First();
+
+                var district = string.IsNullOrWhiteSpace(primaryCourt.District) ? "TP. Hồ Chí Minh" : primaryCourt.District;
+                var facilityName = !string.IsNullOrWhiteSpace(primaryCourt.FacilityName)
+                    ? primaryCourt.FacilityName
+                    : primaryCourt.Location;
+
+                var courtNamesSummary = string.Join(", ", groupList.Select(c =>
+                {
+                    var name = c.Name;
+                    var parenIdx = name.IndexOf('(');
+                    return parenIdx > 0 ? name[..parenIdx].Trim() : name;
+                }));
+
+                cards.Add(new CourtCardViewModel
+                {
+                    Id = primaryCourt.Id,
+                    FacilityName = facilityName,
+                    CourtName = primaryCourt.Name,
+                    Sport = string.IsNullOrWhiteSpace(primaryCourt.CourtTypeName) ? "Cầu lông" : primaryCourt.CourtTypeName,
+                    District = district,
+                    City = "TP. Hồ Chí Minh",
+                    OpeningHours = $"{BookingRules.OpeningHour:00}:00–{BookingRules.ClosingHour:00}:00",
+                    StartingPrice = groupList.Min(c => c.PricePerHour),
+                    PeakStartHour = primaryCourt.PeakStartHour,
+                    PeakSurcharge = primaryCourt.PeakSurcharge,
+                    Description = primaryCourt.Description ?? "Không gian thoáng, sân đạt chuẩn thi đấu.",
+                    VisualClass = visualClasses[cardIndex % visualClasses.Length],
+                    CourtCount = groupList.Count,
+                    CourtNamesSummary = courtNamesSummary
+                });
+
+                cardIndex++;
+            }
+
+            return cards;
+        }
+
+        return dbCourts.Select((c, index) =>
+        {
+            var district = string.IsNullOrWhiteSpace(c.District) ? "TP. Hồ Chí Minh" : c.District;
+            var facilityName = !string.IsNullOrWhiteSpace(c.FacilityName) ? c.FacilityName : c.Location;
+
+            return new CourtCardViewModel
+            {
+                Id = c.Id,
+                FacilityName = facilityName,
+                CourtName = c.Name,
+                Sport = string.IsNullOrWhiteSpace(c.CourtTypeName) ? "Cầu lông" : c.CourtTypeName,
+                District = district,
+                City = "TP. Hồ Chí Minh",
+                OpeningHours = $"{BookingRules.OpeningHour:00}:00–{BookingRules.ClosingHour:00}:00",
+                StartingPrice = c.PricePerHour,
+                PeakStartHour = c.PeakStartHour,
+                PeakSurcharge = c.PeakSurcharge,
+                Description = c.Description ?? "Không gian thoáng, sân đạt chuẩn thi đấu.",
+                VisualClass = visualClasses[index % visualClasses.Length],
+                CourtCount = 1,
+                CourtNamesSummary = c.Name
+            };
         }).ToArray();
     }
 
     // Kiểm tra lịch đặt sân thật từ bảng Bookings cho từng khung giờ (06:00 -> 22:00).
     // Khung giờ đã trôi qua (theo giờ Việt Nam) cũng không cho chọn.
-    private async Task<CourtScheduleViewModel> CreateScheduleFromDbAsync(CourtCardViewModel court, DateOnly playDate)
+    private async Task<CourtScheduleViewModel> CreateScheduleFromDbAsync(
+        CourtCardViewModel court,
+        DateOnly playDate,
+        IReadOnlyList<CourtCardViewModel>? siblingCourts = null)
     {
         var existingBookings = await _bookingService.GetBookingsByDateAsync(playDate, court.Id);
         var now = VietnamClock.Now;
@@ -444,7 +540,8 @@ public class HomeController : Controller
         {
             Court = court,
             PlayDate = playDate,
-            Slots = slots
+            Slots = slots,
+            SiblingCourts = siblingCourts ?? []
         };
     }
 }

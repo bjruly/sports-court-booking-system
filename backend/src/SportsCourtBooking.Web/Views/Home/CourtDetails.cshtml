@@ -1,10 +1,13 @@
 @using System.Globalization
 @using SportsCourtBooking.Application.Rules
+@using SportsCourtBooking.Domain.Enums
 @model CourtDetailsViewModel
 
 @{
-    ViewData["Title"] = Model.Court.Name;
+    ViewData["Title"] = $"Danh sách sân tại {Model.Court.Location}";
     var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var activeCourtsCount = Model.AvailableCourts.Count(c => c.Status == CourtStatus.Active);
+    var maintenanceCourtsCount = Model.AvailableCourts.Count(c => c.Status == CourtStatus.Maintenance);
 }
 
 <section class="page-section">
@@ -18,121 +21,155 @@
             </a>
 
             <span aria-hidden="true">/</span>
-            <span>Chi tiết sân</span>
+            <span>@Model.Court.CourtTypeName - @Model.Court.District</span>
         </nav>
 
-        <div class="page-heading">
+        <div class="page-heading page-heading--court-selection">
             <div>
                 <p class="eyebrow eyebrow--dark">
-                    @Model.Court.CourtTypeName
+                    <span class="eyebrow-line"></span> @Model.Court.CourtTypeName.ToUpperInvariant() · @Model.Court.District.ToUpperInvariant()
                 </p>
 
-                <h1>@Model.Court.Name</h1>
+                <h1>@(!string.IsNullOrWhiteSpace(Model.Court.FacilityName) ? Model.Court.FacilityName : $"Cơ sở {Model.Court.Location}")</h1>
 
                 <p class="page-subtitle">
-                    @Model.Court.Location
+                    Mở cửa @($"{BookingRules.OpeningHour:00}:00")–@($"{BookingRules.ClosingHour:00}:00") · Hiện có <strong>@activeCourtsCount sân sẵn sàng</strong>
+                    @if (maintenanceCourtsCount > 0)
+                    {
+                        <span style="color: #fbbf24;"> (@maintenanceCourtsCount sân đang bảo trì)</span>
+                    }
                 </p>
+            </div>
+
+            <form class="date-picker-bar" asp-controller="Home" asp-action="CourtDetails" method="get">
+                <input type="hidden" name="id" value="@Model.Court.Id" />
+                <label for="playDateInput"><strong>Ngày chơi:</strong></label>
+                <input id="playDateInput" type="date" name="date" value="@Model.PlayDate.ToString("yyyy-MM-dd")" onchange="this.form.submit()" />
+                <button type="submit" class="button button--small button--dark">Xem ngày</button>
+            </form>
+        </div>
+
+        <div class="court-choice-section">
+            <div class="section-subheading">
+                <h2>CHỌN SÂN ĐẶT LỊCH</h2>
+                <p>Bấm vào sân bạn muốn để xem khung giờ còn trống và tiến hành đặt chỗ:</p>
+            </div>
+
+            <div class="court-choice-grid">
+                @for (int i = 0; i < Model.AvailableCourts.Count; i++)
+                {
+                    var c = Model.AvailableCourts[i];
+                    var courtNumber = i + 1;
+                    var isMaintenance = c.Status == CourtStatus.Maintenance;
+                    <article class="court-choice-card" style="@(isMaintenance ? "opacity: 0.8; border-color: rgba(251, 191, 36, 0.35);" : "")">
+                        <div class="choice-top">
+                            <span class="choice-tag">SÂN @courtNumber</span>
+                            @if (isMaintenance)
+                            {
+                                <span class="choice-status" style="color: #fbbf24; font-weight: 700;">🔧 Đang bảo trì</span>
+                            }
+                            else
+                            {
+                                <span class="choice-status">🟢 Đang hoạt động</span>
+                            }
+                        </div>
+                        <h3 class="choice-title">@c.Name</h3>
+                        <p class="choice-desc">
+                            @(string.IsNullOrWhiteSpace(c.Description)
+                                ? "Mặt sân đạt chuẩn thi đấu, không gian thoáng đãng, hệ thống chiếu sáng tốt."
+                                : c.Description)
+                        </p>
+                        <div class="choice-pricing-box">
+                            <div>
+                                <span class="pricing-label">Giá thuê mỗi giờ</span>
+                                <strong class="pricing-val">@c.PricePerHour.ToString("N0", culture)₫<small> / giờ</small></strong>
+                            </div>
+                            @if (c.PeakSurcharge > 0)
+                            {
+                                <span class="choice-peak-tag">⚡ Giờ cao điểm từ @($"{c.PeakStartHour:00}:00")</span>
+                            }
+                        </div>
+                        @if (isMaintenance)
+                        {
+                            <button type="button" class="button button--outline button--full choice-btn" disabled style="cursor: not-allowed; opacity: 0.65; border-color: rgba(251, 191, 36, 0.4); color: #fbbf24; font-weight: 600;">
+                                🔧 Sân đang bảo trì (Tạm ngưng)
+                            </button>
+                        }
+                        else
+                        {
+                            <a class="button button--primary button--full choice-btn"
+                               asp-controller="Home"
+                               asp-action="Schedule"
+                               asp-route-id="@c.Id"
+                               asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")">
+                                Đặt Sân @courtNumber ngay <span aria-hidden="true">→</span>
+                            </a>
+                        }
+                    </article>
+                }
             </div>
         </div>
 
-        <div class="court-details-layout">
+        <div class="court-details-layout" style="margin-top: 40px;">
             <div class="court-details-main">
-
-                <div class="court-details-media">
-                    @if (!string.IsNullOrWhiteSpace(Model.Court.ImageUrl))
-                    {
-                        <img class="court-details-image"
-                             src="@Url.Content(Model.Court.ImageUrl)"
-                             alt="@Model.Court.Name" />
-                    }
-                    else
-                    {
-                        <div class="court-visual court-visual--green">
-                            <span class="visual-tag">
-                                @Model.Court.CourtTypeName
-                            </span>
-
-                            <span class="visual-number">
-                                SÂN<br />NHÀ<span>.</span>
-                            </span>
-
-                            <span class="visual-lines"></span>
-                            <span class="visual-caption">RA SÂN<br />THÔI</span>
-                        </div>
-                    }
-                </div>
-
-                <article class="court-details-card">
-                    <h2>Thông tin sân</h2>
+                <article class="court-details-card" style="margin-top: 0;">
+                    <h2>Thông tin cơ sở</h2>
 
                     <dl class="court-details-info">
                         <dt>Môn thể thao</dt>
                         <dd>@Model.Court.CourtTypeName</dd>
 
-                        <dt>Địa điểm</dt>
+                        <dt>Địa chỉ</dt>
                         <dd>@Model.Court.Location</dd>
 
-                        <dt>Giờ mở cửa</dt>
+                        <dt>Khu vực</dt>
+                        <dd>@Model.Court.District, TP. Hồ Chí Minh</dd>
+
+                        <dt>Giờ hoạt động</dt>
                         <dd>
                             @($"{BookingRules.OpeningHour:00}:00")
                             –
                             @($"{BookingRules.ClosingHour:00}:00")
                         </dd>
 
-                        <dt>Trạng thái</dt>
-                        <dd>Đang hoạt động</dd>
+                        <dt>Số lượng sân</dt>
+                        <dd>@Model.AvailableCourts.Count sân đạt chuẩn</dd>
                     </dl>
 
-                    <h2>Giới thiệu</h2>
-
+                    <h2>Chính sách & Quy định</h2>
                     <p class="court-details-description">
-                        @(string.IsNullOrWhiteSpace(Model.Court.Description)
-                            ? "Chưa có mô tả cho sân này."
-                            : Model.Court.Description)
+                        • Quý khách vui lòng có mặt trước giờ đặt 10–15 phút để làm thủ tục nhận sân.<br />
+                        • Khung giờ cao điểm bắt đầu từ 17:00, hệ thống tự động áp dụng phụ thu theo bảng giá niêm yết.<br />
+                        • Mỗi lượt đặt được chọn tối đa 4 giờ liên tiếp trên cùng một sân.
                     </p>
                 </article>
             </div>
 
             <aside class="booking-summary court-details-summary">
                 <div class="summary-label">
-                    LÊN LỊCH RA SÂN
+                    HỖ TRỢ & ĐẶT SÂN
                 </div>
 
-                <h2>Chọn giờ chơi<br />phù hợp với bạn.</h2>
+                <h2>Đặt sân nhanh chóng,<br />tiện lợi.</h2>
 
                 <div class="summary-divider"></div>
 
                 <div class="summary-line">
-                    <span>Giá cơ bản mỗi giờ</span>
-                    <strong>
-                        @Model.Court.PricePerHour.ToString("N0", culture)₫
-                    </strong>
-                </div>
-
-                <div class="summary-line">
-                    <span>Ngày chơi</span>
+                    <span>Ngày đang chọn</span>
                     <strong>
                         @Model.PlayDate.ToString("dd/MM/yyyy")
                     </strong>
                 </div>
 
-                <p class="summary-caption">
-                    Phụ thu
-                    @BookingRules.PeakSurcharge.ToString("N0", culture)₫/giờ
-                    từ @($"{BookingRules.PeakStartHour:00}:00").
-                    Giá từng khung giờ hiển thị trong lịch sân.
-                </p>
-
-                <a class="button button--primary button--full"
-                   asp-controller="Home"
-                   asp-action="Schedule"
-                   asp-route-id="@Model.Court.Id"
-                   asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")">
-                    Xem lịch trống →
-                </a>
+                <div class="summary-line">
+                    <span>Số lượng sân</span>
+                    <strong>
+                        @Model.AvailableCourts.Count sân
+                    </strong>
+                </div>
 
                 <p class="summary-caption">
-                    Chọn khung giờ còn trống để tiếp tục đặt sân.
+                    Chọn một trong các sân ở danh sách trên để mở bảng giờ trống và giữ chỗ ngay cho trận đấu của bạn.
                 </p>
             </aside>
         </div>

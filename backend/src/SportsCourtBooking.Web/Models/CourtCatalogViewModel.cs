@@ -48,6 +48,10 @@ public sealed class CourtCardViewModel
     public string Description { get; init; } = string.Empty;
 
     public string VisualClass { get; init; } = string.Empty;
+
+    public int CourtCount { get; init; } = 1;
+
+    public string CourtNamesSummary { get; init; } = string.Empty;
 }
 
 public sealed class CourtScheduleViewModel
@@ -59,6 +63,8 @@ public sealed class CourtScheduleViewModel
     public IReadOnlyList<CourtSlotViewModel> Slots { get; init; } = [];
 
     public string? ErrorMessage { get; init; }
+
+    public IReadOnlyList<CourtCardViewModel> SiblingCourts { get; init; } = [];
 }
 
 public sealed class CourtSlotViewModel
