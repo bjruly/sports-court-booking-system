@@ -219,12 +219,32 @@ public class AppDbContext : DbContext
             new CourtType { Id = 4, Name = "Tennis", Description = "Sân cứng tiêu chuẩn quốc tế", CreatedAt = seedDate }
         );
 
-        // Seed Courts
+        // Seed Courts (15 sân phân bổ cho 5 cơ sở)
         modelBuilder.Entity<Court>().HasData(
-            new Court { Id = 1, OwnerId = 3, Name = "Sân Cầu Lông VIP 1", CourtTypeId = 1, Location = "Khu A - Tầng 1", District = "Quận 7", PricePerHour = 80000, Status = CourtStatus.Active, Description = "Thảm Yonex, đèn LED chống chói", CreatedAt = seedDate },
-            new Court { Id = 2, OwnerId = 3, Name = "Sân Cầu Lông VIP 2", CourtTypeId = 1, Location = "Khu A - Tầng 1", District = "Bình Thạnh", PricePerHour = 80000, Status = CourtStatus.Active, Description = "Thảm Yonex, quạt làm mát", CreatedAt = seedDate },
-            new Court { Id = 3, OwnerId = 3, Name = "Sân Bóng Đá 5 Người - Sân A", CourtTypeId = 2, Location = "Khu B - Ngoài trời", District = "Thủ Đức", PricePerHour = 250000, Status = CourtStatus.Active, Description = "Cỏ mới thay, hệ thống thoát nước tốt", CreatedAt = seedDate },
-            new Court { Id = 4, OwnerId = 3, Name = "Sân Pickleball Số 1", CourtTypeId = 3, Location = "Khu C - Có mái che", District = "Quận 10", PricePerHour = 120000, Status = CourtStatus.Active, Description = "Mặt sân Acrylic chuẩn thi đấu", CreatedAt = seedDate }
+            // 1. Cầu lông - Quận 7
+            new Court { Id = 1, OwnerId = 3, Name = "Sân Cầu Lông VIP 1", CourtTypeId = 1, Location = "Quận 7, TP. Hồ Chí Minh", District = "Quận 7", PricePerHour = 80000, Status = CourtStatus.Active, Description = "Thảm Yonex đạt chuẩn BWF thi đấu, đèn LED chống chói mắt.", CreatedAt = seedDate },
+            new Court { Id = 6, OwnerId = 3, Name = "Sân Cầu Lông VIP 2", CourtTypeId = 1, Location = "Quận 7, TP. Hồ Chí Minh", District = "Quận 7", PricePerHour = 80000, Status = CourtStatus.Active, Description = "Thảm Yonex chống trơn trượt, hệ thống quạt mát tự nhiên.", CreatedAt = seedDate },
+            new Court { Id = 7, OwnerId = 3, Name = "Sân Cầu Lông VIP 3", CourtTypeId = 1, Location = "Quận 7, TP. Hồ Chí Minh", District = "Quận 7", PricePerHour = 90000, Status = CourtStatus.Active, Description = "Sân VIP trung tâm, có ghế nghỉ vận động viên và khán đài mini.", CreatedAt = seedDate },
+
+            // 2. Cầu lông - Bình Thạnh
+            new Court { Id = 2, OwnerId = 3, Name = "Sân Cầu Lông 1 - Bình Thạnh", CourtTypeId = 1, Location = "Bình Thạnh, TP. Hồ Chí Minh", District = "Bình Thạnh", PricePerHour = 75000, Status = CourtStatus.Active, Description = "Thảm cao su chống sốc, không gian thoáng mát.", CreatedAt = seedDate },
+            new Court { Id = 8, OwnerId = 3, Name = "Sân Cầu Lông 2 - Bình Thạnh", CourtTypeId = 1, Location = "Bình Thạnh, TP. Hồ Chí Minh", District = "Bình Thạnh", PricePerHour = 75000, Status = CourtStatus.Active, Description = "Thảm thi đấu tiêu chuẩn, hệ thống đèn chiếu sáng góc rộng.", CreatedAt = seedDate },
+            new Court { Id = 9, OwnerId = 3, Name = "Sân Cầu Lông 3 - Bình Thạnh", CourtTypeId = 1, Location = "Bình Thạnh, TP. Hồ Chí Minh", District = "Bình Thạnh", PricePerHour = 85000, Status = CourtStatus.Active, Description = "Sân VIP máy lạnh, sàn cao cấp nhập khẩu.", CreatedAt = seedDate },
+
+            // 3. Bóng đá - Thủ Đức
+            new Court { Id = 3, OwnerId = 3, Name = "Sân Bóng Đá 5 Người (Sân A)", CourtTypeId = 2, Location = "Thủ Đức, TP. Hồ Chí Minh", District = "Thủ Đức", PricePerHour = 250000, Status = CourtStatus.Active, Description = "Mặt cỏ nhân tạo mới thay, hệ thống thoát nước mưa cực tốt.", CreatedAt = seedDate },
+            new Court { Id = 10, OwnerId = 3, Name = "Sân Bóng Đá 5 Người (Sân B)", CourtTypeId = 2, Location = "Thủ Đức, TP. Hồ Chí Minh", District = "Thủ Đức", PricePerHour = 250000, Status = CourtStatus.Active, Description = "Cỏ sợi mềm tiêu chuẩn FIFA, đèn cao áp chiếu sáng đêm.", CreatedAt = seedDate },
+            new Court { Id = 11, OwnerId = 3, Name = "Sân Bóng Đá 7 Người (Sân C)", CourtTypeId = 2, Location = "Thủ Đức, TP. Hồ Chí Minh", District = "Thủ Đức", PricePerHour = 350000, Status = CourtStatus.Active, Description = "Sân thi đấu 7 người rộng rãi, khán đài có mái che.", CreatedAt = seedDate },
+
+            // 4. Pickleball - Quận 10
+            new Court { Id = 4, OwnerId = 3, Name = "Sân Pickleball Số 1", CourtTypeId = 3, Location = "Quận 10, TP. Hồ Chí Minh", District = "Quận 10", PricePerHour = 120000, Status = CourtStatus.Active, Description = "Mặt sân Acrylic tiêu chuẩn thi đấu, chống trơn trượt tối đa.", CreatedAt = seedDate },
+            new Court { Id = 12, OwnerId = 3, Name = "Sân Pickleball Số 2", CourtTypeId = 3, Location = "Quận 10, TP. Hồ Chí Minh", District = "Quận 10", PricePerHour = 120000, Status = CourtStatus.Active, Description = "Mặt sân cao cấp, có mái che mát mẻ và hệ thống thông gió.", CreatedAt = seedDate },
+            new Court { Id = 13, OwnerId = 3, Name = "Sân Pickleball Số 3", CourtTypeId = 3, Location = "Quận 10, TP. Hồ Chí Minh", District = "Quận 10", PricePerHour = 130000, Status = CourtStatus.Active, Description = "Sân VIP trung tâm có lưới thi đấu chuyên nghiệp USA Pickleball.", CreatedAt = seedDate },
+
+            // 5. Tennis - Quận 2
+            new Court { Id = 5, OwnerId = 3, Name = "Sân Tennis Tiêu Chuẩn 1", CourtTypeId = 4, Location = "Quận 2, TP. Hồ Chí Minh", District = "Quận 2", PricePerHour = 180000, Status = CourtStatus.Active, Description = "Mặt sân cứng Plexicushion tiêu chuẩn Grand Slam.", CreatedAt = seedDate },
+            new Court { Id = 14, OwnerId = 3, Name = "Sân Tennis Tiêu Chuẩn 2", CourtTypeId = 4, Location = "Quận 2, TP. Hồ Chí Minh", District = "Quận 2", PricePerHour = 180000, Status = CourtStatus.Active, Description = "Mặt sân cứng cao cấp, đèn LED công suất lớn không chói.", CreatedAt = seedDate },
+            new Court { Id = 15, OwnerId = 3, Name = "Sân Tennis VIP Có Mái Che", CourtTypeId = 4, Location = "Quận 2, TP. Hồ Chí Minh", District = "Quận 2", PricePerHour = 220000, Status = CourtStatus.Active, Description = "Sân có mái che hiện đại, đánh thoải mái bất kể thời tiết.", CreatedAt = seedDate }
         );
 
         // Seed Users (Admin, Chủ Sân & Khách hàng mẫu)

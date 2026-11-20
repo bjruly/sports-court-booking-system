@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SportsCourtBooking.Application.Common;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Domain.Enums;
@@ -37,7 +38,7 @@ public class ReportService : IReportService
 
         // 3. Thống kê đơn đặt sân
         var bookings = await _context.Bookings
-            .Select(b => new { b.Id, b.CourtId, b.Status, b.TotalPrice })
+            .Select(b => new { b.Id, b.CourtId, b.Status, b.TotalPrice, b.BookingDate })
             .ToListAsync();
 
         var totalBookings = bookings.Count;
@@ -101,6 +102,24 @@ public class ReportService : IReportService
             };
         }).ToList();
 
+        // 6. Thống kê 7 ngày gần nhất theo BookingDate thực tế
+        var today = VietnamClock.Today;
+        var recentDailyRevenues = new List<DailyRevenueDto>();
+        for (int i = 6; i >= 0; i--)
+        {
+            var targetDate = today.AddDays(-i);
+            var dayBookings = bookings
+                .Where(b => b.BookingDate == targetDate && (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed))
+                .ToList();
+
+            recentDailyRevenues.Add(new DailyRevenueDto
+            {
+                Date = targetDate,
+                Revenue = dayBookings.Sum(b => b.TotalPrice),
+                BookingCount = dayBookings.Count
+            });
+        }
+
         return new AdminReportDto
         {
             TotalRevenue = totalRevenue,
@@ -115,7 +134,8 @@ public class ReportService : IReportService
             TotalCourts = totalCourts,
             ActiveCourts = activeCourts,
             CourtTypeReports = courtTypeReports,
-            BookingStatusReports = bookingStatusReports
+            BookingStatusReports = bookingStatusReports,
+            RecentDailyRevenues = recentDailyRevenues
         };
     }
 

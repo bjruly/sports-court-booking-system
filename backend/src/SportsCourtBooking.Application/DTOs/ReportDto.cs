@@ -28,6 +28,16 @@ public class AdminReportDto
 
     // Báo cáo tổng hợp theo trạng thái đơn
     public List<BookingStatusReportDto> BookingStatusReports { get; set; } = new();
+
+    // Doanh thu theo 7 ngày gần nhất (dữ liệu thật)
+    public List<DailyRevenueDto> RecentDailyRevenues { get; set; } = new();
+}
+
+public class DailyRevenueDto
+{
+    public DateOnly Date { get; set; }
+    public decimal Revenue { get; set; }
+    public int BookingCount { get; set; }
 }
 
 public class CourtTypeReportDto
