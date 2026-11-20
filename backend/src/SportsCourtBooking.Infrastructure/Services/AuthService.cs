@@ -32,7 +32,7 @@ public class AuthService : IAuthService
         if (email.Length == 0 || password.Length == 0)
             return (false, invalidMessage, null);
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null)
         {
             _passwordHasher.Verify(password, DummyHash);
@@ -41,6 +41,15 @@ public class AuthService : IAuthService
 
         if (!_passwordHasher.Verify(password, user.PasswordHash))
             return (false, invalidMessage, null);
+
+        if (!user.IsActive)
+        {
+            if (user.Role == UserRole.CourtOwner)
+            {
+                return (false, "Tài Khoản Của Bạn Đang bị khóa liên hệ admin để đc hỗ trợ", null);
+            }
+            return (false, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để được hỗ trợ.", null);
+        }
 
         return (true, "Đăng nhập thành công!", ToDto(user));
     }

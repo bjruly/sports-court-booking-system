@@ -49,6 +49,25 @@ public class OwnerController : Controller
         _revenueReportService = revenueReportService;
     }
 
+    public override async Task OnActionExecutionAsync(
+        Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context,
+        Microsoft.AspNetCore.Mvc.Filters.ActionExecutionDelegate next)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId.HasValue)
+        {
+            var isOwnerActive = await _userService.IsUserActiveAsync(ownerId.Value);
+            if (!isOwnerActive)
+            {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                TempData["ErrorMessage"] = "Tài Khoản Của Bạn Đang bị khóa liên hệ admin để đc hỗ trợ";
+                context.Result = RedirectToAction("Login", "Home");
+                return;
+            }
+        }
+        await base.OnActionExecutionAsync(context, next);
+    }
+
     [HttpGet]
     public async Task<IActionResult> Index()
     {

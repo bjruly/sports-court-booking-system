@@ -138,6 +138,34 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Customers), new { search = returnSearch });
     }
 
+    // ─── Quản lý chủ sân (Owner) ─────────────────────────────────────────────
+
+    [HttpGet]
+    public async Task<IActionResult> Owners(string? search, string? filter)
+    {
+        ViewData["Search"] = search;
+        ViewData["Filter"] = filter ?? "all";
+        ViewBag.Stats = await _userService.GetCourtOwnerStatsAsync();
+
+        var owners = await _userService.GetCourtOwnersAsync(search, filter);
+        return View(owners);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleLockOwner(int id, string? returnSearch, string? returnFilter)
+    {
+        var adminId = User.GetUserId() ?? 0;
+        var (success, message, _) = await _userService.ToggleLockOwnerAsync(id, adminId);
+
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
+
+        return RedirectToAction(nameof(Owners), new { search = returnSearch, filter = returnFilter });
+    }
+
     // ─── UC26: Quản lý & Xử lý đánh giá vi phạm ──────────────────────────────
 
     [HttpGet]

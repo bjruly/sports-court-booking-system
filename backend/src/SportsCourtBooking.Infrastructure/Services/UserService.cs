@@ -48,6 +48,84 @@ public class UserService : IUserService
             .ToListAsync();
     }
 
+    public async Task<List<CourtOwnerItemDto>> GetCourtOwnersAsync(string? search = null, string? filter = null)
+    {
+        var query = _context.Users
+            .Where(u => u.Role == UserRole.CourtOwner)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var keyword = search.Trim().ToLower();
+            query = query.Where(u =>
+                u.FullName.ToLower().Contains(keyword) ||
+                u.Email.ToLower().Contains(keyword) ||
+                u.PhoneNumber.Contains(keyword));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter) && !string.Equals(filter, "all", StringComparison.OrdinalIgnoreCase))
+        {
+            query = filter.ToLower() switch
+            {
+                "active" => query.Where(u => u.IsActive),
+                "locked" => query.Where(u => !u.IsActive),
+                _ => query
+            };
+        }
+
+        return await query
+            .OrderByDescending(u => u.CreatedAt)
+            .Select(u => new CourtOwnerItemDto
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber,
+                IsActive = u.IsActive,
+                FacilityCount = _context.Facilities.Count(f => f.OwnerId == u.Id),
+                CourtCount = _context.Courts.Count(c => c.OwnerId == u.Id),
+                CreatedAt = u.CreatedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<CourtOwnerStatsDto> GetCourtOwnerStatsAsync()
+    {
+        var total = await _context.Users.CountAsync(u => u.Role == UserRole.CourtOwner);
+        var active = await _context.Users.CountAsync(u => u.Role == UserRole.CourtOwner && u.IsActive);
+        var locked = await _context.Users.CountAsync(u => u.Role == UserRole.CourtOwner && !u.IsActive);
+        var totalFacilities = await _context.Facilities.CountAsync();
+
+        return new CourtOwnerStatsDto
+        {
+            TotalOwners = total,
+            ActiveOwners = active,
+            LockedOwners = locked,
+            TotalFacilities = totalFacilities
+        };
+    }
+
+    public async Task<(bool Success, string Message, bool? IsActive)> ToggleLockOwnerAsync(int targetOwnerId, int? adminUserId)
+    {
+        if (adminUserId.HasValue && targetOwnerId == adminUserId.Value)
+            return (false, "Không thể khóa chính tài khoản của mình.", null);
+
+        var owner = await _context.Users.FindAsync(targetOwnerId);
+        if (owner == null || owner.Role != UserRole.CourtOwner)
+            return (false, "Không tìm thấy tài khoản Chủ sân.", null);
+
+        owner.IsActive = !owner.IsActive;
+        await _context.SaveChangesAsync();
+
+        var action = owner.IsActive ? "Mở khóa" : "Khóa";
+        return (true, $"{action} tài khoản Chủ sân \"{owner.FullName}\" thành công.", owner.IsActive);
+    }
+
+    public async Task<bool> IsUserActiveAsync(int userId)
+    {
+        return await _context.Users.AnyAsync(u => u.Id == userId && u.IsActive);
+    }
+
     public async Task<(bool Success, string Message, bool? IsActive)> ToggleLockAsync(int targetUserId, int? adminUserId)
     {
         if (adminUserId.HasValue && targetUserId == adminUserId.Value)
