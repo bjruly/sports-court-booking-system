@@ -38,6 +38,7 @@ public interface IBookingService
     /// <summary>Admin/Staff hủy đơn Pending hoặc Confirmed; khung giờ được nhả ngay.</summary>
     Task<(bool Success, string Message)> CancelBookingAsync(int bookingId, int actorUserId);
     Task<(bool Success, string Message)> CancelOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
+    Task<(bool Success, string Message)> RefundOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
 }
 
 public interface IAuthService

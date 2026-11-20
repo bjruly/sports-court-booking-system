@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportsCourtBooking.Application.DTOs;
+using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
 using SportsCourtBooking.Web.Extensions;
 
 namespace SportsCourtBooking.Web.Controllers;
 
-[Authorize(Roles = "Admin,CourtOwner")]
+[Authorize]
 public class NotificationController : Controller
 {
     private readonly AppDbContext _context;
@@ -187,6 +188,104 @@ public class NotificationController : Controller
                 CreatedAt = f.UpdatedAt ?? f.CreatedAt
             });
             notifications.AddRange(approvedFacilities);
+        }
+        else
+        {
+            // ===== DÀNH CHO KHÁCH HÀNG (CUSTOMER) =====
+            // 1. Đơn đặt sân bị Chủ sân hủy hoặc duyệt hủy (kèm hoàn tiền nếu có)
+            var cancelledBookingsRaw = await _context.Bookings
+                .AsNoTracking()
+                .Include(b => b.Court)
+                .Include(b => b.Payment)
+                .Where(b => b.UserId == userId.Value 
+                         && b.Status == BookingStatus.Cancelled 
+                         && (b.UpdatedAt ?? b.CreatedAt) >= effectiveCutoff)
+                .OrderByDescending(b => b.UpdatedAt ?? b.CreatedAt)
+                .Take(6)
+                .ToListAsync();
+
+            var cancelledNotifs = cancelledBookingsRaw.Select(b => new NotificationItemDto
+            {
+                Id = $"cust_cancel_{b.Id}_{b.UpdatedAt?.Ticks ?? b.CreatedAt.Ticks}",
+                Title = b.Payment?.Status == PaymentStatus.Refunded 
+                    ? "Đơn đặt sân đã hủy & hoàn tiền" 
+                    : "Đơn đặt sân đã bị hủy",
+                Message = $"Đơn #{b.Id} tại sân {(b.Court != null ? b.Court.Name : "sân")} ({b.BookingDate:dd/MM/yyyy} {b.StartTime:hh\\:mm}-{b.EndTime:hh\\:mm}) đã được hủy.{(b.Payment?.Status == PaymentStatus.Refunded ? $" Đã hoàn tiền {b.Payment.Amount:N0}đ." : "")}",
+                Type = "booking",
+                Url = $"/Booking/Details/{b.Id}",
+                CreatedAt = b.UpdatedAt ?? b.CreatedAt
+            });
+            notifications.AddRange(cancelledNotifs);
+
+            // 2. Thông báo khi có giao dịch hoàn tiền (Refunded Payment)
+            var refundedPaymentsRaw = await _context.Payments
+                .AsNoTracking()
+                .Include(p => p.Booking)
+                .ThenInclude(b => b!.Court)
+                .Where(p => p.Booking != null 
+                         && p.Booking.UserId == userId.Value 
+                         && p.Status == PaymentStatus.Refunded 
+                         && (p.UpdatedAt ?? p.CreatedAt) >= effectiveCutoff)
+                .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
+                .Take(4)
+                .ToListAsync();
+
+            var refundNotifs = refundedPaymentsRaw
+                .Where(p => !cancelledBookingsRaw.Any(c => c.Id == p.BookingId && c.Payment?.Status == PaymentStatus.Refunded))
+                .Select(p => new NotificationItemDto
+                {
+                    Id = $"cust_refund_{p.Id}_{p.UpdatedAt?.Ticks ?? p.CreatedAt.Ticks}",
+                    Title = "Hoàn tiền đơn đặt sân ✓",
+                    Message = $"Bạn đã được hoàn {p.Amount:N0}đ cho đơn đặt sân #{(p.Booking != null ? p.Booking.Id : p.BookingId)} ({(p.Booking?.Court != null ? p.Booking.Court.Name : "sân")}).",
+                    Type = "booking",
+                    Url = p.Booking != null ? $"/Booking/Details/{p.Booking.Id}" : "/Booking/My",
+                    CreatedAt = p.UpdatedAt ?? p.CreatedAt
+                });
+            notifications.AddRange(refundNotifs);
+
+            // 3. Đơn đặt sân được chủ sân xác nhận thành công
+            var confirmedBookingsRaw = await _context.Bookings
+                .AsNoTracking()
+                .Include(b => b.Court)
+                .Where(b => b.UserId == userId.Value 
+                         && b.Status == BookingStatus.Confirmed 
+                         && (b.UpdatedAt ?? b.CreatedAt) >= effectiveCutoff)
+                .OrderByDescending(b => b.UpdatedAt ?? b.CreatedAt)
+                .Take(6)
+                .ToListAsync();
+
+            var confirmedNotifs = confirmedBookingsRaw.Select(b => new NotificationItemDto
+            {
+                Id = $"cust_confirm_{b.Id}_{b.UpdatedAt?.Ticks ?? b.CreatedAt.Ticks}",
+                Title = "Đơn đặt sân đã được xác nhận ✓",
+                Message = $"Đơn #{b.Id} đặt sân {(b.Court != null ? b.Court.Name : "sân")} ({b.BookingDate:dd/MM/yyyy} {b.StartTime:hh\\:mm}-{b.EndTime:hh\\:mm}) đã được xác nhận.",
+                Type = "booking",
+                Url = $"/Booking/Details/{b.Id}",
+                CreatedAt = b.UpdatedAt ?? b.CreatedAt
+            });
+            notifications.AddRange(confirmedNotifs);
+
+            // 4. Chủ sân phản hồi đánh giá của khách hàng
+            var reviewRepliesRaw = await _context.Reviews
+                .AsNoTracking()
+                .Include(r => r.Court)
+                .Where(r => r.UserId == userId.Value 
+                         && !string.IsNullOrEmpty(r.OwnerReply) 
+                         && (r.OwnerRepliedAt ?? r.CreatedAt) >= effectiveCutoff)
+                .OrderByDescending(r => r.OwnerRepliedAt ?? r.CreatedAt)
+                .Take(4)
+                .ToListAsync();
+
+            var replyNotifs = reviewRepliesRaw.Select(r => new NotificationItemDto
+            {
+                Id = $"cust_reply_{r.Id}_{r.OwnerRepliedAt?.Ticks ?? r.CreatedAt.Ticks}",
+                Title = "Chủ sân đã phản hồi đánh giá",
+                Message = $"Chủ sân {(r.Court != null ? r.Court.Name : "sân")} phản hồi: \"{(r.OwnerReply != null && r.OwnerReply.Length > 45 ? r.OwnerReply.Substring(0, 45) + "..." : r.OwnerReply ?? "")}\"",
+                Type = "review",
+                Url = $"/Booking/Details/{r.BookingId}",
+                CreatedAt = r.OwnerRepliedAt ?? r.CreatedAt
+            });
+            notifications.AddRange(replyNotifs);
         }
 
         var sorted = notifications

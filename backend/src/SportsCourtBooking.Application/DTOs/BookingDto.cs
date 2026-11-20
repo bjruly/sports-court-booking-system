@@ -40,6 +40,8 @@ public class BookingDto
     public DateTime? CheckInAt { get; set; }
     public string? VoucherCode { get; set; }
     public decimal DiscountAmount { get; set; }
+    public PaymentStatus? PaymentStatus { get; set; }
+    public bool IsPaid { get; set; }
 }
 
 public class BookingDetailDto : BookingDto
@@ -52,7 +54,7 @@ public class BookingDetailDto : BookingDto
 
     public DateTime? ExpiresAt { get; set; }
 
-    public bool IsPaid { get; set; }
+    public decimal? RefundedAmount { get; set; }
 
     public bool CanReview { get; set; }
 

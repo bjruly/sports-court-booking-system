@@ -108,7 +108,9 @@ public class BookingService : IBookingService
                 Status = booking.Status,
                 CheckInAt = booking.CheckInAt,
                 VoucherCode = booking.VoucherCode,
-                DiscountAmount = booking.DiscountAmount
+                DiscountAmount = booking.DiscountAmount,
+                PaymentStatus = booking.Payment != null ? (PaymentStatus?)booking.Payment.Status : null,
+                IsPaid = booking.Payment != null && booking.Payment.Status == PaymentStatus.Paid
             })
             .ToListAsync();
     }
@@ -151,7 +153,9 @@ public class BookingService : IBookingService
                 Status = booking.Status,
                 CheckInAt = booking.CheckInAt,
                 VoucherCode = booking.VoucherCode,
-                DiscountAmount = booking.DiscountAmount
+                DiscountAmount = booking.DiscountAmount,
+                PaymentStatus = booking.Payment != null ? (PaymentStatus?)booking.Payment.Status : null,
+                IsPaid = booking.Payment != null && booking.Payment.Status == PaymentStatus.Paid
             })
             .ToListAsync();
     }
@@ -638,8 +642,63 @@ public class BookingService : IBookingService
             });
         }
 
+        // Tự động cập nhật hoàn tiền nếu đơn này đã được thanh toán
+        var payment = await _context.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId);
+        var hasRefunded = false;
+        if (payment != null && payment.Status == PaymentStatus.Paid)
+        {
+            payment.Status = PaymentStatus.Refunded;
+            payment.UpdatedAt = now;
+            await _context.SaveChangesAsync();
+            hasRefunded = true;
+        }
+
         _logger.LogInformation("Người dùng {ActorUserId} đã hủy đơn {BookingId}, khung giờ được nhả", actorUserId, bookingId);
-        return (true, "Đã hủy đơn đặt sân, khung giờ được mở lại.");
+        return (true, hasRefunded 
+            ? "Đã hủy đơn đặt sân và hoàn tiền thành công cho khách hàng." 
+            : "Đã hủy đơn đặt sân, khung giờ được mở lại.");
+    }
+
+    public async Task<(bool Success, string Message)> RefundOwnerBookingAsync(
+        int bookingId,
+        int ownerId,
+        int actorUserId)
+    {
+        await _expirationService.ExpireOverdueAsync();
+
+        var now = DateTime.UtcNow;
+        var bookingScope = GetBookingScope(bookingId, ownerId);
+        var booking = await bookingScope
+            .Include(b => b.Payment)
+            .FirstOrDefaultAsync();
+
+        if (booking == null)
+        {
+            return (false, "Không tìm thấy đơn đặt sân thuộc sân của bạn.");
+        }
+
+        if (booking.Payment == null)
+        {
+            return (false, "Đơn đặt sân này chưa có bản ghi thanh toán để xử lý hoàn tiền.");
+        }
+
+        if (booking.Payment.Status == PaymentStatus.Refunded)
+        {
+            return (false, "Khoản thanh toán của đơn này đã được hoàn tiền trước đó.");
+        }
+
+        booking.Payment.Status = PaymentStatus.Refunded;
+        booking.Payment.UpdatedAt = now;
+
+        if (booking.Status != BookingStatus.Cancelled)
+        {
+            booking.Status = BookingStatus.Cancelled;
+            booking.UpdatedAt = now;
+        }
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Chủ sân {OwnerId} đã hoàn tiền đơn {BookingId}", ownerId, bookingId);
+        return (true, $"Đã hoàn tiền {booking.Payment.Amount:N0} đ cho đơn đặt #{bookingId}.");
     }
 
     private IQueryable<Booking> GetBookingScope(int bookingId, int? ownerId)
@@ -696,6 +755,8 @@ public class BookingService : IBookingService
 
                 IsPaid = b.Payment != null
                     && b.Payment.Status == PaymentStatus.Paid,
+                PaymentStatus = b.Payment != null ? (PaymentStatus?)b.Payment.Status : null,
+                RefundedAmount = b.Payment != null && b.Payment.Status == PaymentStatus.Refunded ? b.Payment.Amount : 0,
                 ReviewId = b.Review != null ? b.Review.Id : null,
                 ReviewRating = b.Review != null ? b.Review.Rating : null,
                 ReviewComment = b.Review != null ? b.Review.Comment : null

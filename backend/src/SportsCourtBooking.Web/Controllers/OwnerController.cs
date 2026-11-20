@@ -900,6 +900,26 @@ public class OwnerController : Controller
         });
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RefundBooking(int id, DateOnly? date, int? courtId, BookingStatus? status)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _bookingService.RefundOwnerBookingAsync(id, ownerId.Value, ownerId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Bookings), new
+        {
+            date = date?.ToString("yyyy-MM-dd"),
+            courtId,
+            status = status?.ToString()
+        });
+    }
+
     [HttpGet]
     public async Task<IActionResult> CreateCourt(int? facilityId = null)
     {
