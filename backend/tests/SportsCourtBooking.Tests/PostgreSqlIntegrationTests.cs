@@ -11,12 +11,9 @@ namespace SportsCourtBooking.Tests;
 
 public class PostgreSqlIntegrationTests
 {
-    [Fact]
+    [PostgreSqlFact]
     public async Task ConcurrentBookingsAllowOnlyOneReservation()
     {
-        if (!IntegrationTestsEnabled())
-            return;
-
         await using var setup = CreateContext();
         var fixture = await SeedCourtAsync(setup);
 
@@ -50,12 +47,9 @@ public class PostgreSqlIntegrationTests
         }
     }
 
-    [Fact]
+    [PostgreSqlFact]
     public async Task ExpiredPendingBookingIsMarkedExpiredAndReleasesTimeSlot()
     {
-        if (!IntegrationTestsEnabled())
-            return;
-
         await using var setup = CreateContext();
         var fixture = await SeedCourtAsync(setup);
         var bookingDate = VietnamClock.Today.AddDays(1);
@@ -99,12 +93,6 @@ public class PostgreSqlIntegrationTests
         }
     }
 
-    private static bool IntegrationTestsEnabled()
-        => string.Equals(
-            Environment.GetEnvironmentVariable("RUN_POSTGRES_INTEGRATION_TESTS"),
-            "1",
-            StringComparison.OrdinalIgnoreCase);
-
     private static AppDbContext CreateContext()
     {
         var connectionString = Environment.GetEnvironmentVariable(
@@ -112,8 +100,8 @@ public class PostgreSqlIntegrationTests
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            connectionString =
-                "Host=localhost;Port=5432;Database=sportscourt;Username=postgres;Password=12345";
+            throw new InvalidOperationException(
+                "Set SPORTS_COURT_TEST_CONNECTION to an isolated PostgreSQL test database before enabling integration tests.");
         }
 
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -221,4 +209,17 @@ public class PostgreSqlIntegrationTests
         int OwnerId,
         int CourtId,
         int[] CustomerIds);
+}
+
+// Report disabled database tests as skipped instead of passing without executing assertions.
+public sealed class PostgreSqlFactAttribute : FactAttribute
+{
+    public PostgreSqlFactAttribute()
+    {
+        if (!string.Equals(Environment.GetEnvironmentVariable("RUN_POSTGRES_INTEGRATION_TESTS"),
+                "1", StringComparison.OrdinalIgnoreCase))
+        {
+            Skip = "Set RUN_POSTGRES_INTEGRATION_TESTS=1 and SPORTS_COURT_TEST_CONNECTION to an isolated PostgreSQL test database.";
+        }
+    }
 }

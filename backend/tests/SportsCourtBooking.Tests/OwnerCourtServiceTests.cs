@@ -15,14 +15,14 @@ public class OwnerCourtServiceTests
         await using var context = CreateContext();
         context.Database.EnsureCreated();
         context.Users.Add(CreateOwner(4));
-        context.Courts.Add(CreateCourt(5, 4));
+        context.Courts.Add(CreateCourt(105, 4));
         await context.SaveChangesAsync();
 
         var service = new OwnerCourtService(context);
         var courts = await service.GetOwnerCourtsAsync(4);
 
         var court = Assert.Single(courts);
-        Assert.Equal(5, court.Id);
+        Assert.Equal(105, court.Id);
         Assert.Equal("Sân chủ sân 4", court.Name);
         Assert.Null(court.FacilityId);
         Assert.Null(court.FacilityName);

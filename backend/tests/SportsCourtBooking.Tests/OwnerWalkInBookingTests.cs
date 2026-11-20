@@ -100,7 +100,7 @@ public class OwnerWalkInBookingTests
         });
         context.Courts.Add(new Court
         {
-            Id = 5,
+            Id = 105,
             OwnerId = 4,
             Name = "Sân của chủ khác",
             CourtTypeId = 1,
@@ -110,7 +110,7 @@ public class OwnerWalkInBookingTests
         });
         context.Bookings.Add(new Booking
         {
-            CourtId = 5,
+            CourtId = 105,
             GuestName = "Khách của chủ khác",
             GuestPhone = "0900000005",
             BookingDate = request.BookingDate,
