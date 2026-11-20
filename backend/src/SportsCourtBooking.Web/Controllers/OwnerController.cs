@@ -384,7 +384,7 @@ public class OwnerController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddCourtToFacility(int facilityId)
+    public async Task<IActionResult> AddCourtToFacility(int facilityId, string? returnAction = null)
     {
         var ownerId = User.GetUserId();
         if (ownerId is null)
@@ -394,12 +394,16 @@ public class OwnerController : Controller
 
         var result = await _facilityService.AddCourtToFacilityAsync(facilityId, ownerId.Value);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        if (returnAction == "Courts")
+        {
+            return RedirectToAction(nameof(Courts), new { facilityId });
+        }
         return RedirectToAction(nameof(FacilityCourts), new { facilityId });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleCourtMaintenance(int courtId, int facilityId)
+    public async Task<IActionResult> ToggleCourtMaintenance(int courtId, int facilityId, string? returnAction = null)
     {
         var ownerId = User.GetUserId();
         if (ownerId is null)
@@ -411,6 +415,10 @@ public class OwnerController : Controller
         if (court is null)
         {
             TempData["ErrorMessage"] = "Không tìm thấy sân thuộc tài khoản của bạn.";
+            if (returnAction == "Courts")
+            {
+                return RedirectToAction(nameof(Courts), new { facilityId });
+            }
             return RedirectToAction(nameof(FacilityCourts), new { facilityId });
         }
 
@@ -421,11 +429,15 @@ public class OwnerController : Controller
 
         var result = await _courtService.UpdateOwnerCourtStatusAsync(courtId, ownerId.Value, newStatus);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        if (returnAction == "Courts")
+        {
+            return RedirectToAction(nameof(Courts), new { facilityId });
+        }
         return RedirectToAction(nameof(FacilityCourts), new { facilityId });
     }
 
     [HttpGet]
-    public async Task<IActionResult> Courts()
+    public async Task<IActionResult> Courts(string? search = null, int? facilityId = null)
     {
         var ownerId = User.GetUserId();
         if (ownerId is null)
@@ -433,7 +445,46 @@ public class OwnerController : Controller
             return Forbid();
         }
 
-        return View(await _courtService.GetOwnerCourtsAsync(ownerId.Value));
+        var facilities = await _facilityService.GetOwnerFacilitiesAsync(ownerId.Value);
+        var allCourts = await _courtService.GetOwnerCourtsAsync(ownerId.Value);
+
+        var query = facilities.AsEnumerable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(f =>
+                f.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || f.Address.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || (!string.IsNullOrWhiteSpace(f.CourtTypeName) && f.CourtTypeName.Contains(term, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(f.PhoneNumber) && f.PhoneNumber.Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        var filteredFacilities = query.ToList();
+        var facilityIds = facilities.Select(f => f.Id).ToHashSet();
+
+        var facilityGroups = filteredFacilities.Select(f => new OwnerFacilityGroupViewModel
+        {
+            Facility = f,
+            Courts = allCourts.Where(c => c.FacilityId == f.Id).OrderBy(c => c.Id).ToList(),
+            IsExpanded = facilityId.HasValue
+                ? f.Id == facilityId.Value
+                : (filteredFacilities.Count == 1 || !string.IsNullOrWhiteSpace(search))
+        }).ToList();
+
+        var unassignedCourts = allCourts
+            .Where(c => !c.FacilityId.HasValue || !facilityIds.Contains(c.FacilityId.Value))
+            .OrderBy(c => c.Id)
+            .ToList();
+
+        var viewModel = new OwnerCourtsViewModel
+        {
+            Search = search,
+            SelectedFacilityId = facilityId,
+            Facilities = facilityGroups,
+            UnassignedCourts = unassignedCourts
+        };
+
+        return View(viewModel);
     }
 
     [HttpGet]
@@ -850,7 +901,7 @@ public class OwnerController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> CreateCourt()
+    public async Task<IActionResult> CreateCourt(int? facilityId = null)
     {
         var ownerId = User.GetUserId();
         if (ownerId is null)
@@ -859,6 +910,10 @@ public class OwnerController : Controller
         }
 
         var model = new OwnerCourtFormViewModel();
+        if (facilityId.HasValue)
+        {
+            model.FacilityId = facilityId.Value;
+        }
         await PopulateCourtFormOptionsAsync(model, ownerId.Value);
         return View(model);
     }
@@ -888,7 +943,7 @@ public class OwnerController : Controller
         }
 
         TempData["SuccessMessage"] = result.Message;
-        return RedirectToAction(nameof(Courts));
+        return RedirectToAction(nameof(Courts), new { facilityId = model.FacilityId });
     }
 
     [HttpGet]
@@ -949,12 +1004,12 @@ public class OwnerController : Controller
         }
 
         TempData["SuccessMessage"] = result.Message;
-        return RedirectToAction(nameof(Courts));
+        return RedirectToAction(nameof(Courts), new { facilityId = model.FacilityId });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateCourtStatus(int id, CourtStatus status)
+    public async Task<IActionResult> UpdateCourtStatus(int id, CourtStatus status, int? facilityId = null)
     {
         var ownerId = User.GetUserId();
         if (ownerId is null)
@@ -973,6 +1028,11 @@ public class OwnerController : Controller
         else
         {
             TempData["ErrorMessage"] = result.Item2;
+        }
+
+        if (facilityId.HasValue)
+        {
+            return RedirectToAction(nameof(Courts), new { facilityId = facilityId.Value });
         }
 
         return RedirectToAction(nameof(Courts));

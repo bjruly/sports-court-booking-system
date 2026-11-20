@@ -104,4 +104,5 @@ public class OwnerFacilityDto
     public int CourtCount { get; set; }
     public int ActiveCourtCount { get; set; }
     public int MaintenanceCourtCount { get; set; }
+    public int InactiveCourtCount => Math.Max(0, CourtCount - ActiveCourtCount - MaintenanceCourtCount);
 }
