@@ -119,10 +119,10 @@
 </div>
 
 <!-- ─── BỘ LỌC VÀ TÌM KIẾM ─── -->
-<div class="adm-card" style="padding: 16px 20px; margin-bottom: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+<div class="adm-card adm-facility-filter-card">
+    <div class="adm-facility-filter-row">
         <!-- Tabs lọc nhanh -->
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="adm-facility-filter-tabs">
             <a href="@Url.Action("Facilities", new { search = currentSearch, filter = "all" })"
                class="adm-tab-pill @(currentFilter == "all" ? "active" : "")">
                 Tất cả (@(stats?.TotalFacilities ?? 0))
@@ -144,27 +144,27 @@
         </div>
 
         <!-- Form tìm kiếm -->
-        <form method="get" asp-action="Facilities" style="display: flex; gap: 8px; margin: 0; min-width: 320px;">
+        <form method="get" asp-action="Facilities" class="adm-facility-search-form">
             <input type="hidden" name="filter" value="@currentFilter" />
-            <div style="position: relative; flex: 1;">
+            <div class="adm-facility-search-wrap">
                 <input type="text"
                        name="search"
                        value="@currentSearch"
                        placeholder="Tìm kiếm cơ sở, địa chỉ, SĐT..."
-                       class="adm-form-input"
-                       style="padding-left: 36px; height: 38px;" />
+                       class="adm-facility-search-input"
+                       aria-label="Tìm cơ sở, địa chỉ hoặc số điện thoại" />
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--d-text-sub)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
-                     style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%);">
+                     class="adm-facility-search-icon" aria-hidden="true">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </div>
-            <button type="submit" class="adm-btn-create" style="height: 38px; padding: 0 16px;">
+            <button type="submit" class="adm-btn-create adm-facility-search-button">
                 Tìm
             </button>
             @if (!string.IsNullOrWhiteSpace(currentSearch))
             {
-                <a href="@Url.Action("Facilities", new { filter = currentFilter })" class="adm-tab-pill" style="height: 38px; display: inline-flex; align-items: center;">
+                <a href="@Url.Action("Facilities", new { filter = currentFilter })" class="adm-facility-reset-button">
                     Đặt lại
                 </a>
             }

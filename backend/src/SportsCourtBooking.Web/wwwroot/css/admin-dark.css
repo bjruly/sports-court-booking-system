@@ -1761,3 +1761,178 @@ body.admin-dark-body {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Owner list search and status filters */
+.adm-owner-filter-bar {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.adm-owner-search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.adm-owner-input-wrap {
+  position: relative;
+  flex: 1 1 480px;
+  max-width: 620px;
+}
+
+.adm-owner-search-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 42px 0 15px;
+  border: 1px solid var(--d-border, #263832);
+  border-radius: 10px;
+  outline: none;
+  color: var(--d-text, #e8efeb);
+  background: var(--d-card-inner, #101a17);
+  font: inherit;
+  font-size: 14px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.adm-owner-search-input::placeholder { color: var(--d-text-muted, #82918a); }
+.adm-owner-search-input:focus { border-color: var(--d-green, #22c55e); background: #101d18; box-shadow: 0 0 0 3px rgba(34, 197, 94, .12); }
+
+.adm-owner-input-wrap .adm-clear-search {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  transform: translateY(-50%);
+  border-radius: 7px;
+  color: var(--d-text-sub, #b2c0b8) !important;
+  text-decoration: none;
+}
+
+.adm-owner-input-wrap .adm-clear-search:hover { color: #fff !important; background: rgba(255, 255, 255, .08); }
+
+.adm-owner-search-button {
+  display: inline-flex;
+  min-width: 132px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 18px;
+  border: 1px solid var(--d-green, #22c55e);
+  border-radius: 10px;
+  color: #07130c;
+  background: var(--d-green, #22c55e);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.adm-owner-search-button:hover { background: #4ade80; box-shadow: 0 5px 16px rgba(34, 197, 94, .18); transform: translateY(-1px); }
+.adm-owner-search-button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+.adm-owner-filter-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-owner-filter-tabs .adm-tab {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  padding: 0 13px;
+  border: 1px solid var(--d-border, #263832);
+  border-radius: 999px;
+  color: var(--d-text-sub, #b2c0b8);
+  background: var(--d-card-inner, #101a17);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.adm-owner-filter-tabs .adm-tab:hover { border-color: rgba(34, 197, 94, .55); color: #eafff1; }
+.adm-owner-filter-tabs .adm-tab.active { border-color: rgba(34, 197, 94, .42); color: #4ade80; background: rgba(34, 197, 94, .1); }
+
+@media (max-width: 640px) {
+  .adm-owner-search-form { align-items: stretch; flex-direction: column; }
+  .adm-owner-input-wrap { flex: 1 1 auto; max-width: none; width: 100%; }
+  .adm-owner-search-button { width: 100%; }
+}
+
+/* Facility directory filters */
+.adm-facility-filter-card { margin-bottom: 20px; padding: 16px 20px; }
+.adm-facility-filter-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px 20px; }
+.adm-facility-filter-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-facility-filter-tabs .adm-tab-pill,
+.adm-facility-reset-button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border: 1px solid var(--d-border-light, #223c37);
+  border-radius: 9px;
+  color: var(--d-text-sub, #9eb1a9);
+  background: #101a17;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.adm-facility-filter-tabs .adm-tab-pill:hover,
+.adm-facility-reset-button:hover { border-color: rgba(34, 197, 94, .5); color: #effff4; }
+.adm-facility-filter-tabs .adm-tab-pill.active { border-color: rgba(34, 197, 94, .4); color: #4ade80; background: rgba(34, 197, 94, .09); }
+.adm-facility-search-form { display: flex; min-width: min(100%, 360px); align-items: center; gap: 9px; margin: 0; }
+.adm-facility-search-wrap { position: relative; flex: 1 1 280px; min-width: 190px; }
+.adm-facility-search-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px 0 42px;
+  border: 1px solid var(--d-border, #263832);
+  border-radius: 10px;
+  outline: none;
+  color: var(--d-text, #e6ede9);
+  background: var(--d-card-inner, #0d1716);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.adm-facility-search-input::placeholder { color: var(--d-text-muted, #71847c); }
+.adm-facility-search-input:focus { border-color: var(--d-green, #22c55e); background: #101d18; box-shadow: 0 0 0 3px rgba(34, 197, 94, .12); }
+.adm-facility-search-icon { position: absolute; top: 50%; left: 14px; width: 17px; height: 17px; transform: translateY(-50%); color: var(--d-text-sub, #9eb1a9); pointer-events: none; }
+.adm-facility-search-button {
+  display: inline-flex;
+  min-width: 84px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid var(--d-green, #22c55e);
+  border-radius: 10px;
+  color: #07130c;
+  background: var(--d-green, #22c55e);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.adm-facility-search-button:hover { background: #4ade80; box-shadow: 0 5px 16px rgba(34, 197, 94, .18); transform: translateY(-1px); }
+.adm-facility-search-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+@media (max-width: 900px) {
+  .adm-facility-filter-row { align-items: stretch; flex-direction: column; }
+  .adm-facility-search-form { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .adm-facility-filter-card { padding: 14px; }
+  .adm-facility-search-form { min-width: 0; flex-wrap: wrap; }
+  .adm-facility-search-wrap { flex-basis: calc(100% - 94px); }
+  .adm-facility-search-button { flex: 1; }
+  .adm-facility-reset-button { flex: 1 1 100%; }
+}

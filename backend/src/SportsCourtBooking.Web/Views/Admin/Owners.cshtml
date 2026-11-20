@@ -110,26 +110,27 @@
 </div>
 
 <!-- ─── BỘ LỌC & TÌM KIẾM ─── -->
-<div class="adm-filter-bar" style="margin-bottom: 20px;">
-    <form method="get" asp-action="Owners" class="adm-search-form" style="display:flex; gap:12px; align-items:center; flex:1;">
+<div class="adm-filter-bar adm-owner-filter-bar">
+    <form method="get" asp-action="Owners" class="adm-search-form adm-owner-search-form">
         <input type="hidden" name="filter" value="@currentFilter" />
-        <div class="adm-input-wrap" style="flex:1; max-width:400px; position:relative;">
+        <div class="adm-input-wrap adm-owner-input-wrap">
             <input type="text"
                    name="search"
                    value="@currentSearch"
-                   class="adm-input"
+                   class="adm-input adm-owner-search-input"
+                   aria-label="Tìm chủ sân"
                    placeholder="Tìm theo tên chủ sân, email, số điện thoại..." />
             @if (!string.IsNullOrWhiteSpace(currentSearch))
             {
                 <a asp-action="Owners" asp-route-filter="@currentFilter" class="adm-clear-search" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--adm-text-sub); text-decoration:none;">✕</a>
             }
         </div>
-        <button type="submit" class="adm-btn-create" style="padding: 0 16px; height: 38px;">
+        <button type="submit" class="adm-btn-create adm-owner-search-button">
             Tìm kiếm
         </button>
     </form>
 
-    <div class="adm-filter-tabs">
+    <div class="adm-filter-tabs adm-owner-filter-tabs">
         <a asp-action="Owners" asp-route-filter="all" asp-route-search="@currentSearch"
            class="adm-tab @(currentFilter == "all" ? "active" : "")">
             Tất cả (@(stats?.TotalOwners ?? 0))
