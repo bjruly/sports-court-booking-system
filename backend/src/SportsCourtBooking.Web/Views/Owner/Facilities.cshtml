@@ -14,9 +14,9 @@
                 <div>
                     <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ CƠ SỞ</p>
                     <h1>Cơ sở của tôi</h1>
-                    <p class="page-subtitle">Quản lý địa chỉ và các địa điểm có sân trực thuộc.</p>
+                    <p class="page-subtitle">Quản lý cơ sở, thêm/khóa sân bảo trì. Admin chỉ duyệt cơ sở, Owner tự quản lý sân.</p>
                 </div>
-                <a class="button button--primary" asp-action="CreateFacility">+ Thêm cơ sở</a>
+                <a class="button button--primary" asp-action="CreateFacility">+ Đăng ký cơ sở mới</a>
             </header>
 
             <section class="admin-status-card admin-status-card--block">
@@ -26,8 +26,8 @@
                     <div class="empty-state owner-courts-empty" role="status">
                         <span class="empty-state-icon" aria-hidden="true">⌂</span>
                         <h3>Chưa có cơ sở nào</h3>
-                        <p>Tạo cơ sở để quản lý địa chỉ và gắn các sân hiện có hoặc sân mới vào đúng địa điểm.</p>
-                        <a class="button button--small button--dark" asp-action="CreateFacility">Thêm cơ sở</a>
+                        <p>Đăng ký cơ sở thể thao mới cho 1 môn duy nhất và đăng ký số sân để Admin duyệt.</p>
+                        <a class="button button--small button--dark" asp-action="CreateFacility">Đăng ký cơ sở</a>
                     </div>
                 }
                 else
@@ -37,9 +37,10 @@
                             <thead>
                                 <tr>
                                     <th>Tên cơ sở</th>
-                                    <th>Địa chỉ</th>
-                                    <th>Số sân</th>
-                                    <th>Trạng thái</th>
+                                    <th>Môn thể thao</th>
+                                    <th>Địa chỉ & Hotline</th>
+                                    <th style="text-align: center;">Sân</th>
+                                    <th style="text-align: center;">Trạng thái duyệt</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
@@ -48,18 +49,47 @@
                                 {
                                     <tr>
                                         <td>
-                                            <strong>@facility.Name</strong>
+                                            <strong style="font-size: 14px; color: var(--color-heading, #fff);">@facility.Name</strong>
                                             @if (!string.IsNullOrWhiteSpace(facility.Description))
                                             {
-                                                <small class="owner-facility-description">@facility.Description</small>
+                                                <small class="owner-facility-description" style="display:block; margin-top:2px;">@facility.Description</small>
                                             }
                                         </td>
-                                        <td>@facility.Address</td>
-                                        <td>@facility.CourtCount</td>
                                         <td>
+                                            <span style="display:inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px; background: rgba(34, 197, 94, 0.12); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3);">
+                                                @(string.IsNullOrWhiteSpace(facility.CourtTypeName) ? "Chưa có sân" : facility.CourtTypeName)
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div>@facility.Address</div>
+                                            @if (!string.IsNullOrWhiteSpace(facility.PhoneNumber))
+                                            {
+                                                <small style="color: var(--color-muted); display: block; margin-top: 2px;">Hotline: @facility.PhoneNumber</small>
+                                            }
+                                            <small style="color: var(--color-muted); display: block; font-size: 11px;">Giờ mở cửa: @facility.OpenTime - @facility.CloseTime</small>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div>
+                                                <span style="font-weight: 700; font-size: 14px; color: #38bdf8;">@facility.CourtCount</span>
+                                                <span style="font-size: 12px; color: var(--color-muted);"> sân</span>
+                                            </div>
+                                            @if (facility.CourtCount > 0)
+                                            {
+                                                <div style="font-size: 11px; margin-top: 2px;">
+                                                    <span style="color: #4ade80;">🟢 @facility.ActiveCourtCount hoạt động</span>
+                                                    @if (facility.MaintenanceCourtCount > 0)
+                                                    {
+                                                        <span style="color: #fbbf24; margin-left: 4px;">🔧 @facility.MaintenanceCourtCount bảo trì</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </td>
+                                        <td style="text-align: center;">
                                             @if (!facility.IsApproved)
                                             {
-                                                <span class="status-badge status-badge--pending">Chờ Admin duyệt</span>
+                                                <span style="display:inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11.5px; background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3);">
+                                                    ⏳ Chờ Admin duyệt
+                                                </span>
                                             }
                                             else if (!facility.IsActive)
                                             {
@@ -67,22 +97,23 @@
                                             }
                                             else
                                             {
-                                                <span class="status-badge status-badge--confirmed">Đã duyệt</span>
+                                                <span style="display:inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11.5px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3);">
+                                                    ✓ Đã duyệt
+                                                </span>
                                             }
                                         </td>
                                         <td>
-                                            <div class="owner-facility-actions">
-                                                <a class="text-link" asp-action="EditFacility" asp-route-id="@facility.Id">Sửa</a>
+                                            <div class="owner-facility-actions" style="display: flex; flex-direction: column; gap: 6px;">
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <a class="text-link" asp-action="EditFacility" asp-route-id="@facility.Id">✏️ Sửa cơ sở</a>
+                                                    <a class="text-link" asp-action="FacilityCourts" asp-route-facilityId="@facility.Id" style="color: #38bdf8;">🏟️ Quản lý sân</a>
+                                                </div>
                                                 @if (facility.CourtCount == 0)
                                                 {
                                                     <form asp-action="DeleteFacility" asp-route-id="@facility.Id" method="post">
                                                         <button class="button button--small button--outline owner-facility-delete"
                                                                 type="submit">Xóa</button>
                                                     </form>
-                                                }
-                                                else
-                                                {
-                                                    <small class="owner-facility-delete-hint">Chuyển sân để xóa</small>
                                                 }
                                             </div>
                                         </td>
@@ -93,6 +124,15 @@
                     </div>
                 }
             </section>
+
+            <div style="margin-top: 16px; padding: 14px 18px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; font-size: 13px; color: #bae6fd; line-height: 1.6;">
+                <strong style="color: #38bdf8;">📋 Phân quyền quản lý:</strong>
+                <ul style="margin: 6px 0 0 18px; padding: 0;">
+                    <li><strong>Owner</strong>: Tạo/sửa cơ sở → gửi Admin duyệt. Tự thêm sân, khóa sân bảo trì (đồng bộ ngay với trang người dùng).</li>
+                    <li><strong>Admin</strong>: Chỉ duyệt/khóa cơ sở, không can thiệp vào sân.</li>
+                    <li>Khi sửa tên, địa chỉ hoặc giờ mở cửa → cơ sở sẽ chờ Admin duyệt lại.</li>
+                </ul>
+            </div>
         </div>
     </div>
 </section>

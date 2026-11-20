@@ -1,0 +1,154 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
+@model List<CourtDto>
+
+@{
+    var facility = (OwnerFacilityDto)ViewBag.Facility;
+    ViewData["Title"] = $"Quản lý sân - {facility.Name}";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading owner-list-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ SÂN TRONG CƠ SỞ</p>
+                    <h1>@facility.Name</h1>
+                    <p class="page-subtitle">
+                        @facility.Address · Giờ mở cửa: @facility.OpenTime - @facility.CloseTime
+                        @if (!string.IsNullOrWhiteSpace(facility.CourtTypeName))
+                        {
+                            <span> · Môn: <strong>@facility.CourtTypeName</strong></span>
+                        }
+                    </p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <a class="button button--outline" asp-action="Facilities">← Quay lại</a>
+                    <form asp-action="AddCourtToFacility" asp-route-facilityId="@facility.Id" method="post" style="display:inline;">
+                        <button class="button button--primary" type="submit">+ Thêm sân</button>
+                    </form>
+                </div>
+            </header>
+
+            @if (!facility.IsApproved)
+            {
+                <div style="margin-bottom: 16px; padding: 12px 18px; background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 8px; color: #fbbf24; font-size: 13px;">
+                    ⚠️ <strong>Cơ sở đang chờ Admin duyệt.</strong> Các sân sẽ chưa hiển thị cho người dùng cho đến khi cơ sở được phê duyệt. Bạn vẫn có thể thêm sân và chuẩn bị trước.
+                </div>
+            }
+
+            <section class="admin-status-card admin-status-card--block">
+                <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 12px;">
+                    <p class="admin-section-label" style="margin:0;">@Model.Count SÂN</p>
+                    <span style="font-size: 12px; color: #4ade80;">🟢 @Model.Count(c => c.Status == CourtStatus.Active) hoạt động</span>
+                    @if (Model.Any(c => c.Status == CourtStatus.Maintenance))
+                    {
+                        <span style="font-size: 12px; color: #fbbf24;">🔧 @Model.Count(c => c.Status == CourtStatus.Maintenance) bảo trì</span>
+                    }
+                    @if (Model.Any(c => c.Status == CourtStatus.Inactive))
+                    {
+                        <span style="font-size: 12px; color: #94a3b8;">⏸️ @Model.Count(c => c.Status == CourtStatus.Inactive) ngưng</span>
+                    }
+                </div>
+
+                @if (Model.Count == 0)
+                {
+                    <div class="empty-state owner-courts-empty" role="status">
+                        <span class="empty-state-icon" aria-hidden="true">▦</span>
+                        <h3>Chưa có sân nào trong cơ sở</h3>
+                        <p>Thêm sân đầu tiên để bắt đầu phục vụ khách hàng.</p>
+                        <form asp-action="AddCourtToFacility" asp-route-facilityId="@facility.Id" method="post">
+                            <button class="button button--small button--dark" type="submit">+ Thêm sân đầu tiên</button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table owner-courts-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tên sân</th>
+                                    <th>Môn thể thao</th>
+                                    <th class="text-right">Giá / giờ</th>
+                                    <th style="text-align: center;">Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int idx = 1; }
+                                @foreach (var court in Model.OrderBy(c => c.Id))
+                                {
+                                    <tr>
+                                        <td>@idx</td>
+                                        <td><strong>@court.Name</strong></td>
+                                        <td>@court.CourtTypeName</td>
+                                        <td class="text-right">@court.PricePerHour.ToString("N0", culture) đ</td>
+                                        <td style="text-align: center;">
+                                            @if (court.Status == CourtStatus.Active)
+                                            {
+                                                <span style="display:inline-block; padding: 3px 10px; border-radius: 6px; font-weight: 700; font-size: 11.5px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3);">
+                                                    🟢 Hoạt động
+                                                </span>
+                                            }
+                                            else if (court.Status == CourtStatus.Maintenance)
+                                            {
+                                                <span style="display:inline-block; padding: 3px 10px; border-radius: 6px; font-weight: 700; font-size: 11.5px; background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3);">
+                                                    🔧 Bảo trì
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span style="display:inline-block; padding: 3px 10px; border-radius: 6px; font-weight: 700; font-size: 11.5px; background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3);">
+                                                    ⏸️ Ngưng hoạt động
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; gap: 8px; align-items: center;">
+                                                <a class="text-link" asp-action="EditCourt" asp-route-id="@court.Id">✏️ Sửa</a>
+
+                                                @if (court.Status == CourtStatus.Active)
+                                                {
+                                                    <form asp-action="ToggleCourtMaintenance" asp-route-courtId="@court.Id" asp-route-facilityId="@facility.Id" method="post" style="display:inline;">
+                                                        <button class="button button--small button--outline" type="submit" style="font-size: 11px; padding: 3px 8px; color: #fbbf24; border-color: rgba(251,191,36,0.4);">
+                                                            🔧 Khóa bảo trì
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else if (court.Status == CourtStatus.Maintenance)
+                                                {
+                                                    <form asp-action="ToggleCourtMaintenance" asp-route-courtId="@court.Id" asp-route-facilityId="@facility.Id" method="post" style="display:inline;">
+                                                        <button class="button button--small button--outline" type="submit" style="font-size: 11px; padding: 3px 8px; color: #4ade80; border-color: rgba(34,197,94,0.4);">
+                                                            🟢 Mở hoạt động
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    idx++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+
+            <div style="margin-top: 16px; padding: 14px 18px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; font-size: 13px; color: #bae6fd; line-height: 1.6;">
+                <strong style="color: #38bdf8;">💡 Hướng dẫn:</strong>
+                <ul style="margin: 6px 0 0 18px; padding: 0;">
+                    <li><strong>Thêm sân</strong>: Bấm nút "+ Thêm sân" để tự động thêm sân mới vào cơ sở (không cần Admin duyệt lại).</li>
+                    <li><strong>Khóa bảo trì</strong>: Sân bảo trì sẽ ẩn khỏi trang đặt sân người dùng. Mở lại bất cứ lúc nào.</li>
+                    <li>Mọi thay đổi về sân đều <strong>đồng bộ ngay</strong> với trang người dùng.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>

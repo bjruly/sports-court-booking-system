@@ -133,6 +133,7 @@ public interface IOwnerFacilityService
         int ownerId,
         OwnerFacilityRequest request);
     Task<(bool Success, string Message)> DeleteOwnerFacilityAsync(int facilityId, int ownerId);
+    Task<(bool Success, string Message)> AddCourtToFacilityAsync(int facilityId, int ownerId);
 }
 
 public interface IVoucherService

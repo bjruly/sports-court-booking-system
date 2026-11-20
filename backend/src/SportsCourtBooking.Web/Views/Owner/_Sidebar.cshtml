@@ -2,7 +2,7 @@
 @using SportsCourtBooking.Domain.Enums
 @{
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
-    var isFacilityManagement = currentAction is "Facilities" or "CreateFacility" or "EditFacility";
+    var isFacilityManagement = currentAction is "Facilities" or "CreateFacility" or "EditFacility" or "FacilityCourts";
     var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
     var isCourtList = currentAction is "Courts" or "EditCourt";
     var isCourtStatistics = currentAction == "CourtStatistics";

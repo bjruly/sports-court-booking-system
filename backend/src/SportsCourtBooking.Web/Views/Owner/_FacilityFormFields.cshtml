@@ -1,21 +1,127 @@
 @using SportsCourtBooking.Web.Models
 @model OwnerFacilityFormViewModel
 
+@{
+    var isEdit = ViewContext.RouteData.Values["action"]?.ToString() == "EditFacility";
+}
+
 <div asp-validation-summary="ModelOnly" class="owner-form-summary" role="alert"></div>
+
+@if (isEdit)
+{
+    <div class="owner-notice-box" style="background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13.5px; color: #fde047; line-height: 1.5;">
+        <strong style="color: #facc15; display: block; margin-bottom: 4px;">⚠️ Lưu ý khi chỉnh sửa cơ sở:</strong>
+        Khi bạn thay đổi <strong>tên cơ sở, địa chỉ hoặc giờ mở/đóng cửa</strong>, cơ sở sẽ chuyển sang trạng thái <strong>chờ Admin phê duyệt lại</strong>. Bạn có thể tự do thêm sân hoặc khóa sân bảo trì trong mục <em>Quản lý sân</em> mà không cần chờ duyệt.
+    </div>
+}
+else
+{
+    <div class="owner-notice-box" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13.5px; color: #bae6fd; line-height: 1.5;">
+        <strong style="color: #38bdf8; display: block; margin-bottom: 4px;">ℹ️ Quy định đăng ký cơ sở:</strong>
+        Mỗi cơ sở được đăng ký cho <strong>1 môn thể thao duy nhất</strong>. Hệ thống sẽ tự động khởi tạo số lượng sân bạn đăng ký và gửi hồ sơ để <strong>Quản trị viên (Admin) phê duyệt</strong> trước khi chính thức mở cho khách hàng đặt lịch.
+    </div>
+}
+
 <div class="owner-form-grid">
+    <!-- Tên cơ sở -->
     <div class="owner-form-field">
-        <label asp-for="Name">Tên cơ sở <span aria-hidden="true">*</span></label>
-        <input asp-for="Name" class="filter-input" maxlength="150" autocomplete="organization" />
+        <label asp-for="Name">Tên cơ sở thể thao <span aria-hidden="true" style="color:#ef4444;">*</span></label>
+        <input asp-for="Name" class="filter-input" maxlength="150" placeholder="VD: CLB Cầu Lông Ngôi Sao" autocomplete="organization" />
         <span asp-validation-for="Name" class="field-validation-error"></span>
     </div>
+
+    <!-- Số điện thoại liên hệ -->
     <div class="owner-form-field">
-        <label asp-for="Address">Địa chỉ <span aria-hidden="true">*</span></label>
-        <input asp-for="Address" class="filter-input" maxlength="255" autocomplete="street-address" />
+        <label asp-for="PhoneNumber">Số điện thoại hotline <span aria-hidden="true" style="color:#ef4444;">*</span></label>
+        <input asp-for="PhoneNumber" class="filter-input" maxlength="20" placeholder="VD: 0901234567" autocomplete="tel" />
+        <span asp-validation-for="PhoneNumber" class="field-validation-error"></span>
+    </div>
+
+    <!-- Môn thể thao duy nhất -->
+    <div class="owner-form-field">
+        <label asp-for="CourtTypeId">Môn thể thao (1 môn duy nhất) <span aria-hidden="true" style="color:#ef4444;">*</span></label>
+        @if (isEdit)
+        {
+            <input type="hidden" asp-for="CourtTypeId" />
+            <select asp-for="CourtTypeId" asp-items="Model.CourtTypes" class="filter-input" style="font-weight: 600; opacity: 0.7;" disabled>
+            </select>
+            <small style="color: var(--color-muted); font-size: 11.5px; margin-top: 4px; display: block;">
+                Môn thể thao cố định của cơ sở.
+            </small>
+        }
+        else
+        {
+            <select asp-for="CourtTypeId" asp-items="Model.CourtTypes" class="filter-input" style="font-weight: 600;">
+                <option value="">-- Chọn môn thể thao của cơ sở --</option>
+            </select>
+            <span asp-validation-for="CourtTypeId" class="field-validation-error"></span>
+            <small style="color: var(--color-muted); font-size: 11.5px; margin-top: 4px; display: block;">
+                Cơ sở chỉ hoạt động duy nhất môn thể thao này.
+            </small>
+        }
+    </div>
+
+    @if (!isEdit)
+    {
+        <!-- Số lượng sân đăng ký ban đầu -->
+        <div class="owner-form-field">
+            <label asp-for="NumberOfCourts">Số lượng sân đăng ký ban đầu <span aria-hidden="true" style="color:#ef4444;">*</span></label>
+            <input asp-for="NumberOfCourts" type="number" min="1" max="30" class="filter-input" style="font-weight: 700; color: #22c55e;" />
+            <span asp-validation-for="NumberOfCourts" class="field-validation-error"></span>
+            <small style="color: var(--color-muted); font-size: 11.5px; margin-top: 4px; display: block;">
+                Hệ thống sẽ tự động tạo từ Sân 1 đến Sân @(Model.NumberOfCourts > 0 ? Model.NumberOfCourts : 3) gắn với cơ sở.
+            </small>
+        </div>
+
+        <!-- Giá thuê mỗi giờ -->
+        <div class="owner-form-field">
+            <label asp-for="PricePerHour">Giá thuê mỗi giờ (VNĐ/h) <span aria-hidden="true" style="color:#ef4444;">*</span></label>
+            <input asp-for="PricePerHour" type="number" step="1000" min="10000" max="50000000" class="filter-input" placeholder="80000" />
+            <span asp-validation-for="PricePerHour" class="field-validation-error"></span>
+            <small style="color: var(--color-muted); font-size: 11.5px; margin-top: 4px; display: block;">
+                Giá thuê áp dụng cho các sân trong khung giờ thường.
+            </small>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="NumberOfCourts" />
+        <input type="hidden" asp-for="PricePerHour" />
+    }
+
+    <!-- Quận / Huyện -->
+    <div class="owner-form-field">
+        <label asp-for="District">Khu vực / Quận Huyện <span aria-hidden="true" style="color:#ef4444;">*</span></label>
+        <select asp-for="District" asp-items="Model.DistrictList" class="filter-input">
+        </select>
+        <span asp-validation-for="District" class="field-validation-error"></span>
+    </div>
+
+    <!-- Địa chỉ chi tiết -->
+    <div class="owner-form-field owner-form-field--full">
+        <label asp-for="Address">Địa chỉ chi tiết cơ sở <span aria-hidden="true" style="color:#ef4444;">*</span></label>
+        <input asp-for="Address" class="filter-input" maxlength="255" placeholder="Số nhà, tên đường, phường/xã..." autocomplete="street-address" />
         <span asp-validation-for="Address" class="field-validation-error"></span>
     </div>
+
+    <!-- Giờ mở cửa -->
+    <div class="owner-form-field">
+        <label asp-for="OpenTime">Giờ mở cửa</label>
+        <input asp-for="OpenTime" type="time" class="filter-input" value="@(string.IsNullOrEmpty(Model.OpenTime) ? "06:00" : Model.OpenTime)" />
+        <span asp-validation-for="OpenTime" class="field-validation-error"></span>
+    </div>
+
+    <!-- Giờ đóng cửa -->
+    <div class="owner-form-field">
+        <label asp-for="CloseTime">Giờ đóng cửa</label>
+        <input asp-for="CloseTime" type="time" class="filter-input" value="@(string.IsNullOrEmpty(Model.CloseTime) ? "22:00" : Model.CloseTime)" />
+        <span asp-validation-for="CloseTime" class="field-validation-error"></span>
+    </div>
+
+    <!-- Mô tả -->
     <div class="owner-form-field owner-form-field--full">
-        <label asp-for="Description">Mô tả</label>
-        <textarea asp-for="Description" class="filter-input" rows="4" maxlength="1000"></textarea>
+        <label asp-for="Description">Mô tả tiện ích cơ sở</label>
+        <textarea asp-for="Description" class="filter-input" rows="4" maxlength="1000" placeholder="Giới thiệu về cơ sở: tiêu chuẩn mặt sân, hệ thống đèn chống chói, bãi đỗ xe máy/ô tô, dịch vụ đồ uống..."></textarea>
         <span asp-validation-for="Description" class="field-validation-error"></span>
     </div>
 </div>

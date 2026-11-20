@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Domain.Entities;
+using SportsCourtBooking.Domain.Enums;
 using SportsCourtBooking.Infrastructure.Data;
 
 namespace SportsCourtBooking.Infrastructure.Services;
@@ -45,7 +46,8 @@ public class FacilityService : IFacilityService
         }
 
         return await query
-            .OrderByDescending(f => f.CreatedAt)
+            .OrderByDescending(f => !f.IsApproved) // Đưa cơ sở chờ duyệt lên đầu
+            .ThenByDescending(f => f.CreatedAt)
             .Select(f => new FacilityItemDto
             {
                 Id = f.Id,
@@ -60,7 +62,10 @@ public class FacilityService : IFacilityService
                 IsActive = f.IsActive,
                 SuspensionReason = f.SuspensionReason,
                 TotalCourts = f.Courts.Count,
-                CreatedAt = f.CreatedAt
+                CreatedAt = f.CreatedAt,
+                OwnerName = f.Owner != null ? f.Owner.FullName : null,
+                OwnerPhone = f.Owner != null ? f.Owner.PhoneNumber : null,
+                SportName = f.Courts.Select(c => c.CourtType != null ? c.CourtType.Name : null).FirstOrDefault()
             })
             .ToListAsync();
     }
@@ -186,15 +191,55 @@ public class FacilityService : IFacilityService
         if (facility == null)
             return (false, "Không tìm thấy cơ sở.");
 
-        if (facility.IsApproved)
-            return (false, "Cơ sở này đã được phê duyệt từ trước.");
-
         facility.IsApproved = true;
         facility.IsActive = true;
         facility.UpdatedAt = DateTime.UtcNow;
 
+        // Kích hoạt toàn bộ các sân thuộc cơ sở này để khách hàng có thể đặt trên hệ thống
+        var facilityCourts = await _context.Courts.Where(c => c.FacilityId == facilityId).ToListAsync();
+        if (facilityCourts.Count == 0)
+        {
+            var defaultCourtType = await _context.CourtTypes.FirstOrDefaultAsync() ?? new CourtType { Id = 1, Name = "Cầu lông" };
+            var newCourts = new List<Court>
+            {
+                new()
+                {
+                    OwnerId = facility.OwnerId ?? 3,
+                    FacilityId = facility.Id,
+                    CourtTypeId = defaultCourtType.Id,
+                    Name = $"Sân 1 ({defaultCourtType.Name})",
+                    Location = facility.Address,
+                    District = "TP. Hồ Chí Minh",
+                    PricePerHour = 80000m,
+                    Status = CourtStatus.Active,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new()
+                {
+                    OwnerId = facility.OwnerId ?? 3,
+                    FacilityId = facility.Id,
+                    CourtTypeId = defaultCourtType.Id,
+                    Name = $"Sân 2 ({defaultCourtType.Name})",
+                    Location = facility.Address,
+                    District = "TP. Hồ Chí Minh",
+                    PricePerHour = 80000m,
+                    Status = CourtStatus.Active,
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+            await _context.Courts.AddRangeAsync(newCourts);
+            facilityCourts = newCourts;
+        }
+        else
+        {
+            foreach (var court in facilityCourts)
+            {
+                court.Status = CourtStatus.Active;
+            }
+        }
+
         await _context.SaveChangesAsync();
-        return (true, $"Đã phê duyệt cơ sở \"{facility.Name}\" thành công.");
+        return (true, $"Đã phê duyệt cơ sở \"{facility.Name}\" và kích hoạt {facilityCourts.Count} sân thành công.");
     }
 
     public async Task<(bool Success, string Message, bool? IsActive)> ToggleLockFacilityAsync(int facilityId, string? reason)
@@ -206,15 +251,27 @@ public class FacilityService : IFacilityService
         facility.IsActive = !facility.IsActive;
         facility.UpdatedAt = DateTime.UtcNow;
 
+        var facilityCourts = await _context.Courts.Where(c => c.FacilityId == facilityId).ToListAsync();
         if (!facility.IsActive)
         {
             facility.SuspensionReason = string.IsNullOrWhiteSpace(reason)
                 ? "Tạm khóa theo quyết định của Quản trị viên hệ thống"
                 : reason.Trim();
+            foreach (var court in facilityCourts)
+            {
+                court.Status = CourtStatus.Inactive;
+            }
         }
         else
         {
             facility.SuspensionReason = null;
+            if (facility.IsApproved)
+            {
+                foreach (var court in facilityCourts)
+                {
+                    court.Status = CourtStatus.Active;
+                }
+            }
         }
 
         await _context.SaveChangesAsync();

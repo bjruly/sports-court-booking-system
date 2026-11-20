@@ -204,14 +204,22 @@ public class OwnerController : Controller
     }
 
     [HttpGet]
-    public IActionResult CreateFacility()
+    public async Task<IActionResult> CreateFacility()
     {
         if (User.GetUserId() is null)
         {
             return Forbid();
         }
 
-        return View(new OwnerFacilityFormViewModel());
+        var model = new OwnerFacilityFormViewModel
+        {
+            NumberOfCourts = 3,
+            PricePerHour = 80000,
+            OpenTime = "06:00",
+            CloseTime = "22:00"
+        };
+        await PopulateFacilityFormDropdownsAsync(model);
+        return View(model);
     }
 
     [HttpPost]
@@ -226,6 +234,7 @@ public class OwnerController : Controller
 
         if (!ModelState.IsValid)
         {
+            await PopulateFacilityFormDropdownsAsync(model);
             return View(model);
         }
 
@@ -233,6 +242,7 @@ public class OwnerController : Controller
         if (!result.Success)
         {
             ModelState.AddModelError(string.Empty, result.Message);
+            await PopulateFacilityFormDropdownsAsync(model);
             return View(model);
         }
 
@@ -255,12 +265,19 @@ public class OwnerController : Controller
             return NotFound();
         }
 
-        return View(new OwnerFacilityFormViewModel
+        var model = new OwnerFacilityFormViewModel
         {
             Name = facility.Name,
             Address = facility.Address,
+            PhoneNumber = facility.PhoneNumber,
+            OpenTime = facility.OpenTime,
+            CloseTime = facility.CloseTime,
+            CourtTypeId = facility.CourtTypeId ?? 1,
+            NumberOfCourts = facility.CourtCount,
             Description = facility.Description
-        });
+        };
+        await PopulateFacilityFormDropdownsAsync(model);
+        return View(model);
     }
 
     [HttpPost]
@@ -275,6 +292,7 @@ public class OwnerController : Controller
 
         if (!ModelState.IsValid)
         {
+            await PopulateFacilityFormDropdownsAsync(model);
             return View(model);
         }
 
@@ -282,11 +300,29 @@ public class OwnerController : Controller
         if (!result.Success)
         {
             ModelState.AddModelError(string.Empty, result.Message);
+            await PopulateFacilityFormDropdownsAsync(model);
             return View(model);
         }
 
         TempData["SuccessMessage"] = result.Message;
         return RedirectToAction(nameof(Facilities));
+    }
+
+    private async Task PopulateFacilityFormDropdownsAsync(OwnerFacilityFormViewModel model)
+    {
+        var courtTypes = await _courtService.GetCourtTypesAsync();
+        model.CourtTypes = courtTypes
+            .Select(ct => new SelectListItem(ct.Name, ct.Id.ToString()))
+            .ToList();
+
+        var districts = new[]
+        {
+            "Quận 1", "Quận 3", "Quận 4", "Quận 5", "Quận 6", "Quận 7", "Quận 8", "Quận 10", "Quận 11", "Quận 12",
+            "Bình Thạnh", "Thủ Đức", "Gò Vấp", "Phú Nhuận", "Tân Bình", "Tân Phú", "Bình Tân", "Nhà Bè"
+        };
+        model.DistrictList = districts
+            .Select(d => new SelectListItem(d, d))
+            .ToList();
     }
 
     [HttpPost]
@@ -302,6 +338,71 @@ public class OwnerController : Controller
         var result = await _facilityService.DeleteOwnerFacilityAsync(id, ownerId.Value);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Facilities));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> FacilityCourts(int facilityId)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var facility = await _facilityService.GetOwnerFacilityAsync(facilityId, ownerId.Value);
+        if (facility is null)
+        {
+            return NotFound();
+        }
+
+        var courts = (await _courtService.GetOwnerCourtsAsync(ownerId.Value))
+            .Where(c => c.FacilityId == facilityId)
+            .ToList();
+
+        ViewBag.Facility = facility;
+        return View(courts);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddCourtToFacility(int facilityId)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _facilityService.AddCourtToFacilityAsync(facilityId, ownerId.Value);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(FacilityCourts), new { facilityId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleCourtMaintenance(int courtId, int facilityId)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var court = await _courtService.GetOwnerCourtAsync(courtId, ownerId.Value);
+        if (court is null)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy sân thuộc tài khoản của bạn.";
+            return RedirectToAction(nameof(FacilityCourts), new { facilityId });
+        }
+
+        // Chuyển đổi: Active ↔ Maintenance
+        var newStatus = court.Status == CourtStatus.Maintenance
+            ? CourtStatus.Active
+            : CourtStatus.Maintenance;
+
+        var result = await _courtService.UpdateOwnerCourtStatusAsync(courtId, ownerId.Value, newStatus);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(FacilityCourts), new { facilityId });
     }
 
     [HttpGet]

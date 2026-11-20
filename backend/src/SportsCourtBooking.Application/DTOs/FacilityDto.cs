@@ -15,6 +15,9 @@ public class FacilityItemDto
     public string? SuspensionReason { get; set; }
     public int TotalCourts { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? OwnerName { get; set; }
+    public string? OwnerPhone { get; set; }
+    public string? SportName { get; set; }
 }
 
 public class CreateFacilityRequest
