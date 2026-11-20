@@ -1,6 +1,7 @@
 @using System.Globalization
 @using SportsCourtBooking.Application.DTOs
 @using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
 @model BookingDetailDto
 
 @{
@@ -24,6 +25,14 @@
                 && Model.ExpiresAt.Value > nowUtc
             )
         );
+    var canRequestRefund = Model.IsPaid
+        && Model.Status == BookingStatus.Confirmed
+        && Model.BookingDate.ToDateTime(Model.StartTime) > nowVietnam
+        && !Model.RefundStatus.HasValue;
+    var canPay = Model.Status == BookingStatus.Pending
+        && Model.PaymentStatus == PaymentStatus.Unpaid
+        && Model.ExpiresAt.HasValue
+        && Model.ExpiresAt.Value > nowUtc;
 }
 
 <section class="page-section">
@@ -99,11 +108,18 @@
                     <tr>
                         <th>Thanh toán</th>
                         <td>
-                            @(Model.IsPaid
-                                ? "Đã thanh toán"
-                                : "Chưa ghi nhận thanh toán")
+                            @PaymentStatusDisplay.Label(Model.PaymentStatus)
+                            @if (!string.IsNullOrWhiteSpace(Model.PaymentMethod))
+                            {
+                                <span> · @PaymentStatusDisplay.MethodLabel(Model.PaymentMethod)</span>
+                            }
                         </td>
                     </tr>
+
+                    @if (Model.RefundStatus.HasValue)
+                    {
+                        <tr><th>Hoàn tiền</th><td>@RefundStatusDisplay.Label(Model.RefundStatus) · @(Model.RefundAmount?.ToString("N0", culture) ?? "0")₫</td></tr>
+                    }
 
                     <tr>
                         <th>Thời điểm tạo đơn</th>
@@ -127,6 +143,13 @@
                 </tbody>
             </table>
         </div>
+        @if (canPay)
+        {
+            <div class="my-bookings-actions">
+                <a class="button button--primary" asp-action="Checkout" asp-route-id="@Model.Id">Tiếp tục thanh toán</a>
+                <p>Đơn được giữ đến @Model.ExpiresAt!.Value.AddHours(7).ToString("HH:mm dd/MM/yyyy") (giờ Việt Nam).</p>
+            </div>
+        }
         @if (canCancel)
 {
     <div class="my-bookings-actions">
@@ -144,11 +167,23 @@
         </form>
     </div>
 }
+else if (canRequestRefund)
+{
+    <div class="my-bookings-actions refund-request-panel">
+        <h2>Yêu cầu hủy và hoàn tiền</h2>
+        <p>Yêu cầu sẽ được chuyển đến chủ sân. Đây là quy trình mô phỏng, chưa chuyển tiền thật.</p>
+        <form asp-action="RequestRefund" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <label for="refundReason">Lý do</label>
+            <textarea id="refundReason" name="reason" maxlength="200" required>Thay đổi kế hoạch</textarea>
+            <button class="button button--outline" type="submit">Gửi yêu cầu hoàn tiền</button>
+        </form>
+    </div>
+}
 else if (Model.IsPaid)
 {
     <p>
-        Đơn đã thanh toán. Vui lòng liên hệ nhân viên
-        để được hỗ trợ hủy và xử lý tiền.
+        Đơn đã thanh toán. Trạng thái hoàn tiền: @RefundStatusDisplay.Label(Model.RefundStatus).
     </p>
 }
 

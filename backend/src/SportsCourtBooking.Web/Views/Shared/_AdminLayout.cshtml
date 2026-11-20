@@ -265,6 +265,9 @@
                     <a class="adm-menu-link @(currentAction == "Bookings" ? "active" : "")" asp-controller="Owner" asp-action="Bookings">
                         <span class="adm-menu-icon">✓</span><span>Đơn đặt sân</span>
                     </a>
+                    <a class="adm-menu-link @(currentAction == "Refunds" ? "active" : "")" asp-controller="Owner" asp-action="Refunds">
+                        <span class="adm-menu-icon">&#8634;</span><span>Ho&#224;n ti&#7873;n</span>
+                    </a>
                     <a class="adm-menu-link @(currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher" ? "active" : "")" asp-controller="Owner" asp-action="Vouchers">
                         <span class="adm-menu-icon">%</span><span>Voucher</span>
                     </a>

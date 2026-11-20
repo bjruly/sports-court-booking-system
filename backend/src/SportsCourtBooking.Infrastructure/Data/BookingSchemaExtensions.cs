@@ -118,12 +118,9 @@ public static class BookingSchemaExtensions
 
         await db.Database.ExecuteSqlRawAsync(BookingSchemaSql, cancellationToken);
 
-        // Dọn dẹp triệt để các dữ liệu mẫu đã tạo thử nghiệm trước đó theo yêu cầu của người dùng
+        // Không tự xóa booking, payment, refund hoặc tài khoản khi ứng dụng khởi động.
+        // Booking có thể có Payment/Refund liên quan và dữ liệu này cần được giữ lại.
         await db.Database.ExecuteSqlRawAsync("""
-            DELETE FROM "Bookings" WHERE "UserId" IN (SELECT "Id" FROM "Users" WHERE "Email" IN ('tranthib@gmail.com', 'lehoangc@gmail.com', 'phamvand@gmail.com', 'vothie@gmail.com')) OR "UserId" = 2;
-            DELETE FROM "Users" WHERE "Email" IN ('tranthib@gmail.com', 'lehoangc@gmail.com', 'phamvand@gmail.com', 'vothie@gmail.com');
-            DELETE FROM "Reviews" WHERE "Comment" LIKE '%lừa đảo%' OR "Comment" LIKE '%CHO VAY TIỀN%';
-            DELETE FROM "Facilities" WHERE "Name" IN ('Cụm Sân Thể Thao Rạch Miễu', 'Sân Thể Thao Tạm Khóa VIP');
             UPDATE "Facilities" SET "OwnerId" = 3 WHERE "OwnerId" IS NULL;
         """, cancellationToken);
 
@@ -235,6 +232,9 @@ public static class BookingSchemaExtensions
         }
 
         // Tự động khởi tạo sân cho bất kỳ cơ sở nào đã duyệt nhưng chưa có sân
+        // Đồng bộ sequence sau khi CourtDistrictSchemaExtensions chèn sân bằng Id cố định.
+        db.SyncIdentitySequences();
+
         var approvedFacilities = await db.Facilities
             .Where(f => f.IsApproved && f.IsActive)
             .ToListAsync(cancellationToken);

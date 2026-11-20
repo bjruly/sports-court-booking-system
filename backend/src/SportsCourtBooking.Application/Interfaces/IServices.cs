@@ -40,6 +40,20 @@ public interface IBookingService
     Task<(bool Success, string Message)> CancelOwnerBookingAsync(int bookingId, int ownerId, int actorUserId);
 }
 
+public interface IPaymentService
+{
+    Task<(bool Success, string Message)> CompleteDemoPaymentAsync(
+        int bookingId, int userId, PaymentMethodType method);
+    Task<(bool Success, string Message)> RequestRefundAsync(
+        int bookingId, int userId, string reason);
+    Task<List<RefundDto>> GetAdminRefundsAsync();
+    Task<List<RefundDto>> GetOwnerRefundsAsync(int ownerId);
+    Task<(bool Success, string Message)> ProcessDemoRefundAsync(
+        int refundId, int ownerId, int actorUserId, bool succeeded);
+    Task<(bool Success, string Message)> CompleteOwnerRefundManuallyAsync(
+        int refundId, int ownerId, int actorUserId, string transactionCode);
+}
+
 public interface IAuthService
 {
     Task<(bool Success, string Message, UserDto? User)> LoginAsync(LoginRequest request);

@@ -10,11 +10,12 @@
     var isVoucherManagement = currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher";
     var isReviewManagement = currentAction is "Reviews" or "ReplyToReview";
     var isRevenueReport = currentAction == "RevenueReport";
+    var isRefundManagement = currentAction == "Refunds";
     var isAccountManagement = currentAction == "ChangePassword";
     var isTodayCheckInView = currentAction == "Bookings"
         && ViewContext.HttpContext.Request.Query["date"] == VietnamClock.Today.ToString("yyyy-MM-dd")
         && ViewContext.HttpContext.Request.Query["status"] == BookingStatus.Confirmed.ToString();
-    var isBookingManagement = currentAction == "Bookings" && !isTodayCheckInView;
+    var isBookingManagement = (currentAction is "Bookings" or "Refunds") && !isTodayCheckInView;
     var isCalendarManagement = currentAction is "Calendar" or "CreateWalkInBooking" || isTodayCheckInView;
 }
 
@@ -73,6 +74,9 @@
                 <a class="admin-menu-item @(isBookingManagement ? "admin-menu-item--active" : string.Empty)"
                    asp-controller="Owner" asp-action="Bookings"
                    aria-current="@(isBookingManagement ? "page" : null)">Danh sách đơn</a>
+                <a class="admin-menu-item @(isRefundManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Refunds"
+                   aria-current="@(isRefundManagement ? "page" : null)">Hoàn tiền</a>
                 <span class="admin-menu-item admin-menu-item--disabled"><span>Xác nhận / hủy đơn</span><small>Trong danh sách</small></span>
             </div>
         </details>

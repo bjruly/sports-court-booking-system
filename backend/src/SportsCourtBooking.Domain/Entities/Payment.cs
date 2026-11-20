@@ -13,4 +13,5 @@ public class Payment : BaseEntity
 
     // Navigation property
     public Booking? Booking { get; set; }
+    public Refund? Refund { get; set; }
 }

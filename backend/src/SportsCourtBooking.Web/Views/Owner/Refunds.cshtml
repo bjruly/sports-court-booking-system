@@ -1,0 +1,75 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
+@model IReadOnlyList<RefundDto>
+
+@{
+    ViewData["Title"] = "Yêu cầu hoàn tiền";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+        <div class="admin-content">
+        <div class="admin-page-heading">
+            <div><p class="eyebrow eyebrow--dark">CHỦ SÂN</p><h1>Yêu cầu hoàn tiền</h1></div>
+        </div>
+        <p class="notice notice--info">Các nút mô phỏng chỉ cập nhật trạng thái trong hệ thống, không chuyển tiền thật.</p>
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state"><h2>Chưa có yêu cầu hoàn tiền</h2></div>
+        }
+        else
+        {
+            <div class="booking-table-wrap">
+                <table class="booking-table">
+                    <thead><tr><th>Đơn</th><th>Khách</th><th>Sân / ngày</th><th>Số tiền</th><th>Lý do</th><th>Trạng thái</th><th>Xử lý</th></tr></thead>
+                    <tbody>
+                    @foreach (var refund in Model)
+                    {
+                        <tr>
+                            <td>#@refund.BookingId</td>
+                            <td>@refund.CustomerName</td>
+                            <td>@refund.CourtName<br />@refund.BookingDate.ToString("dd/MM/yyyy")</td>
+                            <td>@refund.Amount.ToString("N0", culture)₫</td>
+                            <td>@refund.Reason</td>
+                            <td>@RefundStatusDisplay.Label(refund.Status)</td>
+                            <td>
+                                @if (refund.Status == RefundStatus.Pending)
+                                {
+                                    <div class="refund-actions">
+                                        <form asp-action="ProcessDemoRefund" method="post">
+                                            @Html.AntiForgeryToken()<input type="hidden" name="id" value="@refund.Id" /><input type="hidden" name="succeeded" value="true" />
+                                            <button class="button button--small button--primary" type="submit">Mô phỏng thành công</button>
+                                        </form>
+                                        <form asp-action="ProcessDemoRefund" method="post">
+                                            @Html.AntiForgeryToken()<input type="hidden" name="id" value="@refund.Id" /><input type="hidden" name="succeeded" value="false" />
+                                            <button class="button button--small button--outline" type="submit">Mô phỏng thất bại</button>
+                                        </form>
+                                    </div>
+                                }
+                                else if (refund.Status == RefundStatus.Failed)
+                                {
+                                    <form asp-action="CompleteRefundManually" method="post" class="refund-actions">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@refund.Id" />
+                                        <input name="transactionCode" maxlength="100" required placeholder="Mã giao dịch thực tế" />
+                                        <button class="button button--small button--primary" type="submit">Xác nhận đã hoàn</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span>@(refund.TransactionCode ?? "Đã hoàn")</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        </div>
+    </div>
+</section>

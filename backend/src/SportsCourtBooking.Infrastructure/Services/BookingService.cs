@@ -366,6 +366,17 @@ public class BookingService : IBookingService
                     : null
             };
 
+            if (userId.HasValue)
+            {
+                booking.Payment = new Payment
+                {
+                    Amount = booking.TotalPrice,
+                    PaymentMethod = "Demo",
+                    Status = PaymentStatus.Unpaid,
+                    CreatedAt = createdAt
+                };
+            }
+
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -613,33 +624,57 @@ public class BookingService : IBookingService
         int? ownerId)
     {
         await _expirationService.ExpireOverdueAsync();
+        await using var transaction = _context.Database.IsRelational()
+            ? await _context.Database.BeginTransactionAsync()
+            : null;
+
+        var booking = await GetBookingScope(bookingId, ownerId)
+            .Include(item => item.Payment)
+            .ThenInclude(payment => payment!.Refund)
+            .SingleOrDefaultAsync();
+        if (booking is null)
+        {
+            return (false, ownerId.HasValue
+                ? "Không tìm thấy đơn đặt sân thuộc sân của bạn."
+                : "Không tìm thấy đơn đặt sân.");
+        }
+
+        if (booking.Status is not (BookingStatus.Pending or BookingStatus.Confirmed))
+        {
+            return (false, booking.Status == BookingStatus.Cancelled
+                ? "Đơn này đã được hủy trước đó."
+                : "Đơn ở trạng thái hiện tại không thể hủy.");
+        }
 
         var now = DateTime.UtcNow;
-        var bookingScope = GetBookingScope(bookingId, ownerId);
-
-        var updated = await bookingScope
-            .Where(b => b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed)
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(b => b.Status, BookingStatus.Cancelled)
-                .SetProperty(b => b.UpdatedAt, now));
-
-        if (updated == 0)
+        var paid = booking.Payment?.Status is PaymentStatus.Paid or PaymentStatus.DemoPaid;
+        if (paid && booking.Payment!.Refund is null)
         {
-            var current = await GetStatusAsync(bookingId, ownerId);
-            _logger.LogWarning(
-                "Người dùng {ActorUserId} hủy đơn {BookingId} thất bại, trạng thái hiện tại: {Status}",
-                actorUserId, bookingId, current);
-
-            return (false, current switch
+            _context.Refunds.Add(new Refund
             {
-                null => ownerId.HasValue ? "Không tìm thấy đơn đặt sân thuộc sân của bạn." : "Không tìm thấy đơn đặt sân.",
-                BookingStatus.Cancelled => "Đơn này đã được hủy trước đó.",
-                _ => "Đơn ở trạng thái hiện tại không thể hủy."
+                PaymentId = booking.Payment.Id,
+                Amount = booking.Payment.Amount,
+                Reason = ownerId.HasValue ? "Hủy đơn do chủ sân" : "Hủy đơn do quản trị viên",
+                Status = RefundStatus.Pending,
+                RequestedAt = now,
+                RequestedByUserId = actorUserId,
+                CreatedAt = now
             });
         }
 
+        booking.Status = BookingStatus.Cancelled;
+        booking.ExpiresAt = null;
+        booking.UpdatedAt = now;
+        await _context.SaveChangesAsync();
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync();
+        }
+
         _logger.LogInformation("Người dùng {ActorUserId} đã hủy đơn {BookingId}, khung giờ được nhả", actorUserId, bookingId);
-        return (true, "Đã hủy đơn đặt sân, khung giờ được mở lại.");
+        return paid
+            ? (true, "Đã hủy đơn và tạo yêu cầu hoàn tiền cho chủ sân xử lý.")
+            : (true, "Đã hủy đơn đặt sân, khung giờ được mở lại.");
     }
 
     private IQueryable<Booking> GetBookingScope(int bookingId, int? ownerId)
@@ -695,7 +730,15 @@ public class BookingService : IBookingService
                 ExpiresAt = b.ExpiresAt,
 
                 IsPaid = b.Payment != null
-                    && b.Payment.Status == PaymentStatus.Paid,
+                    && (b.Payment.Status == PaymentStatus.Paid || b.Payment.Status == PaymentStatus.DemoPaid),
+                PaymentStatus = b.Payment != null ? b.Payment.Status : null,
+                PaymentMethod = b.Payment != null ? b.Payment.PaymentMethod : null,
+                RefundStatus = b.Payment != null && b.Payment.Refund != null
+                    ? b.Payment.Refund.Status
+                    : null,
+                RefundAmount = b.Payment != null && b.Payment.Refund != null
+                    ? b.Payment.Refund.Amount
+                    : null,
                 ReviewId = b.Review != null ? b.Review.Id : null,
                 ReviewRating = b.Review != null ? b.Review.Rating : null,
                 ReviewComment = b.Review != null ? b.Review.Comment : null
@@ -758,7 +801,8 @@ public class BookingService : IBookingService
 
             && (
                 b.Payment == null
-                || b.Payment.Status != PaymentStatus.Paid
+                || (b.Payment.Status != PaymentStatus.Paid
+                    && b.Payment.Status != PaymentStatus.DemoPaid)
             )
         )
         .ExecuteUpdateAsync(setters => setters
