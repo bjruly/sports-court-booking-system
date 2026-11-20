@@ -12,6 +12,23 @@ public class NotificationController : Controller
 {
     private readonly AppDbContext _context;
 
+    // Danh sách tên các cơ sở mẫu/seed ban đầu của hệ thống
+    private static readonly string[] SeedFacilityNames = new[]
+    {
+        "Cơ sở Cầu Lông Nam Sài Gòn - Quận 7",
+        "Cơ sở Cầu Lông Chu Văn An - Bình Thạnh",
+        "Cụm Sân Bóng Đá Mini Thủ Đức",
+        "Trung Tâm Pickleball Quận 10",
+        "CLB Tennis Thảo Điền - Quận 2",
+        "CLB Cầu Lông Sân Nhà Quận 7",
+        "Sân Cầu Lông Sân Nhà Bình Thạnh",
+        "Chảo Lửa Mini Sân Nhà Thủ Đức",
+        "Pickleball Sân Nhà Quận 10",
+        "Sân Quần Vợt Sân Nhà Quận 2",
+        "Cụm Sân Thể Thao Rạch Miễu",
+        "Sân Thể Thao Tạm Khóa VIP"
+    };
+
     public NotificationController(AppDbContext context)
     {
         _context = context;
@@ -31,13 +48,22 @@ public class NotificationController : Controller
 
         var notifications = new List<NotificationItemDto>();
 
+        // Lọc bỏ toàn bộ dữ liệu mẫu / seed ban đầu:
+        // 1. Chỉ lấy các sự kiện phát sinh gần đây (trong vòng 14 ngày qua)
+        // 2. Không lấy dữ liệu mẫu từ các ngày seed hoặc cơ sở mặc định
+        var seedCutoff = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc);
+        var recentThreshold = DateTime.UtcNow.AddDays(-14);
+        var effectiveCutoff = recentThreshold > seedCutoff ? recentThreshold : seedCutoff;
+
         if (isAdmin)
         {
-            // 1. Cơ sở mới tạo hoặc sửa chờ Admin duyệt
+            // 1. Cơ sở do người dùng thật đăng ký mới chờ Admin duyệt (loại trừ cơ sở mẫu)
             var pendingFacilitiesRaw = await _context.Facilities
                 .AsNoTracking()
                 .Include(f => f.Owner)
-                .Where(f => !f.IsApproved)
+                .Where(f => !f.IsApproved 
+                         && !SeedFacilityNames.Contains(f.Name) 
+                         && f.CreatedAt >= effectiveCutoff)
                 .OrderByDescending(f => f.CreatedAt)
                 .Take(5)
                 .ToListAsync();
@@ -53,11 +79,12 @@ public class NotificationController : Controller
             });
             notifications.AddRange(pendingFacilities);
 
-            // 2. Đơn đặt sân mới nhất trong toàn hệ thống
+            // 2. Đơn đặt sân mới phát sinh thật từ khách hàng (loại trừ đơn mẫu)
             var recentBookingsRaw = await _context.Bookings
                 .AsNoTracking()
                 .Include(b => b.User)
                 .Include(b => b.Court)
+                .Where(b => b.CreatedAt >= effectiveCutoff)
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(6)
                 .ToListAsync();
@@ -73,11 +100,12 @@ public class NotificationController : Controller
             });
             notifications.AddRange(recentBookings);
 
-            // 3. Đánh giá mới nhất từ người dùng
+            // 3. Đánh giá mới nhất từ người dùng thật (loại trừ đánh giá mẫu hoặc đã bị ẩn)
             var recentReviewsRaw = await _context.Reviews
                 .AsNoTracking()
                 .Include(r => r.User)
                 .Include(r => r.Court)
+                .Where(r => r.CreatedAt >= effectiveCutoff && !r.IsHidden)
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(4)
                 .ToListAsync();
@@ -95,12 +123,12 @@ public class NotificationController : Controller
         }
         else if (isOwner)
         {
-            // 1. Đơn đặt sân mới trên các sân thuộc quyền quản lý của Owner
+            // 1. Đơn đặt sân mới phát sinh thật trên các sân thuộc quyền quản lý của Owner
             var ownerBookingsRaw = await _context.Bookings
                 .AsNoTracking()
                 .Include(b => b.User)
                 .Include(b => b.Court)
-                .Where(b => b.Court != null && b.Court.OwnerId == userId.Value)
+                .Where(b => b.Court != null && b.Court.OwnerId == userId.Value && b.CreatedAt >= effectiveCutoff)
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(8)
                 .ToListAsync();
@@ -116,12 +144,12 @@ public class NotificationController : Controller
             });
             notifications.AddRange(ownerBookings);
 
-            // 2. Đánh giá mới trên các sân của Owner
+            // 2. Đánh giá mới phát sinh trên các sân của Owner (loại trừ đánh giá mẫu)
             var ownerReviewsRaw = await _context.Reviews
                 .AsNoTracking()
                 .Include(r => r.User)
                 .Include(r => r.Court)
-                .Where(r => r.Court != null && r.Court.OwnerId == userId.Value)
+                .Where(r => r.Court != null && r.Court.OwnerId == userId.Value && r.CreatedAt >= effectiveCutoff && !r.IsHidden)
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(5)
                 .ToListAsync();
@@ -137,10 +165,14 @@ public class NotificationController : Controller
             });
             notifications.AddRange(ownerReviews);
 
-            // 3. Cơ sở của Owner đã được Admin phê duyệt
+            // 3. Cơ sở mới do chính Owner này tạo đã được Admin phê duyệt (loại trừ 5 cơ sở mẫu)
             var approvedFacilitiesRaw = await _context.Facilities
                 .AsNoTracking()
-                .Where(f => f.OwnerId == userId.Value && f.IsApproved)
+                .Where(f => f.OwnerId == userId.Value 
+                         && f.IsApproved 
+                         && f.UpdatedAt != null 
+                         && f.UpdatedAt >= effectiveCutoff 
+                         && !SeedFacilityNames.Contains(f.Name))
                 .OrderByDescending(f => f.UpdatedAt ?? f.CreatedAt)
                 .Take(3)
                 .ToListAsync();
