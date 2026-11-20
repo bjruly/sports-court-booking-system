@@ -1204,6 +1204,17 @@ body.admin-dark-body {
   color: var(--d-text);
 }
 
+.adm-main .owner-facility-table {
+  table-layout: fixed;
+}
+
+.adm-main .owner-facility-table th,
+.adm-main .owner-facility-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+
 .adm-main .data-table tbody tr:hover td {
   background-color: #152623;
 }
@@ -1211,7 +1222,8 @@ body.admin-dark-body {
 .adm-main .table-wrapper {
   border: 1px solid var(--d-border);
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .adm-main .input-text, .adm-main select {
