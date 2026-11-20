@@ -14,15 +14,18 @@ public class BookingController : Controller
     private readonly IBookingService _bookingService;
     private readonly ICourtService _courtService;
     private readonly IReviewService _reviewService;
+    private readonly IPaymentService _paymentService;
 
     public BookingController(
         IBookingService bookingService,
         ICourtService courtService,
-        IReviewService reviewService)
+        IReviewService reviewService,
+        IPaymentService paymentService)
     {
         _bookingService = bookingService;
         _courtService = courtService;
         _reviewService = reviewService;
+        _paymentService = paymentService;
     }
 
     // Xem lịch đặt của tất cả khách theo ngày và sân (chỉ nhân viên / quản trị viên, vì có tên khách hàng)
@@ -99,6 +102,66 @@ public class BookingController : Controller
         }
 
         return View(booking);
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> Checkout(int id)
+    {
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Challenge();
+        }
+
+        var booking = await _bookingService.GetOwnBookingAsync(id, userId.Value);
+        if (booking is null)
+        {
+            return NotFound();
+        }
+
+        if (booking.Status != BookingStatus.Pending
+            || booking.PaymentStatus != PaymentStatus.Unpaid
+            || !booking.ExpiresAt.HasValue
+            || booking.ExpiresAt.Value <= DateTime.UtcNow)
+        {
+            TempData["ErrorMessage"] = "Đơn không còn trong thời hạn thanh toán.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        return View(booking);
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DemoPayment(int id, PaymentMethodType method)
+    {
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Challenge();
+        }
+
+        var result = await _paymentService.CompleteDemoPaymentAsync(id, userId.Value, method);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RequestRefund(int id, string reason)
+    {
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Challenge();
+        }
+
+        var result = await _paymentService.RequestRefundAsync(id, userId.Value, reason);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     [Authorize]
@@ -288,7 +351,9 @@ public async Task<IActionResult> My(
         }
 
         TempData["SuccessMessage"] = $"{result.Message} Tổng tiền: {result.Data?.TotalPrice:N0} VNĐ.";
-        return RedirectToAction(nameof(My));
+        return result.Data is null
+            ? RedirectToAction(nameof(My))
+            : RedirectToAction(nameof(Details), new { id = result.Data.Id });
     }
 
     // API nhỏ trả về JSON để kiểm tra nhanh khung giờ trống bằng JavaScript/AJAX

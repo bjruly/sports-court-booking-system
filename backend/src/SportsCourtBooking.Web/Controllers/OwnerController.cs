@@ -26,6 +26,7 @@ public class OwnerController : Controller
     private readonly IVoucherService _voucherService;
     private readonly IReviewService _reviewService;
     private readonly IOwnerRevenueReportService _revenueReportService;
+    private readonly IPaymentService _paymentService;
 
     public OwnerController(
         IOwnerDashboardService dashboardService,
@@ -36,7 +37,8 @@ public class OwnerController : Controller
         IUserService userService,
         IVoucherService voucherService,
         IReviewService reviewService,
-        IOwnerRevenueReportService revenueReportService)
+        IOwnerRevenueReportService revenueReportService,
+        IPaymentService paymentService)
     {
         _dashboardService = dashboardService;
         _courtStatisticsService = courtStatisticsService;
@@ -47,6 +49,7 @@ public class OwnerController : Controller
         _voucherService = voucherService;
         _reviewService = reviewService;
         _revenueReportService = revenueReportService;
+        _paymentService = paymentService;
     }
 
     public override async Task OnActionExecutionAsync(
@@ -713,6 +716,50 @@ public class OwnerController : Controller
             SelectedCourtId = courtId,
             SelectedStatus = status
         });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Refunds()
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        return View(await _paymentService.GetOwnerRefundsAsync(ownerId.Value));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ProcessDemoRefund(int id, bool succeeded)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _paymentService.ProcessDemoRefundAsync(
+            id, ownerId.Value, ownerId.Value, succeeded);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Refunds));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CompleteRefundManually(int id, string transactionCode)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _paymentService.CompleteOwnerRefundManuallyAsync(
+            id, ownerId.Value, ownerId.Value, transactionCode);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Refunds));
     }
 
     [HttpGet]

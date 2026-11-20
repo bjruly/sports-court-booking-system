@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Voucher> Vouchers => Set<Voucher>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Refund> Refunds => Set<Refund>();
     public DbSet<Review> Reviews => Set<Review>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -165,6 +166,27 @@ public class AppDbContext : DbContext
                   .WithOne(b => b.Payment)
                   .HasForeignKey<Payment>(p => p.BookingId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Refund>(entity =>
+        {
+            entity.HasKey(refund => refund.Id);
+            entity.Property(refund => refund.Amount).HasColumnType("numeric(18,2)");
+            entity.Property(refund => refund.Reason).IsRequired().HasMaxLength(200);
+            entity.Property(refund => refund.TransactionCode).HasMaxLength(100);
+            entity.HasIndex(refund => refund.PaymentId).IsUnique();
+            entity.HasOne(refund => refund.Payment)
+                .WithOne(payment => payment.Refund)
+                .HasForeignKey<Refund>(refund => refund.PaymentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(refund => refund.RequestedByUser)
+                .WithMany()
+                .HasForeignKey(refund => refund.RequestedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(refund => refund.ProcessedByUser)
+                .WithMany()
+                .HasForeignKey(refund => refund.ProcessedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // 6. Cấu hình bảng Review

@@ -1,0 +1,41 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Domain.Enums
+@model BookingDetailDto
+
+@{
+    ViewData["Title"] = $"Thanh toán đơn #{Model.Id}";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<section class="page-section">
+    <div class="shell shell--narrow">
+        <div class="page-heading">
+            <div>
+                <p class="eyebrow eyebrow--dark">THANH TOÁN</p>
+                <h1>Hoàn tất đặt sân</h1>
+                <p class="page-subtitle">Đơn #@Model.Id · @Model.CourtName · @Model.BookingDate.ToString("dd/MM/yyyy")</p>
+            </div>
+            <a class="button button--outline" asp-action="Details" asp-route-id="@Model.Id">Quay lại đơn</a>
+        </div>
+
+        <div class="booking-table-wrap">
+            <div class="booking-detail-panel">
+                <h2>Tổng thanh toán: @Model.TotalPrice.ToString("N0", culture)₫</h2>
+                <p>Chọn phương thức để chạy luồng mô phỏng. Màn hình này không kết nối ngân hàng và không chuyển tiền thật.</p>
+
+                <form asp-action="DemoPayment" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <fieldset class="payment-method-list">
+                        <legend>Phương thức mô phỏng</legend>
+                        <label><input type="radio" name="method" value="@PaymentMethodType.VNPayDemo" checked /> VNPay demo</label>
+                        <label><input type="radio" name="method" value="@PaymentMethodType.MoMoDemo" /> MoMo demo</label>
+                        <label><input type="radio" name="method" value="@PaymentMethodType.BankTransferDemo" /> Chuyển khoản demo</label>
+                        <label><input type="radio" name="method" value="@PaymentMethodType.CashAtVenue" /> Tiền mặt tại sân (demo)</label>
+                    </fieldset>
+                    <button class="button button--primary" type="submit">Mô phỏng thanh toán thành công</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
