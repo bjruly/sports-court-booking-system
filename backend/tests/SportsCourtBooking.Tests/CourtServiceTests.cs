@@ -19,20 +19,20 @@ public class CourtServiceTests
             CreateFacility(11, isApproved: true, isActive: true),
             CreateFacility(12, isApproved: true, isActive: false));
         context.Courts.AddRange(
-            CreateCourt(10, facilityId: 10),
-            CreateCourt(11, facilityId: 11),
-            CreateCourt(12, facilityId: 12),
-            CreateCourt(13, facilityId: null));
+            CreateCourt(110, facilityId: 10),
+            CreateCourt(111, facilityId: 11),
+            CreateCourt(112, facilityId: 12),
+            CreateCourt(113, facilityId: null));
         await context.SaveChangesAsync();
         var service = new CourtService(context);
 
         var courts = await service.GetAllCourtsAsync(onlyActive: true);
 
         var courtIds = courts.Select(court => court.Id).ToArray();
-        Assert.Contains(11, courtIds);
-        Assert.Contains(13, courtIds);
-        Assert.DoesNotContain(10, courtIds);
-        Assert.DoesNotContain(12, courtIds);
+        Assert.Contains(111, courtIds);
+        Assert.Contains(113, courtIds);
+        Assert.DoesNotContain(110, courtIds);
+        Assert.DoesNotContain(112, courtIds);
     }
 
     [Fact]
@@ -42,11 +42,11 @@ public class CourtServiceTests
         await context.Database.EnsureCreatedAsync();
         context.Users.Add(CreateOwner());
         context.Facilities.Add(CreateFacility(10, isApproved: false, isActive: true));
-        context.Courts.Add(CreateCourt(10, facilityId: 10));
+        context.Courts.Add(CreateCourt(110, facilityId: 10));
         await context.SaveChangesAsync();
         var service = new CourtService(context);
 
-        var court = await service.GetCourtByIdAsync(10);
+        var court = await service.GetCourtByIdAsync(110);
 
         Assert.Null(court);
     }

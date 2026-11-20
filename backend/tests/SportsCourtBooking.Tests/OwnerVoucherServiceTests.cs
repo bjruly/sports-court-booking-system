@@ -35,7 +35,7 @@ public class OwnerVoucherServiceTests
         context.Users.Add(CreateOwner(4));
         context.Courts.Add(new Court
         {
-            Id = 5,
+            Id = 105,
             OwnerId = 4,
             Name = "Sân chủ sân khác",
             CourtTypeId = 1,
@@ -56,7 +56,7 @@ public class OwnerVoucherServiceTests
         var service = new OwnerVoucherService(context);
 
         var onOwnedCourt = await service.ValidateForCourtAsync(1, VietnamToday(), 80_000m, "save25");
-        var onAnotherOwnerCourt = await service.ValidateForCourtAsync(5, VietnamToday(), 80_000m, "SAVE25");
+        var onAnotherOwnerCourt = await service.ValidateForCourtAsync(105, VietnamToday(), 80_000m, "SAVE25");
 
         Assert.True(onOwnedCourt.Success);
         Assert.Equal(20_000m, onOwnedCourt.DiscountAmount);
