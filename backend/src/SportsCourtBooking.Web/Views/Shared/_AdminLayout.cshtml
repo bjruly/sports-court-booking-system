@@ -299,6 +299,9 @@
                     <a class="adm-menu-link @(currentAction == "Bookings" ? "active" : "")" asp-controller="Owner" asp-action="Bookings">
                         <span class="adm-menu-icon">✓</span><span>Đơn đặt sân</span>
                     </a>
+                    <a class="adm-menu-link @(currentAction == "Refunds" ? "active" : "")" asp-controller="Owner" asp-action="Refunds">
+                        <span class="adm-menu-icon">&#8634;</span><span>Ho&#224;n ti&#7873;n</span>
+                    </a>
                     <a class="adm-menu-link @(currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher" ? "active" : "")" asp-controller="Owner" asp-action="Vouchers">
                         <span class="adm-menu-icon">%</span><span>Voucher</span>
                     </a>
@@ -324,6 +327,24 @@
         }
 
         <main class="adm-main">
+            @{
+                var flashSuccess = TempData["SuccessMessage"] as string;
+                var flashError = TempData["ErrorMessage"] as string;
+            }
+            @if (!string.IsNullOrEmpty(flashSuccess))
+            {
+                <div class="adm-flash-alert" style="margin-bottom: 20px; padding: 12px 18px; border-radius: 8px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35); color: #4ade80; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 700;">✓</span>
+                    <span>@flashSuccess</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(flashError))
+            {
+                <div class="adm-flash-alert" style="margin-bottom: 20px; padding: 12px 18px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 700;">✕</span>
+                    <span>@flashError</span>
+                </div>
+            }
             @RenderBody()
         </main>
     </div>

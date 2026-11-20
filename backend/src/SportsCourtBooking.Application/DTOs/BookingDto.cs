@@ -56,6 +56,12 @@ public class BookingDetailDto : BookingDto
 
     public decimal? RefundedAmount { get; set; }
 
+    public string? PaymentMethod { get; set; }
+
+    public RefundStatus? RefundStatus { get; set; }
+
+    public decimal? RefundAmount { get; set; }
+
     public bool CanReview { get; set; }
 
     public int? ReviewId { get; set; }

@@ -197,6 +197,7 @@ public class NotificationController : Controller
                 .AsNoTracking()
                 .Include(b => b.Court)
                 .Include(b => b.Payment)
+                .ThenInclude(p => p!.Refund)
                 .Where(b => b.UserId == userId.Value 
                          && b.Status == BookingStatus.Cancelled 
                          && (b.UpdatedAt ?? b.CreatedAt) >= effectiveCutoff)
@@ -204,34 +205,48 @@ public class NotificationController : Controller
                 .Take(6)
                 .ToListAsync();
 
-            var cancelledNotifs = cancelledBookingsRaw.Select(b => new NotificationItemDto
+            var cancelledNotifs = cancelledBookingsRaw.Select(b =>
             {
-                Id = $"cust_cancel_{b.Id}_{b.UpdatedAt?.Ticks ?? b.CreatedAt.Ticks}",
-                Title = b.Payment?.Status == PaymentStatus.Refunded 
-                    ? "Đơn đặt sân đã hủy & hoàn tiền" 
-                    : "Đơn đặt sân đã bị hủy",
-                Message = $"Đơn #{b.Id} tại sân {(b.Court != null ? b.Court.Name : "sân")} ({b.BookingDate:dd/MM/yyyy} {b.StartTime:hh\\:mm}-{b.EndTime:hh\\:mm}) đã được hủy.{(b.Payment?.Status == PaymentStatus.Refunded ? $" Đã hoàn tiền {b.Payment.Amount:N0}đ." : "")}",
-                Type = "booking",
-                Url = $"/Booking/Details/{b.Id}",
-                CreatedAt = b.UpdatedAt ?? b.CreatedAt
+                var isRefunded = b.Payment?.Status is PaymentStatus.Refunded or PaymentStatus.DemoRefunded
+                    || b.Payment?.Refund?.Status == RefundStatus.Completed;
+                var isRefundPending = !isRefunded && b.Payment?.Refund?.Status == RefundStatus.Pending;
+
+                string title = isRefunded
+                    ? "Đơn đặt sân đã hủy & hoàn tiền ✓"
+                    : (isRefundPending ? "Đơn đặt sân đã hủy (Đang hoàn tiền)" : "Đơn đặt sân đã bị hủy");
+
+                string refundNote = isRefunded
+                    ? $" Đã hoàn tiền {b.Payment!.Amount:N0}đ."
+                    : (isRefundPending ? " Yêu cầu hoàn tiền đang được chủ sân xử lý." : "");
+
+                return new NotificationItemDto
+                {
+                    Id = $"cust_cancel_{b.Id}_{b.UpdatedAt?.Ticks ?? b.CreatedAt.Ticks}",
+                    Title = title,
+                    Message = $"Đơn #{b.Id} tại sân {(b.Court != null ? b.Court.Name : "sân")} ({b.BookingDate:dd/MM/yyyy} {b.StartTime:hh\\:mm}-{b.EndTime:hh\\:mm}) đã được hủy.{refundNote}",
+                    Type = "booking",
+                    Url = $"/Booking/Details/{b.Id}",
+                    CreatedAt = b.UpdatedAt ?? b.CreatedAt
+                };
             });
             notifications.AddRange(cancelledNotifs);
 
             // 2. Thông báo khi có giao dịch hoàn tiền (Refunded Payment)
             var refundedPaymentsRaw = await _context.Payments
                 .AsNoTracking()
+                .Include(p => p.Refund)
                 .Include(p => p.Booking)
                 .ThenInclude(b => b!.Court)
                 .Where(p => p.Booking != null 
                          && p.Booking.UserId == userId.Value 
-                         && p.Status == PaymentStatus.Refunded 
+                         && (p.Status == PaymentStatus.Refunded || p.Status == PaymentStatus.DemoRefunded || (p.Refund != null && p.Refund.Status == RefundStatus.Completed))
                          && (p.UpdatedAt ?? p.CreatedAt) >= effectiveCutoff)
                 .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
                 .Take(4)
                 .ToListAsync();
 
             var refundNotifs = refundedPaymentsRaw
-                .Where(p => !cancelledBookingsRaw.Any(c => c.Id == p.BookingId && c.Payment?.Status == PaymentStatus.Refunded))
+                .Where(p => !cancelledBookingsRaw.Any(c => c.Id == p.BookingId && (c.Payment?.Status is PaymentStatus.Refunded or PaymentStatus.DemoRefunded || c.Payment?.Refund?.Status == RefundStatus.Completed)))
                 .Select(p => new NotificationItemDto
                 {
                     Id = $"cust_refund_{p.Id}_{p.UpdatedAt?.Ticks ?? p.CreatedAt.Ticks}",

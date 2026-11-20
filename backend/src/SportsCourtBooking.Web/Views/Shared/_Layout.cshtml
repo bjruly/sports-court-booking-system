@@ -73,7 +73,7 @@
                         </div>
                     </div>
 
-                    if (!User.IsInRole("CourtOwner"))
+                    @if (!User.IsInRole("CourtOwner"))
                     {
                         <a class="header-login" asp-controller="Account" asp-action="Profile">Hồ sơ cá nhân</a>
                     }

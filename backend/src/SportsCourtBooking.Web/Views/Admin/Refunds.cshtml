@@ -1,0 +1,28 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Web.Models
+@model IReadOnlyList<RefundDto>
+
+@{
+    ViewData["Title"] = "Theo dõi hoàn tiền";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<div class="admin-page">
+    <div class="admin-page-header"><div><span class="admin-eyebrow">THANH TOÁN</span><h1>Theo dõi hoàn tiền</h1></div></div>
+    <p class="notice notice--info">Admin chỉ theo dõi trạng thái. Giao dịch mô phỏng không chuyển tiền thật.</p>
+    @if (Model.Count == 0)
+    {
+        <div class="admin-card"><h2>Chưa có yêu cầu hoàn tiền</h2></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap"><table class="admin-table">
+            <thead><tr><th>Đơn</th><th>Khách</th><th>Chủ sân / sân</th><th>Ngày</th><th>Số tiền</th><th>Lý do</th><th>Trạng thái</th><th>Giao dịch</th></tr></thead>
+            <tbody>@foreach (var refund in Model)
+            {
+                <tr><td>#@refund.BookingId</td><td>@refund.CustomerName</td><td>@refund.CourtName</td><td>@refund.BookingDate.ToString("dd/MM/yyyy")</td><td>@refund.Amount.ToString("N0", culture)₫</td><td>@refund.Reason</td><td>@RefundStatusDisplay.Label(refund.Status)</td><td>@refund.TransactionCode</td></tr>
+            }</tbody>
+        </table></div>
+    }
+</div>

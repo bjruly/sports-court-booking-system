@@ -175,9 +175,9 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                             Id = 1,
                             CourtTypeId = 1,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Thảm Yonex, đèn LED chống chói",
+                            Description = "Thảm Yonex đạt chuẩn BWF thi đấu, đèn LED chống chói mắt.",
                             District = "Quận 7",
-                            Location = "Khu A - Tầng 1",
+                            Location = "Quận 7, TP. Hồ Chí Minh",
                             Name = "Sân Cầu Lông VIP 1",
                             OwnerId = 3,
                             PeakStartHour = 17,
@@ -187,12 +187,12 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                         },
                         new
                         {
-                            Id = 2,
+                            Id = 6,
                             CourtTypeId = 1,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Thảm Yonex, quạt làm mát",
-                            District = "Bình Thạnh",
-                            Location = "Khu A - Tầng 1",
+                            Description = "Thảm Yonex chống trơn trượt, hệ thống quạt mát tự nhiên.",
+                            District = "Quận 7",
+                            Location = "Quận 7, TP. Hồ Chí Minh",
                             Name = "Sân Cầu Lông VIP 2",
                             OwnerId = 3,
                             PeakStartHour = 17,
@@ -202,13 +202,73 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                         },
                         new
                         {
+                            Id = 7,
+                            CourtTypeId = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Sân VIP trung tâm, có ghế nghỉ vận động viên và khán đài mini.",
+                            District = "Quận 7",
+                            Location = "Quận 7, TP. Hồ Chí Minh",
+                            Name = "Sân Cầu Lông VIP 3",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 90000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CourtTypeId = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Thảm cao su chống sốc, không gian thoáng mát.",
+                            District = "Bình Thạnh",
+                            Location = "Bình Thạnh, TP. Hồ Chí Minh",
+                            Name = "Sân Cầu Lông 1 - Bình Thạnh",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 75000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CourtTypeId = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Thảm thi đấu tiêu chuẩn, hệ thống đèn chiếu sáng góc rộng.",
+                            District = "Bình Thạnh",
+                            Location = "Bình Thạnh, TP. Hồ Chí Minh",
+                            Name = "Sân Cầu Lông 2 - Bình Thạnh",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 75000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CourtTypeId = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Sân VIP máy lạnh, sàn cao cấp nhập khẩu.",
+                            District = "Bình Thạnh",
+                            Location = "Bình Thạnh, TP. Hồ Chí Minh",
+                            Name = "Sân Cầu Lông 3 - Bình Thạnh",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 85000m,
+                            Status = 1
+                        },
+                        new
+                        {
                             Id = 3,
                             CourtTypeId = 2,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Cỏ mới thay, hệ thống thoát nước tốt",
+                            Description = "Mặt cỏ nhân tạo mới thay, hệ thống thoát nước mưa cực tốt.",
                             District = "Thủ Đức",
-                            Location = "Khu B - Ngoài trời",
-                            Name = "Sân Bóng Đá 5 Người - Sân A",
+                            Location = "Thủ Đức, TP. Hồ Chí Minh",
+                            Name = "Sân Bóng Đá 5 Người (Sân A)",
                             OwnerId = 3,
                             PeakStartHour = 17,
                             PeakSurcharge = 50000m,
@@ -217,17 +277,122 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                         },
                         new
                         {
+                            Id = 10,
+                            CourtTypeId = 2,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Cỏ sợi mềm tiêu chuẩn FIFA, đèn cao áp chiếu sáng đêm.",
+                            District = "Thủ Đức",
+                            Location = "Thủ Đức, TP. Hồ Chí Minh",
+                            Name = "Sân Bóng Đá 5 Người (Sân B)",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 250000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CourtTypeId = 2,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Sân thi đấu 7 người rộng rãi, khán đài có mái che.",
+                            District = "Thủ Đức",
+                            Location = "Thủ Đức, TP. Hồ Chí Minh",
+                            Name = "Sân Bóng Đá 7 Người (Sân C)",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 350000m,
+                            Status = 1
+                        },
+                        new
+                        {
                             Id = 4,
                             CourtTypeId = 3,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Mặt sân Acrylic chuẩn thi đấu",
+                            Description = "Mặt sân Acrylic tiêu chuẩn thi đấu, chống trơn trượt tối đa.",
                             District = "Quận 10",
-                            Location = "Khu C - Có mái che",
+                            Location = "Quận 10, TP. Hồ Chí Minh",
                             Name = "Sân Pickleball Số 1",
                             OwnerId = 3,
                             PeakStartHour = 17,
                             PeakSurcharge = 50000m,
                             PricePerHour = 120000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CourtTypeId = 3,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Mặt sân cao cấp, có mái che mát mẻ và hệ thống thông gió.",
+                            District = "Quận 10",
+                            Location = "Quận 10, TP. Hồ Chí Minh",
+                            Name = "Sân Pickleball Số 2",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 120000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CourtTypeId = 3,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Sân VIP trung tâm có lưới thi đấu chuyên nghiệp USA Pickleball.",
+                            District = "Quận 10",
+                            Location = "Quận 10, TP. Hồ Chí Minh",
+                            Name = "Sân Pickleball Số 3",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 130000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CourtTypeId = 4,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Mặt sân cứng Plexicushion tiêu chuẩn Grand Slam.",
+                            District = "Quận 2",
+                            Location = "Quận 2, TP. Hồ Chí Minh",
+                            Name = "Sân Tennis Tiêu Chuẩn 1",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 180000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CourtTypeId = 4,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Mặt sân cứng cao cấp, đèn LED công suất lớn không chói.",
+                            District = "Quận 2",
+                            Location = "Quận 2, TP. Hồ Chí Minh",
+                            Name = "Sân Tennis Tiêu Chuẩn 2",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 180000m,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CourtTypeId = 4,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Sân có mái che hiện đại, đánh thoải mái bất kể thời tiết.",
+                            District = "Quận 2",
+                            Location = "Quận 2, TP. Hồ Chí Minh",
+                            Name = "Sân Tennis VIP Có Mái Che",
+                            OwnerId = 3,
+                            PeakStartHour = 17,
+                            PeakSurcharge = 50000m,
+                            PricePerHour = 220000m,
                             Status = 1
                         });
                 });
@@ -404,6 +569,62 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("SportsCourtBooking.Domain.Entities.Refund", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PaymentId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ProcessedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("RequestedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TransactionCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentId")
+                        .IsUnique();
+
+                    b.HasIndex("ProcessedByUserId");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.ToTable("Refunds");
                 });
 
             modelBuilder.Entity("SportsCourtBooking.Domain.Entities.Review", b =>
@@ -685,6 +906,31 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("SportsCourtBooking.Domain.Entities.Refund", b =>
+                {
+                    b.HasOne("SportsCourtBooking.Domain.Entities.Payment", "Payment")
+                        .WithOne("Refund")
+                        .HasForeignKey("SportsCourtBooking.Domain.Entities.Refund", "PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SportsCourtBooking.Domain.Entities.User", "ProcessedByUser")
+                        .WithMany()
+                        .HasForeignKey("ProcessedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SportsCourtBooking.Domain.Entities.User", "RequestedByUser")
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("ProcessedByUser");
+
+                    b.Navigation("RequestedByUser");
+                });
+
             modelBuilder.Entity("SportsCourtBooking.Domain.Entities.Review", b =>
                 {
                     b.HasOne("SportsCourtBooking.Domain.Entities.Booking", "Booking")
@@ -744,6 +990,11 @@ namespace SportsCourtBooking.Infrastructure.Data.Migrations
             modelBuilder.Entity("SportsCourtBooking.Domain.Entities.Facility", b =>
                 {
                     b.Navigation("Courts");
+                });
+
+            modelBuilder.Entity("SportsCourtBooking.Domain.Entities.Payment", b =>
+                {
+                    b.Navigation("Refund");
                 });
 
             modelBuilder.Entity("SportsCourtBooking.Domain.Entities.User", b =>

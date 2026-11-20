@@ -14,19 +14,22 @@ public class AdminController : Controller
     private readonly ICategoryService _categoryService;
     private readonly IReviewService _reviewService;
     private readonly IFacilityService _facilityService;
+    private readonly IPaymentService _paymentService;
 
     public AdminController(
         IUserService userService,
         IReportService reportService,
         ICategoryService categoryService,
         IReviewService reviewService,
-        IFacilityService facilityService)
+        IFacilityService facilityService,
+        IPaymentService paymentService)
     {
         _userService = userService;
         _reportService = reportService;
         _categoryService = categoryService;
         _reviewService = reviewService;
         _facilityService = facilityService;
+        _paymentService = paymentService;
     }
 
     [HttpGet]
@@ -35,6 +38,10 @@ public class AdminController : Controller
         var report = await _reportService.GetAdminReportAsync();
         return View(report);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Refunds()
+        => View(await _paymentService.GetAdminRefundsAsync());
 
     // ─── Báo cáo thống kê ─────────────────────────────────────────────────────
 

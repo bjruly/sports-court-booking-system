@@ -14,6 +14,7 @@ public class OwnerFacilityServiceTests
     {
         await using var context = CreateContext();
         context.Users.AddRange(CreateOwner(3), CreateOwner(4));
+        context.CourtTypes.Add(new CourtType { Id = 1, Name = "Cầu lông" });
         await context.SaveChangesAsync();
         var service = new OwnerFacilityService(context);
 
@@ -21,17 +22,27 @@ public class OwnerFacilityServiceTests
         {
             Name = "  Cơ sở Trung tâm  ",
             Address = "  123 Đường A  ",
-            Description = "  Sân trong nhà  "
+            Description = "  Sân trong nhà  ",
+            CourtTypeId = 1,
+            PhoneNumber = "0901234567"
         });
 
-        var facility = Assert.Single(await service.GetOwnerFacilitiesAsync(3));
         Assert.True(result.Success, result.Message);
+        var facility = Assert.Single(await service.GetOwnerFacilitiesAsync(3));
         Assert.Equal("Cơ sở Trung tâm", facility.Name);
         Assert.Equal("123 Đường A", facility.Address);
         Assert.Equal("Sân trong nhà", facility.Description);
         Assert.False(facility.IsApproved);
         Assert.True(facility.IsActive);
         Assert.Empty(await service.GetOwnerFacilitiesAsync(4));
+        var courts = await context.Courts.Where(court => court.FacilityId == facility.Id).ToListAsync();
+        Assert.Equal(3, courts.Count);
+        Assert.All(courts, court =>
+        {
+            Assert.Equal(3, court.OwnerId);
+            Assert.Equal(1, court.CourtTypeId);
+            Assert.Equal(CourtStatus.Inactive, court.Status);
+        });
 
         var adminService = new FacilityService(context);
         var pendingForAdmin = await adminService.GetAllFacilitiesAsync(filter: "pending");
