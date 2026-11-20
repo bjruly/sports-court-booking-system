@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using SportsCourtBooking.Application.Common;
 using SportsCourtBooking.Domain.Entities;
+using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Infrastructure.Data;
 
@@ -116,130 +118,177 @@ public static class BookingSchemaExtensions
 
         await db.Database.ExecuteSqlRawAsync(BookingSchemaSql, cancellationToken);
 
-        // Seed dữ liệu mẫu cho Reviews nếu chưa có để phục vụ demo UC26
-        if (!await db.Reviews.AnyAsync(cancellationToken))
-        {
-            var seedTime = DateTime.UtcNow.AddDays(-2);
-            var sampleReviews = new List<Review>
-            {
-                new()
-                {
-                    UserId = 2,
-                    CourtId = 1,
-                    Rating = 5,
-                    Comment = "Sân Cầu Lông VIP 1 rất đẹp, thảm Yonex mới và hệ thống đèn LED chống chói chuẩn thi đấu. Sẽ quay lại thường xuyên!",
-                    IsHidden = false,
-                    IsReported = false,
-                    CreatedAt = seedTime
-                },
-                new()
-                {
-                    UserId = 2,
-                    CourtId = 3,
-                    Rating = 4,
-                    Comment = "Sân bóng đá cỏ nhân tạo mới thay, thoát nước tốt sau mưa. Bãi giữ xe rộng rãi.",
-                    IsHidden = false,
-                    IsReported = false,
-                    CreatedAt = seedTime.AddHours(5)
-                },
-                new()
-                {
-                    UserId = 2,
-                    CourtId = 2,
-                    Rating = 1,
-                    Comment = "Sân phục vụ như lừa đảo, nhân viên thái độ mất dạy coi thường khách, sân bẩn như bãi rác đừng ai vào đây thuê!!!",
-                    IsHidden = false,
-                    IsReported = true, // Đang có báo cáo vi phạm
-                    CreatedAt = seedTime.AddHours(10)
-                },
-                new()
-                {
-                    UserId = 2,
-                    CourtId = 4,
-                    Rating = 1,
-                    Comment = "CHO VAY TIỀN NHANH TRONG NGÀY KHÔNG THẾ CHẤP LIÊN HỆ ZALO 0988XXXXXX LÃI SUẤT 0% GIẢI NGÂN SAU 10 PHÚT",
-                    IsHidden = true,
-                    HiddenReason = "Spam / Quảng cáo dịch vụ tài chính trái phép không liên quan đến sân",
-                    HiddenAt = DateTime.UtcNow.AddDays(-1),
-                    IsReported = true,
-                    CreatedAt = seedTime.AddHours(14)
-                }
-            };
+        // Dọn dẹp triệt để các dữ liệu mẫu đã tạo thử nghiệm trước đó theo yêu cầu của người dùng
+        await db.Database.ExecuteSqlRawAsync("""
+            DELETE FROM "Bookings" WHERE "UserId" IN (SELECT "Id" FROM "Users" WHERE "Email" IN ('tranthib@gmail.com', 'lehoangc@gmail.com', 'phamvand@gmail.com', 'vothie@gmail.com')) OR "UserId" = 2;
+            DELETE FROM "Users" WHERE "Email" IN ('tranthib@gmail.com', 'lehoangc@gmail.com', 'phamvand@gmail.com', 'vothie@gmail.com');
+            DELETE FROM "Reviews" WHERE "Comment" LIKE '%lừa đảo%' OR "Comment" LIKE '%CHO VAY TIỀN%';
+            DELETE FROM "Facilities" WHERE "Name" IN ('Cụm Sân Thể Thao Rạch Miễu', 'Sân Thể Thao Tạm Khóa VIP');
+            UPDATE "Facilities" SET "OwnerId" = 3 WHERE "OwnerId" IS NULL;
+        """, cancellationToken);
 
-            await db.Reviews.AddRangeAsync(sampleReviews, cancellationToken);
-            await db.SaveChangesAsync(cancellationToken);
-        }
-
-        // Seed dữ liệu mẫu cho Facilities nếu chưa có để phục vụ demo UC13, UC23
-        if (!await db.Facilities.AnyAsync(cancellationToken))
+        // 1. Đảm bảo đúng 5 Cơ sở thể thao thật khớp 100% với 5 cụm sân trên web
+        var facilities = await db.Facilities.ToListAsync(cancellationToken);
+        if (!facilities.Any(f => f.Name.Contains("Quận 7")))
         {
             var seedTime = DateTime.UtcNow.AddMonths(-1);
-            var sampleFacilities = new List<Facility>
+            var realFacilities = new List<Facility>
             {
                 new()
                 {
-                    Name = "CLB Thể Thao SGU - Cơ sở An Dương Vương",
-                    Address = "105 An Dương Vương, Phường 4, Quận 5, TP.HCM",
-                    PhoneNumber = "028 3835 4409",
-                    Description = "Cụm sân thể thao trong nhà trung tâm TP.HCM, trang bị sàn gỗ thảm Yonex và hệ thống chiếu sáng chuẩn quốc tế.",
+                    Name = "Cơ sở Cầu Lông Nam Sài Gòn - Quận 7",
+                    Address = "Quận 7, TP. Hồ Chí Minh",
+                    PhoneNumber = "0901 111 001",
+                    Description = "Cụm 3 sân cầu lông thảm Yonex đạt chuẩn BWF thi đấu, hệ thống đèn LED chống chói.",
                     OpenTime = "06:00",
-                    CloseTime = "22:30",
+                    CloseTime = "22:00",
                     IsApproved = true,
                     IsActive = true,
                     CreatedAt = seedTime
                 },
                 new()
                 {
-                    Name = "Khu Liên Hợp Thể Thao Kỳ Hòa",
-                    Address = "238 Ba Tháng Hai, Phường 12, Quận 10, TP.HCM",
-                    PhoneNumber = "090 987 6543",
-                    Description = "Tổ hợp sân bóng đá mini cỏ nhân tạo và cụm sân Pickleball ngoài trời thoáng đãng, bãi xe ô tô rộng rãi.",
-                    OpenTime = "05:30",
-                    CloseTime = "23:00",
-                    IsApproved = true,
-                    IsActive = true,
-                    CreatedAt = seedTime.AddDays(5)
-                },
-                new()
-                {
-                    Name = "Cụm Sân Thể Thao Rạch Miễu",
-                    Address = "Số 1 Hoa Phượng, Phường 2, Quận Phú Nhuận, TP.HCM",
-                    PhoneNumber = "091 234 5678",
-                    Description = "Cơ sở mới đăng ký tham gia nền tảng Sân Nhà. Đang nộp hồ sơ giấy phép kinh doanh chờ phê duyệt.",
-                    OpenTime = "06:00",
-                    CloseTime = "22:00",
-                    IsApproved = false, // Chờ phê duyệt UC23
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow.AddHours(-18)
-                },
-                new()
-                {
-                    Name = "Sân Thể Thao Bình Thạnh VIP",
-                    Address = "12 Chu Văn An, Phường 12, Quận Bình Thạnh, TP.HCM",
-                    PhoneNumber = "093 333 4455",
-                    Description = "Cơ sở có 3 sân bóng đá mini và 2 sân cầu lông.",
+                    Name = "Cơ sở Cầu Lông Chu Văn An - Bình Thạnh",
+                    Address = "Bình Thạnh, TP. Hồ Chí Minh",
+                    PhoneNumber = "0901 111 002",
+                    Description = "Cụm 3 sân cầu lông thảm cao su chống sốc, không gian thoáng mát và có khán đài.",
                     OpenTime = "06:00",
                     CloseTime = "22:00",
                     IsApproved = true,
-                    IsActive = false, // Tạm khóa vi phạm UC23
-                    SuspensionReason = "Cơ sở chưa hoàn tất nghiệm thu an toàn PCCC và nhận phản ánh chất lượng từ nhiều khách hàng.",
-                    CreatedAt = seedTime.AddDays(10)
+                    IsActive = true,
+                    CreatedAt = seedTime.AddDays(2)
+                },
+                new()
+                {
+                    Name = "Cụm Sân Bóng Đá Mini Thủ Đức",
+                    Address = "Thủ Đức, TP. Hồ Chí Minh",
+                    PhoneNumber = "0901 111 003",
+                    Description = "Tổ hợp sân bóng đá mini cỏ nhân tạo 5 người và 7 người tiêu chuẩn FIFA, thoát nước mưa tốt.",
+                    OpenTime = "06:00",
+                    CloseTime = "22:00",
+                    IsApproved = true,
+                    IsActive = true,
+                    CreatedAt = seedTime.AddDays(4)
+                },
+                new()
+                {
+                    Name = "Trung Tâm Pickleball Quận 10",
+                    Address = "Quận 10, TP. Hồ Chí Minh",
+                    PhoneNumber = "0901 111 004",
+                    Description = "Cụm 3 sân Pickleball mặt acrylic cao cấp chuẩn thi đấu, có mái che mát mẻ ban ngày.",
+                    OpenTime = "06:00",
+                    CloseTime = "22:00",
+                    IsApproved = true,
+                    IsActive = true,
+                    CreatedAt = seedTime.AddDays(6)
+                },
+                new()
+                {
+                    Name = "CLB Tennis Thảo Điền - Quận 2",
+                    Address = "Quận 2, TP. Hồ Chí Minh",
+                    PhoneNumber = "0901 111 005",
+                    Description = "Cụm sân tennis mặt cứng Plexicushion tiêu chuẩn Grand Slam và sân có mái che.",
+                    OpenTime = "06:00",
+                    CloseTime = "22:00",
+                    IsApproved = true,
+                    IsActive = true,
+                    CreatedAt = seedTime.AddDays(8)
                 }
             };
 
-            await db.Facilities.AddRangeAsync(sampleFacilities, cancellationToken);
+            await db.Facilities.AddRangeAsync(realFacilities, cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
+            facilities = realFacilities;
+        }
 
-            // Gán các sân hiện có vào cơ sở 1 và cơ sở 2
-            var courts = await db.Courts.ToListAsync(cancellationToken);
-            if (courts.Count >= 4)
+        // 2. Gán chính xác 15 sân thể thao vào 5 cơ sở thật tương ứng
+        var courts = await db.Courts.ToListAsync(cancellationToken);
+        if (courts.Count >= 15 && facilities.Count >= 5)
+        {
+            var facQ7 = facilities.First(f => f.Name.Contains("Quận 7"));
+            var facBT = facilities.First(f => f.Name.Contains("Bình Thạnh"));
+            var facTD = facilities.First(f => f.Name.Contains("Thủ Đức"));
+            var facQ10 = facilities.First(f => f.Name.Contains("Quận 10"));
+            var facQ2 = facilities.First(f => f.Name.Contains("Quận 2"));
+
+            // Cầu lông Q7: Sân 1, 6, 7
+            foreach (var c in courts.Where(c => c.Id == 1 || c.Id == 6 || c.Id == 7))
+                c.FacilityId = facQ7.Id;
+
+            // Cầu lông Bình Thạnh: Sân 2, 8, 9
+            foreach (var c in courts.Where(c => c.Id == 2 || c.Id == 8 || c.Id == 9))
+                c.FacilityId = facBT.Id;
+
+            // Bóng đá Thủ Đức: Sân 3, 10, 11
+            foreach (var c in courts.Where(c => c.Id == 3 || c.Id == 10 || c.Id == 11))
+                c.FacilityId = facTD.Id;
+
+            // Pickleball Q10: Sân 4, 12, 13
+            foreach (var c in courts.Where(c => c.Id == 4 || c.Id == 12 || c.Id == 13))
+                c.FacilityId = facQ10.Id;
+
+            // Tennis Q2: Sân 5, 14, 15
+            foreach (var c in courts.Where(c => c.Id == 5 || c.Id == 14 || c.Id == 15))
+                c.FacilityId = facQ2.Id;
+
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        // Tự động khởi tạo sân cho bất kỳ cơ sở nào đã duyệt nhưng chưa có sân
+        var approvedFacilities = await db.Facilities
+            .Where(f => f.IsApproved && f.IsActive)
+            .ToListAsync(cancellationToken);
+
+        foreach (var fac in approvedFacilities)
+        {
+            var courtCount = await db.Courts.CountAsync(c => c.FacilityId == fac.Id, cancellationToken);
+            if (courtCount == 0)
             {
-                courts[0].FacilityId = sampleFacilities[0].Id;
-                courts[1].FacilityId = sampleFacilities[0].Id;
-                courts[2].FacilityId = sampleFacilities[1].Id;
-                courts[3].FacilityId = sampleFacilities[1].Id;
-                await db.SaveChangesAsync(cancellationToken);
+                int courtTypeId = 1;
+                string courtTypeName = "Cầu lông";
+                decimal price = 80000;
+
+                if (fac.Name.Contains("Pickleball", StringComparison.OrdinalIgnoreCase))
+                {
+                    courtTypeId = 3;
+                    courtTypeName = "Pickleball";
+                    price = 120000;
+                }
+                else if (fac.Name.Contains("Bóng đá", StringComparison.OrdinalIgnoreCase) || fac.Name.Contains("Bóng Đá", StringComparison.OrdinalIgnoreCase))
+                {
+                    courtTypeId = 2;
+                    courtTypeName = "Bóng đá";
+                    price = 250000;
+                }
+                else if (fac.Name.Contains("Tennis", StringComparison.OrdinalIgnoreCase))
+                {
+                    courtTypeId = 4;
+                    courtTypeName = "Tennis";
+                    price = 180000;
+                }
+
+                var district = fac.Address.Contains(',') ? fac.Address.Split(',')[0].Trim() : "Quận 10";
+
+                for (int i = 1; i <= 2; i++)
+                {
+                    db.Courts.Add(new Court
+                    {
+                        OwnerId = fac.OwnerId ?? 3,
+                        FacilityId = fac.Id,
+                        CourtTypeId = courtTypeId,
+                        Name = $"Sân {i} ({courtTypeName})",
+                        Location = fac.Address,
+                        District = district,
+                        PricePerHour = price,
+                        PeakStartHour = 17,
+                        PeakSurcharge = 50000,
+                        Status = CourtStatus.Active,
+                        Description = fac.Description ?? "Sân đạt chuẩn thi đấu, sạch sẽ thoáng mát.",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
             }
         }
+        await db.SaveChangesAsync(cancellationToken);
     }
 }
