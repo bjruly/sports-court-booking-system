@@ -387,6 +387,18 @@ public class BookingService : IBookingService
                     CreatedAt = createdAt
                 };
             }
+            else if (ownerId.HasValue && status == BookingStatus.Confirmed)
+            {
+                // An owner-created walk-in booking represents a guest who has paid at the venue.
+                booking.Payment = new Payment
+                {
+                    Amount = booking.TotalPrice,
+                    PaymentMethod = PaymentMethodType.CashAtVenue.ToString(),
+                    Status = PaymentStatus.Paid,
+                    PaidAt = createdAt,
+                    CreatedAt = createdAt
+                };
+            }
 
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
