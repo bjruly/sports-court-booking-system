@@ -32,6 +32,52 @@ public class OwnerWalkInBookingTests
         Assert.Equal("Khách đặt tại quầy", booking.GuestName);
         Assert.Equal(BookingStatus.Confirmed, booking.Status);
         Assert.Null(booking.ExpiresAt);
+        Assert.NotNull(booking.Payment);
+        Assert.Equal(PaymentStatus.Paid, booking.Payment.Status);
+        Assert.Equal(PaymentMethodType.CashAtVenue.ToString(), booking.Payment.PaymentMethod);
+    }
+
+    [Fact]
+    public async Task ConfirmOwnerBookingAsync_RecordsCashPaymentForPendingCustomerBooking()
+    {
+        await using var context = CreateContext();
+        await context.Database.EnsureCreatedAsync();
+        var booking = new Booking
+        {
+            UserId = 2,
+            CourtId = 1,
+            BookingDate = VietnamClock.Today.AddDays(1),
+            StartTime = new TimeOnly(10, 0),
+            EndTime = new TimeOnly(11, 0),
+            TotalPrice = 80_000m,
+            Status = BookingStatus.Pending,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(5),
+            CreatedAt = DateTime.UtcNow,
+            Payment = new Payment
+            {
+                Amount = 80_000m,
+                PaymentMethod = "Demo",
+                Status = PaymentStatus.Unpaid,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+        context.Bookings.Add(booking);
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var result = await service.ConfirmOwnerBookingAsync(booking.Id, 3, 3);
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(BookingStatus.Confirmed, booking.Status);
+        Assert.Null(booking.ExpiresAt);
+        Assert.Equal(PaymentStatus.Paid, booking.Payment!.Status);
+        Assert.Equal(PaymentMethodType.CashAtVenue.ToString(), booking.Payment.PaymentMethod);
+        Assert.NotNull(booking.Payment.PaidAt);
+
+        var customerBooking = await service.GetOwnBookingAsync(booking.Id, 2);
+        Assert.NotNull(customerBooking);
+        Assert.True(customerBooking.IsPaid);
+        Assert.Equal(PaymentStatus.Paid, customerBooking.PaymentStatus);
     }
 
     [Fact]

@@ -76,6 +76,14 @@ public class OwnerCheckInTests
             Status = status,
             CreatedAt = DateTime.UtcNow
         };
+        booking.Payment = new Payment
+        {
+            Amount = booking.TotalPrice,
+            PaymentMethod = PaymentMethodType.CashAtVenue.ToString(),
+            Status = PaymentStatus.Paid,
+            PaidAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
         context.Bookings.Add(booking);
         await context.SaveChangesAsync();
         return booking;

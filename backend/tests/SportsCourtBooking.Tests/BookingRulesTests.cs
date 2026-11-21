@@ -199,4 +199,15 @@ public class BookingRulesTests
     {
         Assert.Equal(expected, BookingRules.CanCancel(status));
     }
+
+    [Fact]
+    public void CanCancel_RejectsAlreadyCheckedInBooking()
+    {
+        Assert.False(BookingRules.CanCancel(
+            BookingStatus.Confirmed,
+            Tomorrow,
+            new TimeOnly(10, 0),
+            Now,
+            checkInAt: Now));
+    }
 }

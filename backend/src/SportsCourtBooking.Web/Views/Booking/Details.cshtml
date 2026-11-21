@@ -17,6 +17,7 @@
             || Model.Status == BookingStatus.Confirmed
         )
         && !Model.IsPaid
+        && !Model.CheckInAt.HasValue
         && Model.BookingDate.ToDateTime(Model.StartTime) > nowVietnam
         && (
             Model.Status != BookingStatus.Pending
@@ -27,6 +28,7 @@
         );
     var canRequestRefund = Model.IsPaid
         && Model.Status == BookingStatus.Confirmed
+        && !Model.CheckInAt.HasValue
         && Model.BookingDate.ToDateTime(Model.StartTime) > nowVietnam
         && !Model.RefundStatus.HasValue;
     var canPay = Model.Status == BookingStatus.Pending

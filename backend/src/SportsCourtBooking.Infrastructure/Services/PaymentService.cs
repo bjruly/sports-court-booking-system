@@ -121,6 +121,7 @@ public sealed class PaymentService : IPaymentService
         var startsAtVietnam = booking.BookingDate.ToDateTime(booking.StartTime);
         if (!paid
             || booking.Status != BookingStatus.Confirmed
+            || booking.CheckInAt.HasValue
             || startsAtVietnam <= VietnamClock.Now)
         {
             return (false, "Chỉ có thể yêu cầu hoàn tiền cho đơn đã thanh toán và chưa bắt đầu.");

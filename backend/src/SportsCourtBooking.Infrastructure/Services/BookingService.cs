@@ -58,8 +58,16 @@ public class BookingService : IBookingService
             EndTime = b.EndTime,
             TotalPrice = b.TotalPrice,
             Status = b.Status,
+            CheckInAt = b.CheckInAt,
             VoucherCode = b.VoucherCode,
-            DiscountAmount = b.DiscountAmount
+            DiscountAmount = b.DiscountAmount,
+            PaymentStatus = b.Payment != null ? (PaymentStatus?)b.Payment.Status : null,
+            RefundStatus = b.Payment != null && b.Payment.Refund != null
+                ? b.Payment.Refund.Status
+                : null,
+            IsPaid = b.Payment != null
+                && (b.Payment.Status == PaymentStatus.Paid
+                    || b.Payment.Status == PaymentStatus.DemoPaid)
         }).ToListAsync();
     }
 
@@ -525,6 +533,12 @@ public class BookingService : IBookingService
                 return (false, "Không tìm thấy đơn đặt sân thuộc sân của bạn.");
             }
 
+            await _context.Entry(booking).Reference(item => item.Payment).LoadAsync();
+            if (!PaymentStatusRules.IsPaid(booking.Payment?.Status))
+            {
+                return (false, "Chỉ có thể check-in booking đã thanh toán.");
+            }
+
             var failureMessage = GetCheckInFailureMessage(booking.Status, booking.BookingDate, booking.CheckInAt, today);
             if (failureMessage is not null)
             {
@@ -541,7 +555,10 @@ public class BookingService : IBookingService
                 .Where(booking =>
                     booking.Status == BookingStatus.Confirmed &&
                     booking.BookingDate == today &&
-                    booking.CheckInAt == null)
+                    booking.CheckInAt == null &&
+                    booking.Payment != null &&
+                    (booking.Payment.Status == PaymentStatus.Paid
+                        || booking.Payment.Status == PaymentStatus.DemoPaid))
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(booking => booking.CheckInAt, now)
                     .SetProperty(booking => booking.UpdatedAt, now));
@@ -553,7 +570,10 @@ public class BookingService : IBookingService
                     {
                         booking.Status,
                         booking.BookingDate,
-                        booking.CheckInAt
+                        booking.CheckInAt,
+                        IsPaid = booking.Payment != null
+                            && (booking.Payment.Status == PaymentStatus.Paid
+                                || booking.Payment.Status == PaymentStatus.DemoPaid)
                     })
                     .SingleOrDefaultAsync();
 
@@ -564,6 +584,11 @@ public class BookingService : IBookingService
 
                 var failureMessage = GetCheckInFailureMessage(
                     current.Status, current.BookingDate, current.CheckInAt, today);
+                if (!current.IsPaid)
+                {
+                    return (false, "Chỉ có thể check-in booking đã thanh toán.");
+                }
+
                 return (false, failureMessage ?? "Không thể check-in đơn đặt sân lúc này.");
             }
         }
@@ -601,6 +626,11 @@ public class BookingService : IBookingService
         int actorUserId,
         int? ownerId)
     {
+        if (ownerId.HasValue)
+        {
+            return await ConfirmOwnerBookingAndRecordCashAsync(bookingId, ownerId.Value, actorUserId);
+        }
+
         await _expirationService.ExpireOverdueAsync();
 
         var now = DateTime.UtcNow;
@@ -609,6 +639,9 @@ public class BookingService : IBookingService
         // Một câu UPDATE có điều kiện: chỉ đổi khi đơn vẫn Pending và còn hạn, nên không tranh chấp với tác vụ hết hạn.
         var updated = await bookingScope
             .Where(b => b.Status == BookingStatus.Pending
+                && b.Payment != null
+                && (b.Payment.Status == PaymentStatus.Paid
+                    || b.Payment.Status == PaymentStatus.DemoPaid)
                 && (b.ExpiresAt == null || b.ExpiresAt > now))
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(b => b.Status, BookingStatus.Confirmed)
@@ -627,12 +660,84 @@ public class BookingService : IBookingService
                 null => ownerId.HasValue ? "Không tìm thấy đơn đặt sân thuộc sân của bạn." : "Không tìm thấy đơn đặt sân.",
                 BookingStatus.Expired => "Đơn đã hết hạn giữ chỗ nên không thể xác nhận.",
                 BookingStatus.Confirmed => "Đơn này đã được xác nhận trước đó.",
-                _ => "Chỉ đơn đang chờ xác nhận mới có thể xác nhận."
+                _ => "Chỉ đơn đang chờ, còn hạn và đã thanh toán mới có thể xác nhận."
             });
         }
 
         _logger.LogInformation("Người dùng {ActorUserId} đã xác nhận đơn {BookingId}", actorUserId, bookingId);
         return (true, "Đã xác nhận đơn đặt sân.");
+    }
+
+    private async Task<(bool Success, string Message)> ConfirmOwnerBookingAndRecordCashAsync(
+        int bookingId,
+        int ownerId,
+        int actorUserId)
+    {
+        await _expirationService.ExpireOverdueAsync();
+        await using var transaction = _context.Database.IsRelational()
+            ? await _context.Database.BeginTransactionAsync()
+            : null;
+
+        var booking = await GetBookingForUpdateAsync(bookingId);
+        if (booking is null || !await _context.Courts.AnyAsync(
+                court => court.Id == booking.CourtId && court.OwnerId == ownerId))
+        {
+            return (false, "Không tìm thấy đơn đặt sân thuộc sân của bạn.");
+        }
+
+        var now = DateTime.UtcNow;
+        if (booking.Status != BookingStatus.Pending
+            || (booking.ExpiresAt.HasValue && booking.ExpiresAt.Value <= now))
+        {
+            return (false, booking.Status == BookingStatus.Expired
+                ? "Đơn đã hết hạn giữ chỗ nên không thể xác nhận."
+                : "Chỉ đơn đang chờ và còn hạn mới có thể xác nhận.");
+        }
+
+        await _context.Entry(booking).Reference(item => item.Payment).LoadAsync();
+        if (booking.Payment is not null)
+        {
+            await _context.Entry(booking.Payment).Reference(payment => payment.Refund).LoadAsync();
+            if (PaymentStatusRules.IsRefunded(booking.Payment.Status)
+                || booking.Payment.Refund is not null)
+            {
+                return (false, "Đơn đã có trạng thái hoàn tiền nên không thể xác nhận thu tiền lại.");
+            }
+        }
+
+        if (booking.Payment is null)
+        {
+            booking.Payment = new Payment
+            {
+                Amount = booking.TotalPrice,
+                PaymentMethod = PaymentMethodType.CashAtVenue.ToString(),
+                Status = PaymentStatus.Paid,
+                PaidAt = now,
+                CreatedAt = now
+            };
+        }
+        else if (!PaymentStatusRules.IsPaid(booking.Payment.Status))
+        {
+            booking.Payment.Amount = booking.TotalPrice;
+            booking.Payment.PaymentMethod = PaymentMethodType.CashAtVenue.ToString();
+            booking.Payment.Status = PaymentStatus.Paid;
+            booking.Payment.PaidAt = now;
+            booking.Payment.UpdatedAt = now;
+        }
+
+        booking.Status = BookingStatus.Confirmed;
+        booking.ExpiresAt = null;
+        booking.UpdatedAt = now;
+        await _context.SaveChangesAsync();
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync();
+        }
+
+        _logger.LogInformation(
+            "Owner {OwnerId} confirmed booking {BookingId} and recorded cash payment by actor {ActorUserId}",
+            ownerId, bookingId, actorUserId);
+        return (true, "Đã xác nhận đơn và ghi nhận khách thanh toán tiền mặt tại sân.");
     }
 
     public Task<(bool Success, string Message)> CancelBookingAsync(int bookingId, int actorUserId)
@@ -676,6 +781,11 @@ public class BookingService : IBookingService
             return (false, booking.Status == BookingStatus.Cancelled
                 ? "Đơn này đã được hủy trước đó."
                 : "Đơn ở trạng thái hiện tại không thể hủy.");
+        }
+
+        if (booking.CheckInAt.HasValue)
+        {
+            return (false, "Không thể hủy đơn sau khi khách đã check-in.");
         }
 
         if (booking.BookingDate.ToDateTime(booking.StartTime) <= VietnamClock.Now)
@@ -731,6 +841,13 @@ public class BookingService : IBookingService
                 court => court.Id == booking.CourtId && court.OwnerId == ownerId))
         {
             return (false, "Không tìm thấy đơn đặt sân thuộc sân của bạn.");
+        }
+
+        if (booking.Status is not (BookingStatus.Pending or BookingStatus.Confirmed)
+            || booking.CheckInAt.HasValue
+            || booking.BookingDate.ToDateTime(booking.StartTime) <= VietnamClock.Now)
+        {
+            return (false, "Chỉ có thể hủy/hoàn booking chưa bắt đầu và chưa check-in.");
         }
 
         await _context.Entry(booking).Reference(item => item.Payment).LoadAsync();
@@ -863,6 +980,7 @@ public class BookingService : IBookingService
                 EndTime = b.EndTime,
                 TotalPrice = b.TotalPrice,
                 Status = b.Status,
+                CheckInAt = b.CheckInAt,
                 VoucherCode = b.VoucherCode,
                 DiscountAmount = b.DiscountAmount,
                 Note = b.Note,
@@ -921,6 +1039,8 @@ public class BookingService : IBookingService
                 b.Status == BookingStatus.Pending
                 || b.Status == BookingStatus.Confirmed
             )
+
+            && b.CheckInAt == null
 
             && (
                 b.Status != BookingStatus.Pending

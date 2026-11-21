@@ -64,14 +64,14 @@
                                 <td><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
                                 <td>
                                     <div class="booking-actions">
-                                        @if (BookingRules.CanConfirm(booking.Status))
+                                        @if (BookingRules.CanConfirm(booking.Status) && booking.IsPaid)
                                         {
                                             <form class="inline-form" method="post" asp-controller="Booking" asp-action="Confirm"
                                                   asp-route-id="@booking.Id" asp-route-date="@Model.SelectedDate.ToString("yyyy-MM-dd")" asp-route-courtId="@Model.SelectedCourtId">
                                                 <button class="button button--small button--dark" type="submit">Xác nhận</button>
                                             </form>
                                         }
-                                        @if (BookingRules.CanCancel(booking.Status, booking.BookingDate, booking.StartTime, VietnamClock.Now))
+                                        @if (BookingRules.CanCancel(booking.Status, booking.BookingDate, booking.StartTime, VietnamClock.Now, booking.CheckInAt))
                                         {
                                             <form class="inline-form" method="post" asp-controller="Booking" asp-action="Cancel"
                                                   asp-route-id="@booking.Id" asp-route-date="@Model.SelectedDate.ToString("yyyy-MM-dd")" asp-route-courtId="@Model.SelectedCourtId"

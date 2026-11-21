@@ -138,7 +138,7 @@
                                         </td>
                                         <td>
                                             <div class="booking-actions">
-                                                @if (BookingRules.CanCheckIn(booking.Status, booking.BookingDate, booking.CheckInAt, VietnamClock.Today))
+                                                @if (booking.IsPaid && BookingRules.CanCheckIn(booking.Status, booking.BookingDate, booking.CheckInAt, VietnamClock.Today))
                                                 {
                                                     <form class="inline-form" method="post" asp-action="CheckInBooking"
                                                           asp-route-id="@booking.Id" asp-route-date="@selectedDate"
@@ -155,7 +155,7 @@
                                                         <button class="button button--small button--dark" type="submit">Xác nhận</button>
                                                     </form>
                                                 }
-                                                @if (BookingRules.CanCancel(booking.Status, booking.BookingDate, booking.StartTime, VietnamClock.Now))
+                                                @if (BookingRules.CanCancel(booking.Status, booking.BookingDate, booking.StartTime, VietnamClock.Now, booking.CheckInAt))
                                                 {
                                                     <form class="inline-form" method="post" asp-action="CancelBooking"
                                                           asp-route-id="@booking.Id" asp-route-date="@selectedDate"
@@ -165,7 +165,8 @@
                                                     </form>
                                                 }
                                                 @if (PaymentStatusRules.IsPaid(booking.PaymentStatus)
-                                                    && booking.RefundStatus is null)
+                                                    && booking.RefundStatus is null
+                                                    && BookingRules.CanCancel(booking.Status, booking.BookingDate, booking.StartTime, VietnamClock.Now, booking.CheckInAt))
                                                 {
                                                     <form class="inline-form" method="post" asp-action="RefundBooking"
                                                           asp-route-id="@booking.Id" asp-route-date="@selectedDate"
