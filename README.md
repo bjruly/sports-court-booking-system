@@ -124,10 +124,10 @@ Dự án có sẵn cấu hình Docker để mọi thành viên chạy cùng mộ
 
 ### Tài khoản mẫu (chỉ dùng để thử trên máy)
 
-| Vai trò         | Email                    | Mật khẩu       |
-| ---------------- | ------------------------ | ---------------- |
-| Quản trị viên | `admin@sportscourt.vn` | `Admin@123`    |
-| Khách hàng     | `khachhang@gmail.com`  | `Customer@123` |
+| Vai trò         | Email                     | Mật khẩu       |
+| ---------------- | ------------------------- | ---------------- |
+| Quản trị viên | `admin@sportscourt.vn`  | `Admin@123`    |
+| Khách hàng     | `khachhang@gmail.com`   | `Customer@123` |
 | Chủ Sân        | `chusan@sportscourt.vn` | `Owner@123`    |
 
 Bạn cũng có thể tự đăng ký tài khoản Khách hàng ở trang **Tạo tài khoản**. Đăng nhập xong, khách hàng vào **Lịch đặt của tôi** để xem đơn vừa tạo; tài khoản quản trị xem lịch của mọi khách ở `/Booking`.
