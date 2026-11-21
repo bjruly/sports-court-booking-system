@@ -1,0 +1,447 @@
+{
+  "evaluated_at": "2026-11-20T22:47:35.738404+07:00",
+  "source_commit_before_changes": "7d22aa1",
+  "base_url": "http://localhost:5101",
+  "method": "HTTP requests to running Docker web app, actual cookies and antiforgery tokens; no browser layout or JavaScript evaluation",
+  "build": {
+    "command": "dotnet build backend/SportsCourtBooking.sln --no-restore",
+    "warnings": 0,
+    "errors": 0
+  },
+  "default_tests": {
+    "passed": 107,
+    "failed": 0,
+    "skipped": 2,
+    "total": 109
+  },
+  "isolated_postgresql_tests": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "database_removed": true
+  },
+  "coverage": {
+    "lines_covered": 1575,
+    "lines_valid": 6267,
+    "line_percent": 25.13,
+    "branch_percent": 35.45,
+    "packages": [
+      {
+        "name": "SportsCourtBooking.Application",
+        "line_percent": 57.79
+      },
+      {
+        "name": "SportsCourtBooking.Domain",
+        "line_percent": 73.46
+      },
+      {
+        "name": "SportsCourtBooking.Infrastructure",
+        "line_percent": 21.65
+      }
+    ],
+    "web_assembly_measured": false
+  },
+  "navigation": [
+    {
+      "role": "admin",
+      "status": 200,
+      "path": "/Admin",
+      "authenticated": true
+    },
+    {
+      "role": "admin",
+      "path": "/Admin",
+      "status": 200,
+      "final_path": "/Admin"
+    },
+    {
+      "role": "admin",
+      "path": "/Admin/Facilities",
+      "status": 404,
+      "final_path": "/Admin/Facilities"
+    },
+    {
+      "role": "admin",
+      "path": "/Admin/Customers",
+      "status": 200,
+      "final_path": "/Admin/Customers"
+    },
+    {
+      "role": "admin",
+      "path": "/Admin/Owners",
+      "status": 404,
+      "final_path": "/Admin/Owners"
+    },
+    {
+      "role": "admin",
+      "path": "/Admin/Reviews",
+      "status": 404,
+      "final_path": "/Admin/Reviews"
+    },
+    {
+      "role": "admin",
+      "path": "/Admin/Reports",
+      "status": 200,
+      "final_path": "/Admin/Reports"
+    },
+    {
+      "role": "admin",
+      "path": "/Booking",
+      "status": 200,
+      "final_path": "/Booking"
+    },
+    {
+      "role": "customer",
+      "status": 200,
+      "path": "/",
+      "authenticated": true
+    },
+    {
+      "role": "customer",
+      "path": "/Account/Profile",
+      "status": 200,
+      "final_path": "/Account/Profile"
+    },
+    {
+      "role": "customer",
+      "path": "/Account/ChangePassword",
+      "status": 200,
+      "final_path": "/Account/ChangePassword"
+    },
+    {
+      "role": "customer",
+      "path": "/Booking/My",
+      "status": 200,
+      "final_path": "/Booking/My"
+    },
+    {
+      "role": "owner",
+      "status": 200,
+      "path": "/Owner",
+      "authenticated": true
+    },
+    {
+      "role": "owner",
+      "path": "/Owner",
+      "status": 200,
+      "final_path": "/Owner"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/Calendar",
+      "status": 200,
+      "final_path": "/Owner/Calendar"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/Bookings",
+      "status": 200,
+      "final_path": "/Owner/Bookings"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/Courts",
+      "status": 200,
+      "final_path": "/Owner/Courts"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/Facilities",
+      "status": 200,
+      "final_path": "/Owner/Facilities"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/Pricing",
+      "status": 200,
+      "final_path": "/Owner/Pricing"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/Vouchers",
+      "status": 200,
+      "final_path": "/Owner/Vouchers"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/Reviews",
+      "status": 200,
+      "final_path": "/Owner/Reviews"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/RevenueReport",
+      "status": 200,
+      "final_path": "/Owner/RevenueReport"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/CourtStatistics",
+      "status": 200,
+      "final_path": "/Owner/CourtStatistics"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/Profile",
+      "status": 200,
+      "final_path": "/Owner/Profile"
+    },
+    {
+      "role": "owner",
+      "path": "/Owner/ChangePassword",
+      "status": 200,
+      "final_path": "/Owner/ChangePassword"
+    },
+    {
+      "role": "owner",
+      "path": "/",
+      "status": 200,
+      "final_path": "/"
+    }
+  ],
+  "flow_checks": [
+    {
+      "check": "owner_create_voucher_25_percent",
+      "passed": true,
+      "status": 200,
+      "path": "/Owner/Vouchers"
+    },
+    {
+      "check": "preview_peak_surcharge_and_voucher",
+      "passed": true,
+      "subtotal": 210000,
+      "discount": 52500,
+      "total": 157500,
+      "status": 200
+    },
+    {
+      "check": "customer_create_pending_booking",
+      "passed": true,
+      "booking_id": 22,
+      "status": 200,
+      "message": "Lịch đặt của tôi · Sân Nhà S SÂN NHÀ . Tìm sân Lịch đặt của tôi Hồ sơ cá nhân Xin chào, Nguyễn Văn Khách Đăng xuất Hồ sơ Lịch đặt của tôi ↗ ✓ Đã tạo đơn đặt sân 16:00 - 18:00 ngày 21/11/2026, tổng 157,500₫. Đơn đang chờ xác nhận. TÀI KHOẢN CỦA BẠN Lịch đặt của tôi Nguyễn Văn Khách Tìm sân Trạng thái Tất cả trạng thái Chờ xác nhận Đã xác nhận Đã hủy"
+    },
+    {
+      "check": "persisted_total_matches_preview",
+      "passed": true,
+      "booking_id": 22,
+      "total": 157500
+    },
+    {
+      "check": "reserved_slot_unavailable",
+      "passed": true
+    },
+    {
+      "check": "owner_confirm_pending",
+      "passed": true,
+      "booking_id": 22
+    },
+    {
+      "check": "reject_checkin_wrong_day",
+      "passed": true
+    },
+    {
+      "check": "reject_review_before_end",
+      "passed": true,
+      "status": 404
+    },
+    {
+      "check": "reject_exhausted_voucher",
+      "passed": true,
+      "status": 200,
+      "message": "Xem lại lịch đặt · Sân Nhà S SÂN NHÀ . Tìm sân Lịch đặt của tôi Hồ sơ cá nhân Xin chào, Nguyễn Văn Khách Đăng xuất Hồ sơ Lịch đặt của tôi ↗ ! Voucher đã hết lượt sử dụng. Tìm sân / Lịch sân / Xem lại BƯỚC CUỐI TRƯỚC KHI ĐẶT Xem lại lịch đặt Kiểm tra sân, thời gian và tổng tiền trước khi xác nhận. ⌖ Quận 10 · TP. Hồ Chí Minh Evaluation fixture Evaluation-20261120 ▦ Thứ Bảy, 21/11/2026 18:00 – 19:00 18:00 – 19:00 130.000₫ ← Chỉnh khung giờ TÓM TẮT CHI PHÍ Tạm tính (1 khung giờ) 130.000₫ Mã voucher Áp dụng Voucher đã hết lượt sử dụng. Tổng tiền 130.000₫ i Đơn đặt sân sẽ được tạo ở trạng thái chờ xác nhận. Khung giờ được kiểm tra lại ngay khi bạn bấm xác nhận. Ghi chú (không bắt buộc) Xác nhận đặt sân → S SÂN NHÀ . Tìm sân phù hợp. Hẹn nhau ra sân. Prototype học phần C# · ASP.NET Core MVC"
+    },
+    {
+      "check": "customer_cancel_confirmed_booking",
+      "passed": true,
+      "booking_id": 22
+    },
+    {
+      "check": "cancel_releases_slot",
+      "passed": true
+    },
+    {
+      "check": "cancel_releases_voucher_usage",
+      "passed": true
+    },
+    {
+      "check": "other_user_cannot_read_customer_booking",
+      "passed": true,
+      "status": 404
+    },
+    {
+      "check": "checkin_today_confirmed_fixture",
+      "passed": true,
+      "booking_id": 21,
+      "fixture_prepared_directly_in_db": true
+    },
+    {
+      "check": "reject_duplicate_checkin",
+      "passed": true
+    },
+    {
+      "check": "past_confirmed_booking_review_form",
+      "passed": true,
+      "booking_id": 20,
+      "fixture_prepared_directly_in_db": true
+    },
+    {
+      "check": "customer_save_review",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "check": "customer_update_review",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "check": "reject_rating_out_of_range",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "check": "owner_reply_to_review",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "check": "reject_post_without_antiforgery",
+      "passed": true,
+      "status": 400
+    },
+    {
+      "check": "reject_more_than_four_hours",
+      "passed": true
+    },
+    {
+      "check": "concurrent_same_slot_only_one_booking",
+      "passed": true,
+      "created_ids": [
+        23
+      ],
+      "responses": [
+        {
+          "status": 200,
+          "path": "/Booking/My",
+          "conflict": false
+        },
+        {
+          "status": 200,
+          "path": "/Home/Review/5?date=2026-11-21&selectedHours=20",
+          "conflict": true
+        }
+      ]
+    }
+  ],
+  "fixture_preparation": {
+    "court_name": "Evaluation-20261120",
+    "note": "Past confirmed booking and same-day confirmed booking inserted directly only as fixtures for review/check-in HTTP tests. Temporary EF mapping ignored Court.District because live schema lacks that source property. No live schema migration executed."
+  },
+  "database_after_worker": [
+    {
+      "Id": 20,
+      "TotalPrice": 80000.0,
+      "DiscountAmount": 0.0,
+      "VoucherCode": null,
+      "Status": 2,
+      "CheckInAt": null,
+      "CreatedAt": "2026-11-20T15:41:39.224293Z",
+      "ExpiresAt": null,
+      "Note": "Evaluation-20261120"
+    },
+    {
+      "Id": 22,
+      "TotalPrice": 157500.0,
+      "DiscountAmount": 52500.0,
+      "VoucherCode": "EVAL20261120",
+      "Status": 3,
+      "CheckInAt": null,
+      "CreatedAt": "2026-11-20T15:43:57.946721Z",
+      "ExpiresAt": null,
+      "Note": "Evaluation-20261120-voucher"
+    },
+    {
+      "Id": 21,
+      "TotalPrice": 80000.0,
+      "DiscountAmount": 0.0,
+      "VoucherCode": null,
+      "Status": 2,
+      "CheckInAt": "2026-11-20T15:43:59.058029Z",
+      "CreatedAt": "2026-11-20T15:41:39.225142Z",
+      "ExpiresAt": null,
+      "Note": "Evaluation-20261120"
+    },
+    {
+      "Id": 23,
+      "TotalPrice": 130000.0,
+      "DiscountAmount": 0.0,
+      "VoucherCode": null,
+      "Status": 5,
+      "CheckInAt": null,
+      "CreatedAt": "2026-11-20T15:44:00.122039Z",
+      "ExpiresAt": "2026-11-20T15:45:06.996401Z",
+      "Note": "Evaluation-20261120-race"
+    }
+  ],
+  "worker_check": {
+    "passed": true,
+    "booking_id": 23,
+    "expired_status": 5,
+    "method": "Set expiration of own pending fixture to UTC now + 2 seconds; observed Expired using database read without HTTP availability request."
+  },
+  "role_access_checks": [
+    {
+      "role": "customer",
+      "path": "/Owner",
+      "status": 302,
+      "redirect_path": "/Home/AccessDenied"
+    },
+    {
+      "role": "customer",
+      "path": "/Admin",
+      "status": 302,
+      "redirect_path": "/Home/AccessDenied"
+    },
+    {
+      "role": "owner",
+      "path": "/Admin",
+      "status": 302,
+      "redirect_path": "/Home/AccessDenied"
+    }
+  ],
+  "owner_navbar": {
+    "desktop_and_mobile_source_present": true,
+    "runtime_owner_home_link_present": true
+  },
+  "runtime_source_difference": {
+    "admin_routes_404": [
+      "/Admin/Facilities",
+      "/Admin/Owners",
+      "/Admin/Reviews"
+    ],
+    "live_court_district_column_missing": true,
+    "live_review_hidden_at_column_missing": true
+  },
+  "reviews_after_update": [
+    {
+      "Id": 1,
+      "BookingId": 20,
+      "Rating": 4,
+      "Comment": "Evaluation-20261120 updated",
+      "OwnerReply": "Evaluation-20261120 owner reply"
+    }
+  ],
+  "fixture_cleanup": {
+    "removed_courts": 1,
+    "removed_bookings": 4,
+    "removed_reviews": 1,
+    "removed_vouchers": 1,
+    "succeeded": true
+  },
+  "final_home_http_status": 200,
+  "anonymous_owner_access": {
+    "status": 302,
+    "redirect_path": "http://localhost:5101/Home/Login"
+  }
+}

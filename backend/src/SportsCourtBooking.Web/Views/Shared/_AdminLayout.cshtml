@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1414" />
+    @{
+        var pageController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var pageRoleTitle = string.Equals(pageController, "Owner", StringComparison.OrdinalIgnoreCase) ? "Chủ Sân" : "Admin";
+    }
+    <title>@ViewData["Title"] · Sân Nhà @pageRoleTitle</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-dark.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="admin-dark-body">
+    @{
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var isOwner = string.Equals(currentController, "Owner", StringComparison.OrdinalIgnoreCase);
+            var brandController = isOwner ? "Owner" : "Admin";
+            var brandAction = "Index";
+            var roleLabel = isOwner ? "Chủ sân" : "Admin";
+    }
+
+    <!-- ─── TOP HEADER ─── -->
+    <header class="adm-header">
+        <a class="adm-brand" asp-controller="@brandController" asp-action="@brandAction">
+            <span class="adm-brand-logo">S</span>
+            <span>SÂN NHÀ.</span>
+        </a>
+
+        <div class="adm-search-wrap">
+            <span class="adm-search-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </span>
+            <input type="text"
+                   class="adm-search-input"
+                   placeholder="@(isOwner ? "Tìm kiếm nhanh... (sân, đơn đặt, voucher, ...)" : "Tìm kiếm nhanh... (sân, đơn đặt, khách hàng, ...)")" />
+            <kbd class="adm-search-kbd">Ctrl + K</kbd>
+        </div>
+
+        <div class="adm-header-right">
+            <!-- Notification Dropdown -->
+            <div class="adm-notif-dropdown-wrap">
+                <button type="button" class="adm-icon-btn" id="admNotifBtn" title="Thông báo" aria-label="Thông báo" aria-haspopup="true" aria-expanded="false">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="adm-notif-badge" id="admNotifBadge" style="display: none;">0</span>
+                </button>
+
+                <div class="adm-notif-dropdown" id="admNotifDropdown" role="menu" aria-label="Danh sách thông báo">
+                    <div class="adm-notif-header">
+                        <div class="adm-notif-title-wrap">
+                            <span class="adm-notif-title">Thông báo</span>
+                            <span class="adm-notif-pill" id="admNotifPill" style="display: none;">0 mới</span>
+                        </div>
+                        <button type="button" class="adm-notif-mark-read" id="admMarkAllReadBtn">
+                            Đánh dấu đã đọc
+                        </button>
+                    </div>
+
+                    <div class="adm-notif-tabs">
+                        <button type="button" class="adm-notif-tab active" data-filter="unread" id="admNotifTabUnread">
+                            Chưa đọc (<span id="admNotifTabUnreadCount">0</span>)
+                        </button>
+                        <button type="button" class="adm-notif-tab" data-filter="all" id="admNotifTabAll">
+                            Tất cả
+                        </button>
+                    </div>
+
+                    <div class="adm-notif-list" id="admNotifList">
+                        <div class="adm-notif-empty">Đang tải thông báo...</div>
+                    </div>
+
+                    <div class="adm-notif-footer">
+                        <a href="@(isOwner ? Url.Action("Bookings", "Owner") : Url.Action("Bookings", "Admin"))" class="adm-notif-view-all">
+                            Xem tất cả hoạt động →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="adm-icon-btn" title="Giao diện tối" aria-label="Đổi giao diện">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+
+            <div class="adm-user-dropdown-wrap">
+                <div class="adm-user-profile" id="admUserDropdownToggle" tabindex="0" title="@(isOwner ? "Tài khoản chủ sân" : "Tài khoản quản trị")">
+                    <div class="adm-avatar">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="adm-user-info">
+                        <span class="adm-user-name">@(User.Identity?.Name ?? "Quản Trị Viên")</span>
+                        <span class="adm-user-role">@roleLabel</span>
+                    </div>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--d-text-sub)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+
+                <div class="adm-user-dropdown-menu">
+                    <div class="adm-user-dropdown-header">
+                        <div class="adm-user-dropdown-name">@(User.Identity?.Name ?? "Quản Trị Viên")</div>
+                        <div class="adm-user-dropdown-email">Vai trò: @(isOwner ? "Chủ sân" : "Quản trị hệ thống")</div>
+                    </div>
+                    <div class="adm-user-dropdown-divider"></div>
+                    @if (isOwner)
+                    {
+                        <a asp-controller="Owner" asp-action="Profile" class="adm-user-dropdown-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Hồ sơ cá nhân</span>
+                        </a>
+                    }
+                    <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="adm-user-dropdown-item adm-user-dropdown-logout">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Đăng xuất</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ─── WRAPPER (SIDEBAR + MAIN) ─── -->
+    <div class="adm-wrapper">
+        @if (!isOwner)
+        {
+        <aside class="adm-sidebar">
+            <ul class="adm-menu">
+                <li>
+                    <span class="adm-menu-label">HỆ THỐNG</span>
+                    <a class="adm-menu-link @(currentAction == "Index" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Index">
+                        <span class="adm-menu-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                            </svg>
+                        </span>
+                        <span>Tổng quan</span>
+                    </a>
+                </li>
+
+                <li>
+                    <span class="adm-menu-label">NGƯỜI DÙNG</span>
+                    <a class="adm-menu-link @(currentAction == "Customers" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Customers">
+                        <span class="adm-menu-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </span>
+                        <span>Khách hàng</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "Owners" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Owners">
+                        <span class="adm-menu-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <span>Chủ sân (Owner)</span>
+                    </a>
+                </li>
+
+                <li>
+                    <span class="adm-menu-label">CƠ SỞ & SÂN</span>
+                    <a class="adm-menu-link @(currentAction == "Facilities" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Facilities">
+                        <span class="adm-menu-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </span>
+                        <span>Cơ sở thể thao</span>
+                    </a>
+                </li>
+
+                <li>
+                    <span class="adm-menu-label">DANH MỤC</span>
+                    <a class="adm-menu-link @(currentAction == "Categories" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Categories">
+                        <span class="adm-menu-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                <polyline points="2 17 12 22 22 17"></polyline>
+                                <polyline points="2 12 12 17 22 12"></polyline>
+                            </svg>
+                        </span>
+                        <span>Môn thể thao & Loại sân</span>
+                    </a>
+                </li>
+
+                <li>
+                    <span class="adm-menu-label">KIỂM DUYỆT</span>
+                    <a class="adm-menu-link @(currentAction == "Reviews" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Reviews">
+                        <span class="adm-menu-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </span>
+                        <span>Xử lý đánh giá</span>
+                    </a>
+                </li>
+
+                <li>
+                    <span class="adm-menu-label">BÁO CÁO THỐNG KÊ</span>
+                    <a class="adm-menu-link @(currentAction == "Reports" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Reports">
+                        <span class="adm-menu-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                        </span>
+                        <span>Báo cáo tổng hợp</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="adm-menu-link @(currentAction == "CategoryReport" ? "active" : "")"
+                       asp-controller="Admin" asp-action="CategoryReport">
+                        <span class="adm-menu-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                <polyline points="17 6 23 6 23 12"></polyline>
+                            </svg>
+                        </span>
+                        <span>Báo cáo danh mục</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Bottom Promo Card matching image -->
+            <div class="adm-sidebar-card">
+                <p class="adm-sidebar-card-title">Sân bóng SGU</p>
+                <p class="adm-sidebar-card-sub">Thể thao kết nối<br />Cộng đồng</p>
+            </div>
+        </aside>
+        }
+        else
+        {
+        <aside class="adm-sidebar">
+            <ul class="adm-menu">
+                <li>
+                    <span class="adm-menu-label">TỔNG QUAN</span>
+                    <a class="adm-menu-link @(currentAction == "Index" ? "active" : "")" asp-controller="Owner" asp-action="Index">
+                        <span class="adm-menu-icon">▦</span><span>Bảng điều khiển</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "CourtStatistics" ? "active" : "")" asp-controller="Owner" asp-action="CourtStatistics">
+                        <span class="adm-menu-icon">↗</span><span>Thống kê sân</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "RevenueReport" ? "active" : "")" asp-controller="Owner" asp-action="RevenueReport">
+                        <span class="adm-menu-icon">₫</span><span>Doanh thu</span>
+                    </a>
+                </li>
+                <li>
+                    <span class="adm-menu-label">QUẢN LÝ SÂN</span>
+                    <a class="adm-menu-link @(currentAction is "Facilities" or "CreateFacility" or "EditFacility" ? "active" : "")" asp-controller="Owner" asp-action="Facilities">
+                        <span class="adm-menu-icon">⌂</span><span>Cơ sở thể thao</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction is "Courts" or "CreateCourt" or "EditCourt" or "Pricing" ? "active" : "")" asp-controller="Owner" asp-action="Courts">
+                        <span class="adm-menu-icon">◫</span><span>Danh sách sân</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction is "Calendar" or "CreateWalkInBooking" ? "active" : "")" asp-controller="Owner" asp-action="Calendar">
+                        <span class="adm-menu-icon">▦</span><span>Lịch & đặt hộ</span>
+                    </a>
+                </li>
+                <li>
+                    <span class="adm-menu-label">KINH DOANH</span>
+                    <a class="adm-menu-link @(currentAction == "Bookings" ? "active" : "")" asp-controller="Owner" asp-action="Bookings">
+                        <span class="adm-menu-icon">✓</span><span>Đơn đặt sân</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "Refunds" ? "active" : "")" asp-controller="Owner" asp-action="Refunds">
+                        <span class="adm-menu-icon">&#8634;</span><span>Ho&#224;n ti&#7873;n</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher" ? "active" : "")" asp-controller="Owner" asp-action="Vouchers">
+                        <span class="adm-menu-icon">%</span><span>Voucher</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "Reviews" ? "active" : "")" asp-controller="Owner" asp-action="Reviews">
+                        <span class="adm-menu-icon">☆</span><span>Đánh giá</span>
+                    </a>
+                </li>
+                <li>
+                    <span class="adm-menu-label">TÀI KHOẢN</span>
+                    <a class="adm-menu-link @(currentAction == "Profile" ? "active" : "")" asp-controller="Owner" asp-action="Profile">
+                        <span class="adm-menu-icon">○</span><span>Hồ sơ cá nhân</span>
+                    </a>
+                    <a class="adm-menu-link @(currentAction == "ChangePassword" ? "active" : "")" asp-controller="Owner" asp-action="ChangePassword">
+                        <span class="adm-menu-icon">⚿</span><span>Đổi mật khẩu</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="adm-sidebar-card">
+                <p class="adm-sidebar-card-title">Sân Nhà</p>
+                <p class="adm-sidebar-card-sub">Không gian quản lý<br />dành cho chủ sân</p>
+            </div>
+        </aside>
+        }
+
+        <main class="adm-main">
+            @{
+                var flashSuccess = TempData["SuccessMessage"] as string;
+                var flashError = TempData["ErrorMessage"] as string;
+            }
+            @if (!string.IsNullOrEmpty(flashSuccess))
+            {
+                <div class="adm-flash-alert" style="margin-bottom: 20px; padding: 12px 18px; border-radius: 8px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35); color: #4ade80; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 700;">✓</span>
+                    <span>@flashSuccess</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(flashError))
+            {
+                <div class="adm-flash-alert" style="margin-bottom: 20px; padding: 12px 18px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 700;">✕</span>
+                    <span>@flashError</span>
+                </div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Floating toast alerts -->
+    <div id="admNotifToastContainer" class="adm-notif-toast-container"></div>
+
+    <script>
+    (function () {
+        const notifBtn = document.getElementById('admNotifBtn');
+        const notifDropdown = document.getElementById('admNotifDropdown');
+        const notifBadge = document.getElementById('admNotifBadge');
+        const notifPill = document.getElementById('admNotifPill');
+        const notifList = document.getElementById('admNotifList');
+        const markAllReadBtn = document.getElementById('admMarkAllReadBtn');
+        const toastContainer = document.getElementById('admNotifToastContainer');
+
+        const STORAGE_KEY = 'sanNha_read_notifications_v1';
+        let knownItemIds = new Set();
+        let isInitialLoad = true;
+
+        function getReadIds() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveReadIds(ids) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+            } catch (e) {}
+        }
+
+        function playChime() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.setValueAtTime(880, now + 0.08); // A5
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } catch (e) {}
+        }
+
+        function showToast(item) {
+            if (!toastContainer) return;
+            const toast = document.createElement('div');
+            toast.className = 'adm-notif-toast';
+
+            let iconText = '🔔';
+            if (item.type === 'booking') iconText = '📅';
+            else if (item.type === 'facility') iconText = '🏢';
+            else if (item.type === 'review') iconText = '⭐';
+
+            toast.innerHTML = `
+                <span style="font-size: 20px; line-height: 1;">${iconText}</span>
+                <div style="flex:1;">
+                    <strong style="display:block; font-size:13px; color:#fff; margin-bottom:2px;">${escapeHtml(item.title)}</strong>
+                    <p style="margin:0; font-size:12px; color:#94a3b8; line-height:1.4;">${escapeHtml(item.message)}</p>
+                    <small style="display:block; margin-top:3px; font-size:10px; color:#4ade80;">Vừa nhận thông báo mới</small>
+                </div>
+            `;
+
+            toast.onclick = () => {
+                markAsRead(item.id);
+                if (item.url && item.url !== '#') {
+                    window.location.href = item.url;
+                }
+            };
+
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 350);
+            }, 4500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        let currentFilter = 'unread'; // 'unread' | 'all'
+        let cachedItems = [];
+        const tabUnread = document.getElementById('admNotifTabUnread');
+        const tabAll = document.getElementById('admNotifTabAll');
+        const tabUnreadCount = document.getElementById('admNotifTabUnreadCount');
+
+        function markAsRead(id) {
+            const readIds = getReadIds();
+            if (!readIds.includes(id)) {
+                readIds.push(id);
+                saveReadIds(readIds);
+            }
+            refreshBadgeUI();
+        }
+
+        function markAllAsRead() {
+            const readIds = getReadIds();
+            const items = notifList.querySelectorAll('.adm-notif-item');
+            items.forEach(el => {
+                const id = el.dataset.id;
+                if (id && !readIds.includes(id)) {
+                    readIds.push(id);
+                }
+                el.classList.add('dismissing');
+            });
+            saveReadIds(readIds);
+            setTimeout(() => {
+                refreshBadgeUI();
+                renderList();
+            }, 260);
+        }
+
+        function refreshBadgeUI() {
+            const readIds = getReadIds();
+            const unreadItems = cachedItems.filter(item => !readIds.includes(item.id));
+            const unreadCount = unreadItems.length;
+
+            if (tabUnreadCount) {
+                tabUnreadCount.textContent = unreadCount;
+            }
+
+            if (notifBadge) {
+                if (unreadCount > 0) {
+                    notifBadge.style.display = 'flex';
+                    notifBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                } else {
+                    notifBadge.style.display = 'none';
+                }
+            }
+
+            if (notifPill) {
+                if (unreadCount > 0) {
+                    notifPill.style.display = 'inline-block';
+                    notifPill.textContent = unreadCount + ' mới';
+                } else {
+                    notifPill.style.display = 'none';
+                }
+            }
+        }
+
+        function renderList() {
+            if (!notifList) return;
+            const readIds = getReadIds();
+            const unreadItems = cachedItems.filter(item => !readIds.includes(item.id));
+            const itemsToRender = currentFilter === 'unread' ? unreadItems : cachedItems;
+
+            if (itemsToRender.length === 0) {
+                if (currentFilter === 'unread') {
+                    notifList.innerHTML = `
+                        <div class="adm-notif-empty" style="padding: 32px 16px; text-align: center;">
+                            <span style="font-size: 26px; display: block; margin-bottom: 6px;">🎉</span>
+                            <strong style="color: #e2e8f0; display: block; margin-bottom: 4px; font-size: 13.5px;">Đã đọc hết thông báo</strong>
+                            <span style="color: #94a3b8; font-size: 12px;">Các thông báo đã đọc đã được tự động ẩn bớt.</span>
+                        </div>
+                    `;
+                } else {
+                    notifList.innerHTML = '<div class="adm-notif-empty">Hiện tại không có thông báo nào.</div>';
+                }
+                return;
+            }
+
+            notifList.innerHTML = itemsToRender.map(item => {
+                const isUnread = !readIds.includes(item.id);
+                let iconClass = 'adm-notif-icon--system';
+                let icon = '🔔';
+                if (item.type === 'booking') { iconClass = 'adm-notif-icon--booking'; icon = '📅'; }
+                else if (item.type === 'facility') { iconClass = 'adm-notif-icon--facility'; icon = '🏢'; }
+                else if (item.type === 'review') { iconClass = 'adm-notif-icon--review'; icon = '⭐'; }
+
+                return `
+                    <div class="adm-notif-item ${isUnread ? 'unread' : 'read-dimmed'}" data-id="${escapeHtml(item.id)}" data-url="${escapeHtml(item.url)}">
+                        <div class="adm-notif-icon ${iconClass}">${icon}</div>
+                        <div class="adm-notif-body">
+                            <div class="adm-notif-item-title">
+                                <span>${escapeHtml(item.title)}</span>
+                                <button type="button" class="adm-notif-dismiss-btn" title="Ẩn thông báo này" data-dismiss-id="${escapeHtml(item.id)}">✕</button>
+                            </div>
+                            <div class="adm-notif-msg">${escapeHtml(item.message)}</div>
+                            <div class="adm-notif-time">${escapeHtml(item.timeAgo)}</div>
+                        </div>
+                        ${isUnread ? '<div class="adm-notif-unread-dot"></div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Click on item to mark read, dismiss and navigate
+            notifList.querySelectorAll('.adm-notif-item').forEach(el => {
+                el.addEventListener('click', function (e) {
+                    if (e.target.closest('.adm-notif-dismiss-btn')) return;
+                    const id = this.dataset.id;
+                    const url = this.dataset.url;
+                    if (id) markAsRead(id);
+                    if (url && url !== '#') {
+                        window.location.href = url;
+                    }
+                });
+            });
+
+            // Click on dismiss button (✕)
+            notifList.querySelectorAll('.adm-notif-dismiss-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const id = this.dataset.dismissId;
+                    const itemEl = this.closest('.adm-notif-item');
+                    if (itemEl) {
+                        itemEl.classList.add('dismissing');
+                        setTimeout(() => {
+                            if (id) markAsRead(id);
+                            renderList();
+                        }, 250);
+                    } else if (id) {
+                        markAsRead(id);
+                        renderList();
+                    }
+                });
+            });
+        }
+
+        async function fetchNotifications() {
+            try {
+                const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data || !data.items) return;
+
+                cachedItems = data.items;
+                const readIds = getReadIds();
+                let newlyDiscoveredItems = [];
+
+                if (!isInitialLoad) {
+                    data.items.forEach(item => {
+                        if (!knownItemIds.has(item.id) && !readIds.includes(item.id)) {
+                            newlyDiscoveredItems.push(item);
+                        }
+                    });
+                }
+
+                data.items.forEach(item => knownItemIds.add(item.id));
+
+                refreshBadgeUI();
+                renderList();
+
+                // Alert if new notification arrived while user is active on the page
+                if (newlyDiscoveredItems.length > 0) {
+                    playChime();
+                    newlyDiscoveredItems.forEach(showToast);
+                }
+
+                isInitialLoad = false;
+            } catch (err) {
+                console.warn('Lỗi lấy thông báo:', err);
+            }
+        }
+
+        // Toggle dropdown
+        if (notifBtn && notifDropdown) {
+            notifBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const isOpen = notifDropdown.classList.contains('show');
+                if (isOpen) {
+                    notifDropdown.classList.remove('show');
+                    notifBtn.setAttribute('aria-expanded', 'false');
+                } else {
+                    notifDropdown.classList.add('show');
+                    notifBtn.setAttribute('aria-expanded', 'true');
+                    refreshBadgeUI();
+                    renderList();
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
+                    notifDropdown.classList.remove('show');
+                    notifBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        // Tab click listeners
+        if (tabUnread && tabAll) {
+            tabUnread.addEventListener('click', function (e) {
+                e.stopPropagation();
+                currentFilter = 'unread';
+                tabUnread.classList.add('active');
+                tabAll.classList.remove('active');
+                renderList();
+            });
+
+            tabAll.addEventListener('click', function (e) {
+                e.stopPropagation();
+                currentFilter = 'all';
+                tabAll.classList.add('active');
+                tabUnread.classList.remove('active');
+                renderList();
+            });
+        }
+
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                markAllAsRead();
+            });
+        }
+
+        // Initial fetch
+        fetchNotifications();
+
+        // Polling every 25 seconds for new notifications
+        setInterval(fetchNotifications, 25000);
+    })();
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

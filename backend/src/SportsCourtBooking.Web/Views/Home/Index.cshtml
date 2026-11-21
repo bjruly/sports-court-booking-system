@@ -2,6 +2,38 @@
 @model CourtCatalogViewModel
 @using SportsCourtBooking.Application.Rules
 
+@functions {
+    string GetSportVisualHtml(string sport)
+    {
+        if (string.IsNullOrWhiteSpace(sport)) return "THỂ<br />THAO<span>.</span>";
+        if (sport.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase)) return "CẦU<br />LÔNG<span>.</span>";
+        if (sport.Contains("Bóng đá", StringComparison.OrdinalIgnoreCase)) return "BÓNG<br />ĐÁ<span>.</span>";
+        if (sport.Contains("Pickleball", StringComparison.OrdinalIgnoreCase)) return "PICKLE<br />BALL<span>.</span>";
+        if (sport.Contains("Tennis", StringComparison.OrdinalIgnoreCase)) return "TEN<br />NIS<span>.</span>";
+        return $"{sport.ToUpperInvariant()}<span>.</span>";
+    }
+
+    string GetSportIcon(string sport)
+    {
+        if (string.IsNullOrWhiteSpace(sport)) return "🎯";
+        if (sport.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase)) return "🏸";
+        if (sport.Contains("Bóng đá", StringComparison.OrdinalIgnoreCase)) return "⚽";
+        if (sport.Contains("Pickleball", StringComparison.OrdinalIgnoreCase)) return "🏓";
+        if (sport.Contains("Tennis", StringComparison.OrdinalIgnoreCase)) return "🎾";
+        return "🎯";
+    }
+
+    string GetSportDisplayName(string sport)
+    {
+        if (string.IsNullOrWhiteSpace(sport)) return "THỂ THAO";
+        if (sport.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase)) return "CẦU LÔNG";
+        if (sport.Contains("Bóng đá", StringComparison.OrdinalIgnoreCase)) return "BÓNG ĐÁ";
+        if (sport.Contains("Pickleball", StringComparison.OrdinalIgnoreCase)) return "PICKLEBALL";
+        if (sport.Contains("Tennis", StringComparison.OrdinalIgnoreCase)) return "TENNIS";
+        return sport.ToUpperInvariant();
+    }
+}
+
 @{
     ViewData["Title"] = "Tìm sân thể thao";
     var culture = CultureInfo.GetCultureInfo("vi-VN");
@@ -184,12 +216,12 @@
                            asp-route-id="@court.Id" asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")"
                            aria-label="@($"Xem chi tiết {court.CourtName}")">
                             <div class="court-visual @court.VisualClass" aria-hidden="true">
-                                <span class="visual-tag">@court.Sport.ToUpperInvariant()</span>
-                                <span class="visual-number">SÂN<br />NHÀ<span>.</span></span>
+                                <span class="visual-tag">@GetSportIcon(court.Sport) @GetSportDisplayName(court.Sport)</span>
+                                <span class="visual-number">@Html.Raw(GetSportVisualHtml(court.Sport))</span>
                                 <span class="visual-lines"></span>
                                 <span class="visual-corner visual-corner--one"></span>
                                 <span class="visual-corner visual-corner--two"></span>
-                                <span class="visual-caption">PLAY<br />LOCAL</span>
+                                <span class="visual-caption">@court.District.ToUpperInvariant()<br />SẴN SÀNG</span>
                             </div>
                             <div class="court-card-body">
                                 <div class="court-card-title-row">
@@ -199,11 +231,21 @@
                                     </div>
                                     <span class="card-arrow" aria-hidden="true">↗</span>
                                 </div>
-                                <p class="court-name">@court.CourtName <span>·</span> Mở cửa @court.OpeningHours</p>
+                                <p class="court-name">
+                                    @if (court.CourtCount > 1)
+                                    {
+                                        <span>@court.CourtCount sân sẵn sàng (@court.CourtNamesSummary)</span>
+                                    }
+                                    else
+                                    {
+                                        <span>1 sân sẵn sàng (@court.CourtName)</span>
+                                    }
+                                    <span>·</span> Mở cửa @court.OpeningHours
+                                </p>
                                 <p class="court-description">@court.Description</p>
                                 <div class="court-card-bottom">
                                     <span>Giá từ <strong>@court.StartingPrice.ToString("N0", culture)₫</strong><small> / giờ</small></span>
-                                    <span class="text-link"> Xem chi tiết <span aria-hidden="true">→</span></span>
+                                    <span class="text-link"> Chọn sân đặt lịch <span aria-hidden="true">→</span></span>
                                 </div>
                             </div>
                         </a>

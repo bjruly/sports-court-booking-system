@@ -1,3 +1,24 @@
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Domain.Enums
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isFacilityManagement = currentAction is "Facilities" or "CreateFacility" or "EditFacility" or "FacilityCourts";
+    var isCourtManagement = currentAction is "Courts" or "CreateCourt" or "EditCourt";
+    var isCourtList = currentAction is "Courts" or "EditCourt";
+    var isCourtStatistics = currentAction == "CourtStatistics";
+    var isPricingManagement = currentAction is "Pricing" or "EditCourt";
+    var isVoucherManagement = currentAction is "Vouchers" or "CreateVoucher" or "EditVoucher";
+    var isReviewManagement = currentAction is "Reviews" or "ReplyToReview";
+    var isRevenueReport = currentAction == "RevenueReport";
+    var isRefundManagement = currentAction == "Refunds";
+    var isAccountManagement = currentAction == "ChangePassword";
+    var isTodayCheckInView = currentAction == "Bookings"
+        && ViewContext.HttpContext.Request.Query["date"] == VietnamClock.Today.ToString("yyyy-MM-dd")
+        && ViewContext.HttpContext.Request.Query["status"] == BookingStatus.Confirmed.ToString();
+    var isBookingManagement = (currentAction is "Bookings" or "Refunds") && !isTodayCheckInView;
+    var isCalendarManagement = currentAction is "Calendar" or "CreateWalkInBooking" || isTodayCheckInView;
+}
+
 <aside class="admin-sidebar" aria-label="Menu Chủ Sân">
     <div class="admin-sidebar-heading">
         <span class="admin-sidebar-brand">SÂN NHÀ <span>CHỦ SÂN</span></span>
@@ -8,85 +29,120 @@
         <details class="admin-menu-group" open>
             <summary>Tổng quan</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Thống kê sân</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Đơn đặt</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Doanh thu</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "Index" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Index"
+                   aria-current="@(currentAction == "Index" ? "page" : null)">Bảng điều khiển</a>
+                <a class="admin-menu-item @(isCourtStatistics ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CourtStatistics"
+                   aria-current="@(isCourtStatistics ? "page" : null)">Thống kê sân</a>
+                <a class="admin-menu-item @(isBookingManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Bookings"
+                   aria-current="@(isBookingManagement ? "page" : null)">Đơn đặt</a>
+                <a class="admin-menu-item @(isRevenueReport ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="RevenueReport"
+                   aria-current="@(isRevenueReport ? "page" : null)">Doanh thu</a>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isFacilityManagement ? "open" : null)">
             <summary>Quản lý cơ sở</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Danh sách cơ sở</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Thêm cơ sở</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Sửa cơ sở</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isFacilityManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Facilities"
+                   aria-current="@(currentAction == "Facilities" ? "page" : null)">Danh sách cơ sở</a>
+                <a class="admin-menu-item @(currentAction == "CreateFacility" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CreateFacility"
+                   aria-current="@(currentAction == "CreateFacility" ? "page" : null)">Thêm cơ sở</a>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isCourtManagement ? "open" : null)">
             <summary>Quản lý sân</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Danh sách sân</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Thêm sân</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Sửa sân</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Khóa sân</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isCourtList ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Courts"
+                   aria-current="@(isCourtList ? "page" : null)">Danh sách sân</a>
+                <a class="admin-menu-item @(currentAction == "CreateCourt" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CreateCourt"
+                   aria-current="@(currentAction == "CreateCourt" ? "page" : null)">Thêm sân</a>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isBookingManagement ? "open" : null)">
             <summary>Quản lý đặt sân</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Danh sách đơn</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Xác nhận đơn</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Hủy đơn</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isBookingManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Bookings"
+                   aria-current="@(isBookingManagement ? "page" : null)">Danh sách đơn</a>
+                <a class="admin-menu-item @(isRefundManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Refunds"
+                   aria-current="@(isRefundManagement ? "page" : null)">Hoàn tiền</a>
+                <span class="admin-menu-item admin-menu-item--disabled"><span>Xác nhận / hủy đơn</span><small>Trong danh sách</small></span>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isCalendarManagement ? "open" : null)">
             <summary>Lịch sân</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Xem lịch</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Đặt hộ khách</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Check-in</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "Calendar" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Calendar"
+                   aria-current="@(currentAction == "Calendar" ? "page" : null)">Xem lịch</a>
+                <a class="admin-menu-item @(currentAction == "CreateWalkInBooking" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CreateWalkInBooking"
+                   aria-current="@(currentAction == "CreateWalkInBooking" ? "page" : null)">Đặt hộ khách</a>
+                <a class="admin-menu-item @(isTodayCheckInView ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Bookings"
+                   asp-route-date="@VietnamClock.Today.ToString("yyyy-MM-dd")"
+                   asp-route-status="@BookingStatus.Confirmed"
+                   aria-current="@(isTodayCheckInView ? "page" : null)">Check-in hôm nay</a>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isPricingManagement ? "open" : null)">
             <summary>Quản lý bảng giá</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Thiết lập giá theo khung giờ</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "Pricing" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Pricing"
+                   aria-current="@(currentAction == "Pricing" ? "page" : null)">Giá theo khung giờ</a>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isVoucherManagement ? "open" : null)">
             <summary>Quản lý voucher</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Tạo voucher</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Sửa voucher</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Xóa voucher</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "Vouchers" || currentAction == "EditVoucher" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Vouchers"
+                   aria-current="@(currentAction == "Vouchers" ? "page" : null)">Danh sách voucher</a>
+                <a class="admin-menu-item @(currentAction == "CreateVoucher" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="CreateVoucher"
+                   aria-current="@(currentAction == "CreateVoucher" ? "page" : null)">Tạo voucher</a>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isReviewManagement ? "open" : null)">
             <summary>Đánh giá</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Xem đánh giá</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Phản hồi</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isReviewManagement ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="Reviews"
+                   aria-current="@(isReviewManagement ? "page" : null)">Xem đánh giá / phản hồi</a>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isRevenueReport ? "open" : null)">
             <summary>Báo cáo</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Báo cáo doanh thu</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(isRevenueReport ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="RevenueReport"
+                   aria-current="@(isRevenueReport ? "page" : null)">Báo cáo doanh thu</a>
             </div>
         </details>
 
-        <details class="admin-menu-group">
+        <details class="admin-menu-group" open="@(isAccountManagement ? "open" : null)">
             <summary>Tài khoản</summary>
             <div class="admin-submenu">
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Hồ sơ cá nhân</span><small>Chưa triển khai</small></span>
-                <span class="admin-menu-item admin-menu-item--disabled" aria-disabled="true"><span>Đổi mật khẩu</span><small>Chưa triển khai</small></span>
+                <a class="admin-menu-item @(currentAction == "ChangePassword" ? "admin-menu-item--active" : string.Empty)"
+                   asp-controller="Owner" asp-action="ChangePassword"
+                   aria-current="@(currentAction == "ChangePassword" ? "page" : null)">Đổi mật khẩu</a>
             </div>
         </details>
     </nav>

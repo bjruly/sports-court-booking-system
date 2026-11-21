@@ -1,0 +1,61 @@
+@using SportsCourtBooking.Web.Models
+@model CustomerReviewFormViewModel
+
+@{
+    ViewData["Title"] = Model.IsEditing ? "Chỉnh sửa đánh giá" : "Đánh giá sân";
+}
+
+<section class="page-section">
+    <div class="shell shell--narrow">
+        <div class="page-heading">
+            <div>
+                <h1>@(Model.IsEditing ? "Chỉnh sửa đánh giá" : "Đánh giá sân")</h1>
+                <p class="page-subtitle">@Model.CourtName</p>
+            </div>
+            <a class="button button--outline"
+               asp-action="Details"
+               asp-route-id="@Model.BookingId">Chi tiết đơn</a>
+        </div>
+
+        <div class="review-form-card">
+            <div class="review-form-intro">
+                <span class="review-form-icon" aria-hidden="true">★</span>
+                <div>
+                    <h2>Chia sẻ trải nghiệm của bạn</h2>
+                    <p class="review-booking-time">
+                        @Model.BookingDate.ToString("dd/MM/yyyy") ·
+                        @Model.StartTime.ToString("HH:mm")–@Model.EndTime.ToString("HH:mm")
+                    </p>
+                </div>
+            </div>
+            <form class="review-form" asp-action="Review" asp-route-id="@Model.BookingId" method="post">
+                <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+                <div class="review-form-group">
+                    <label asp-for="Rating">Bạn đánh giá sân thế nào?</label>
+                    <select asp-for="Rating" class="review-rating-select">
+                        <option value="5">5 sao - Rất hài lòng</option>
+                        <option value="4">4 sao - Hài lòng</option>
+                        <option value="3">3 sao - Bình thường</option>
+                        <option value="2">2 sao - Chưa hài lòng</option>
+                        <option value="1">1 sao - Không hài lòng</option>
+                    </select>
+                    <span asp-validation-for="Rating" class="field-validation"></span>
+                </div>
+                <div class="review-form-group">
+                    <label asp-for="Comment">Nhận xét <span>(không bắt buộc)</span></label>
+                    <textarea asp-for="Comment" class="review-comment-input" rows="5" maxlength="500"
+                              placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                    <span asp-validation-for="Comment" class="field-validation"></span>
+                </div>
+                <div class="review-form-actions">
+                    <a class="button button--outline"
+                       asp-action="Details"
+                       asp-route-id="@Model.BookingId">Hủy</a>
+                    <button class="button button--primary" type="submit">
+                        @(Model.IsEditing ? "Lưu thay đổi" : "Gửi đánh giá")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

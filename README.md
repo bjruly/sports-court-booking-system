@@ -18,7 +18,7 @@
 
 - **Ứng dụng web:** ASP.NET Core MVC, Razor và C#.
 - **Nghiệp vụ:** các lớp Application và Domain bằng C#.
-- **Framework hiện tại:** .NET 8 (`net8.0`), EF Core 8 với **PostgreSQL** (Npgsql). Thư mục migration là `SportsCourtBooking.Infrastructure/Data/Migrations` (chưa có file nào, xem mục "Tạo migration PostgreSQL").
+- **Framework hiện tại:** .NET 8 (`net8.0`), EF Core 8 với **PostgreSQL** (Npgsql). Migration EF Core nằm trong `SportsCourtBooking.Infrastructure/Data/Migrations`.
 - **Cache/giữ chỗ:** Redis là thành phần tùy chọn theo đề xuất trong báo cáo.
 - **Tích hợp dự kiến:** VNPay/MoMo, email/SMS và dịch vụ bản đồ.
 - **Triển khai/chạy cục bộ:** Docker và Docker Compose (web + PostgreSQL 16 + pgAdmin).
@@ -28,17 +28,17 @@ Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`,
 ## Trạng thái triển khai
 
 - Đã kết nối PostgreSQL: danh sách sân, lịch khung giờ, đăng ký, đăng nhập (cookie, mật khẩu băm PBKDF2) và tạo đơn đặt sân đều lưu/đọc từ database.
-- Quy tắc đặt sân nằm tập trung ở `Application/Rules/BookingRules.cs`: giờ mở cửa 06:00–22:00, tối đa 4 giờ liên tiếp, phụ thu 50.000₫/giờ từ 17:00, không đặt giờ đã qua (tính theo giờ Việt Nam), chống đặt trùng khi nhiều người bấm cùng lúc.
+- Quy tắc đặt sân nằm tập trung ở `Application/Rules/BookingRules.cs`: giờ mở cửa 06:00–22:00, tối đa 4 giờ liên tiếp, phụ thu cao điểm mặc định 50.000₫/giờ từ 17:00 (có thể cấu hình riêng theo sân), không đặt giờ đã qua (tính theo giờ Việt Nam), chống đặt trùng khi nhiều người bấm cùng lúc.
 - Booking `Pending` giữ khung giờ tối đa 10 phút; tác vụ nền quét mỗi 15 giây và chuyển đơn quá hạn sang `Expired`. Các lần kiểm tra lịch cũng hết hạn đơn cũ trước khi xác định tình trạng khung giờ. PostgreSQL dùng ràng buộc `EXCLUDE` với khoảng thời gian nửa mở `[bắt đầu, kết thúc)` để chặn booking `Pending`/`Confirmed` bị trùng trên cùng sân. Khởi động ứng dụng cài `btree_gist` và áp dụng schema theo cách idempotent.
 - Đã có: Admin/Staff xem, xác nhận và hủy đơn tại trang "Quản lý lịch đặt" (hủy thì nhả khung giờ ngay); lưới lịch của khách không còn hiện đơn đã hủy hoặc hết hạn là "đã đặt".
 - Đã có dashboard `/Admin` cho tài khoản Admin với menu bên trái theo các phân hệ; hiện chỉ mục theo dõi đơn đặt liên kết tới chức năng đang có, các mục còn lại được đánh dấu chưa triển khai.
-- Đã có khung dashboard `/Owner` dành cho vai trò `CourtOwner`; các mục quản lý cơ sở, sân, đặt sân, lịch, giá, voucher, đánh giá, báo cáo và tài khoản hiện được đánh dấu chưa triển khai. Có sẵn tài khoản Chủ Sân mẫu để đăng nhập thử.
-- Chưa làm: thanh toán, đánh giá, hoàn tiền và hủy đơn do khách tự thực hiện, dashboard quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần. Quận/huyện của sân hiện vẫn gán cứng theo Id sân trong `HomeController` (cần thêm cột vào bảng `Courts` để thay thế).
+- Đã có dashboard `/Owner`, thống kê lượt đặt và trạng thái theo từng sân/tháng, quản lý cơ sở, sân/đơn, lịch tuần, đặt hộ khách vãng lai, check-in, voucher, đánh giá, báo cáo doanh thu, hồ sơ cá nhân và đổi mật khẩu. Cơ sở mới do Chủ sân tạo ở trạng thái chờ Admin duyệt; chỉ cơ sở đã duyệt và đang hoạt động mới được hiển thị công khai và cho phép tạo booking. Chủ sân có thể gán sân vào cơ sở đang chờ duyệt để chuẩn bị trước khi mở hoạt động. Sân cũ chưa được tự gán để tránh suy đoán sai và có thể gán khi chỉnh sửa. Chỉ xóa được cơ sở chưa có sân liên kết; cần chuyển sân sang cơ sở khác trước khi xóa. Địa chỉ cơ sở được lưu riêng với vị trí cụ thể của từng sân. Chủ sân có thể cập nhật họ tên/số điện thoại; email đăng nhập hiện chỉ xem được. Khi đổi mật khẩu cần nhập mật khẩu hiện tại, mật khẩu mới từ 8 đến 100 ký tự và xác nhận lại mật khẩu. Báo cáo phân biệt giá trị booking đã xác nhận/hoàn thành với Payment đã thu/đã hoàn; Payment đã thu từ đơn hủy/hết hạn được đánh dấu để chủ sân rà soát hoàn tiền. Khách có thể đánh giá một lần cho mỗi booking đã xác nhận sau khi giờ chơi kết thúc; đánh giá có thể được chỉnh sửa. Chủ sân xem đánh giá theo sân và gửi/cập nhật phản hồi. Các đánh giá cũ chưa gắn booking vẫn được giữ để chủ sân xem và phản hồi. Chủ sân cấu hình giờ bắt đầu cao điểm và phụ thu riêng theo sân (mặc định 17:00/+50.000₫ mỗi giờ), đồng thời tạo voucher giảm theo phần trăm hoặc số tiền, thời hạn và giới hạn lượt dùng. Thời hạn voucher được kiểm tra theo ngày khách áp dụng mã, không phải ngày ra sân. Tổng tiền và mức giảm được lưu vào booking, không thay đổi nếu voucher được sửa sau đó. Lượt dùng được nhả khi đơn bị hủy hoặc hết hạn. Có sẵn tài khoản Chủ Sân mẫu để đăng nhập thử.
+- Chưa làm: thanh toán, hoàn tiền và hủy đơn do khách tự thực hiện, dashboard quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần.
 
 ## Tính năng mục tiêu
 
 - Khách hàng tìm kiếm cơ sở và sân, xem lịch trống, đặt sân, thanh toán, hủy đặt và đánh giá.
-- Chủ sân quản lý cơ sở, sân, giá, lịch đặt, voucher và doanh thu.
+- Chủ sân quản lý cơ sở, sân, giá, lịch đặt, đặt hộ khách và check-in, voucher và doanh thu.
 - Quản trị viên duyệt cơ sở, quản lý người dùng/danh mục và theo dõi thống kê.
 - Đơn đặt có cơ chế giữ chỗ tạm thời; thanh toán và trạng thái đơn được đồng bộ theo quy trình nghiệp vụ.
 
@@ -48,11 +48,11 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 
 ### Phạm vi MVP đã chốt
 
-- Khách cần có tài khoản và đăng nhập để đặt sân; người mới có thể đăng ký. Khách vãng lai/đặt hộ để giai đoạn sau.
+- Khách đặt sân trực tuyến cần có tài khoản và đăng nhập; Chủ sân có thể đặt hộ khách tại quầy bằng thông tin liên hệ, không cần tạo tài khoản.
 - Luồng MVP: đăng nhập → xem danh sách sân → xem lịch trống và giá → chọn giờ → tạo booking `PENDING`.
 - Mỗi khung giờ dài 1 giờ; một booking gồm tối đa 4 khung liên tiếp trên cùng một sân trong cùng ngày.
-- Booking `PENDING` chưa phải là booking đã xác nhận hoặc đã thanh toán. Thanh toán thật, voucher, hủy/hoàn tiền và các tích hợp ngoài hệ thống nằm ngoài MVP.
-- Quy tắc hết hạn 10 phút và ràng buộc chống trùng đã được áp dụng trong code. Đã xác minh build solution, 49 unit tests và ràng buộc `EXCLUDE` trên PostgreSQL; vẫn cần kiểm thử tích hợp đầy đủ luồng đặt đồng thời và hết hạn trước khi triển khai.
+- Booking `PENDING` chưa phải là booking đã xác nhận hoặc đã thanh toán. Thanh toán thật, hủy/hoàn tiền và các tích hợp ngoài hệ thống nằm ngoài MVP; voucher hiện chỉ điều chỉnh tổng tiền của booking, chưa có quy trình thanh toán.
+- Quy tắc hết hạn 10 phút và ràng buộc chống trùng đã được áp dụng trong code. Đã xác minh build solution, 104 unit tests và hai test tích hợp PostgreSQL cho đặt đồng thời/hết hạn. Có thể chạy test tích hợp bằng biến `RUN_POSTGRES_INTEGRATION_TESTS=1` và connection PostgreSQL mẫu.
 
 | Bước                                  | Trình tự công việc                                                                                                                                                                                         | Điều kiện hoàn tất để chuyển bước                                                                                                                  |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -124,10 +124,10 @@ Dự án có sẵn cấu hình Docker để mọi thành viên chạy cùng mộ
 
 ### Tài khoản mẫu (chỉ dùng để thử trên máy)
 
-| Vai trò         | Email                    | Mật khẩu       |
-| ---------------- | ------------------------ | ---------------- |
-| Quản trị viên | `admin@sportscourt.vn` | `Admin@123`    |
-| Khách hàng     | `khachhang@gmail.com`  | `Customer@123` |
+| Vai trò         | Email                     | Mật khẩu       |
+| ---------------- | ------------------------- | ---------------- |
+| Quản trị viên | `admin@sportscourt.vn`  | `Admin@123`    |
+| Khách hàng     | `khachhang@gmail.com`   | `Customer@123` |
 | Chủ Sân        | `chusan@sportscourt.vn` | `Owner@123`    |
 
 Bạn cũng có thể tự đăng ký tài khoản Khách hàng ở trang **Tạo tài khoản**. Đăng nhập xong, khách hàng vào **Lịch đặt của tôi** để xem đơn vừa tạo; tài khoản quản trị xem lịch của mọi khách ở `/Booking`.
@@ -163,13 +163,15 @@ Muốn kết nối bằng công cụ cài trên máy (DBeaver, DataGrip...): hos
 
 ### Tạo migration PostgreSQL
 
-Thư mục `Data/Migrations` hiện chưa có file nào (các migration cũ viết cho SQL Server đã bị xóa vì không chạy được trên PostgreSQL). Khi chưa có migration, ứng dụng tự tạo bảng và dữ liệu mẫu từ model bằng `EnsureCreated`. Để dùng migration (cần .NET 8 SDK và công cụ `dotnet-ef`):
+`InitialSchema` là baseline cho schema hiện tại. Database mới sẽ tự chạy migration khi ứng dụng khởi động. Để tạo migration cho thay đổi model tiếp theo (cần .NET 8 SDK và `dotnet-ef` phiên bản 8):
 
 ```bash
-dotnet ef migrations add InitialCreate --project backend/src/SportsCourtBooking.Infrastructure --startup-project backend/src/SportsCourtBooking.Web --output-dir Data/Migrations
+dotnet ef migrations add TenThayDoi --project backend/src/SportsCourtBooking.Infrastructure --startup-project backend/src/SportsCourtBooking.Web --output-dir Data/Migrations
 ```
 
-Nếu database đã được tạo bằng `EnsureCreated` trước khi có migration, chạy `docker compose down -v` để xóa dữ liệu rồi `docker compose up --build` lại.
+Commit các file migration cùng thay đổi model. Ứng dụng sẽ áp dụng migration mới khi khởi động; không sửa schema trực tiếp bằng SQL hoặc `EnsureCreated` thay cho migration.
+
+Khi khởi động, ứng dụng tự áp dụng migration. Nếu phát hiện đầy đủ 8 bảng cốt lõi đã có từ trước nhưng chưa có lịch sử migration, ứng dụng ghi nhận `InitialSchema` làm baseline thay vì tạo lại bảng; database một phần sẽ dừng khởi động để tránh áp dụng sai. Hãy sao lưu database trước khi nâng cấp. Baseline ghi nhận cấu trúc hiện tại, không tái tạo lịch sử theo thứ tự các thay đổi cũ. Không dùng `docker compose down -v` để xử lý migration vì lệnh đó xóa volume database.
 
 ### Lưu ý
 
@@ -177,5 +179,6 @@ Nếu database đã được tạo bằng `EnsureCreated` trước khi có migra
 - Đã đặt `POSTGRES_PASSWORD` rồi thì đừng đổi giữa chừng; muốn đổi phải chạy `docker compose down -v` rồi chạy lại. Nếu trước đây bạn từng chạy bản cũ của dự án (dùng SQL Server), cũng nên chạy `docker compose down -v` một lần để xóa container và dữ liệu cũ.
 - Web kết nối PostgreSQL qua biến `ConnectionStrings__DefaultConnection` trong `docker-compose.yml`. Khi chạy ngoài Docker (`dotnet run`), `appsettings.json` chỉ có host, database và user (không lưu mật khẩu); hãy đặt biến môi trường `ConnectionStrings__DefaultConnection` kèm mật khẩu, ví dụ `Host=localhost;Port=5432;Database=sportscourt;Username=postgres;Password=...`, và nhớ chạy `docker compose up -d db` trước.
 - Nếu container `db` không chạy, kiểm tra `docker compose logs db`.
-- Chạy kiểm thử đơn vị: `dotnet test backend/SportsCourtBooking.sln` (cần cài .NET 8 SDK).
+- Chạy kiểm thử: `dotnet test backend/SportsCourtBooking.sln` (cần cài .NET 8 SDK).
+- Chạy test PostgreSQL tích hợp: đặt `RUN_POSTGRES_INTEGRATION_TESTS=1` và `SPORTS_COURT_TEST_CONNECTION` tới database test; ví dụ PowerShell: `$env:RUN_POSTGRES_INTEGRATION_TESTS="1"; $env:SPORTS_COURT_TEST_CONNECTION="Host=localhost;Port=5432;Database=sportscourt;Username=postgres;Password=12345"; dotnet test backend/SportsCourtBooking.sln`. Test sẽ tự tạo và dọn dữ liệu sân/người dùng riêng cho fixture.
 - Nếu cổng `5101`, `5432` hoặc `5050` đã bị chương trình khác dùng, đổi số bên trái trong mục `ports` của `docker-compose.yml` (ví dụ `"5102:8080"`).

@@ -1,0 +1,36 @@
+@model SportsCourtBooking.Web.Models.OwnerVoucherFormViewModel
+
+@{
+    ViewData["Title"] = "Chỉnh sửa voucher";
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading owner-list-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> QUẢN LÝ VOUCHER</p>
+                    <h1>Chỉnh sửa voucher</h1>
+                    <p class="page-subtitle">Đơn đã tạo giữ nguyên mức giảm đã được áp dụng trước đó.</p>
+                </div>
+                <a class="button button--outline" asp-action="Vouchers">Quay lại danh sách</a>
+            </header>
+
+            <section class="admin-status-card admin-status-card--block owner-court-form-panel">
+                <form asp-action="EditVoucher" asp-route-id="@Model.Id" method="post" class="owner-court-form">
+                    <partial name="_VoucherFormFields" model="Model" />
+                    <div class="owner-form-actions">
+                        <a class="button button--outline" asp-action="Vouchers">Hủy</a>
+                        <button class="button button--primary" type="submit">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

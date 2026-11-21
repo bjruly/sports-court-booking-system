@@ -1,0 +1,129 @@
+@using System.Globalization
+@using SportsCourtBooking.Application.Common
+@using SportsCourtBooking.Web.Models
+@model OwnerCourtStatisticsViewModel
+
+@{
+    ViewData["Title"] = "Thống kê sân";
+    var currentYear = VietnamClock.Today.Year;
+    var firstYear = Math.Max(1, currentYear - 10);
+    var lastYear = Math.Min(9998, currentYear + 1);
+}
+
+<section class="admin-page">
+    <div class="shell admin-layout">
+        @await Html.PartialAsync("_Sidebar")
+
+        <div class="admin-content">
+            <header class="admin-page-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span class="eyebrow-line"></span> THỐNG KÊ CHỦ SÂN</p>
+                    <h1>Thống kê sân</h1>
+                    <p class="page-subtitle">Theo dõi lượt đặt và trạng thái hoạt động của từng sân theo tháng.</p>
+                </div>
+            </header>
+
+            <form method="get" class="owner-report-filter">
+                <div class="form-group">
+                    <label for="month">Tháng</label>
+                    <select id="month" name="month" class="form-control">
+                        @for (var month = 1; month <= 12; month++)
+                        {
+                            <option value="@month" selected="@(month == Model.SelectedMonth)">
+                                Tháng @month.ToString("00")
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="year">Năm</label>
+                    <select id="year" name="year" class="form-control">
+                        @if (Model.SelectedYear < firstYear || Model.SelectedYear > lastYear)
+                        {
+                            <option value="@Model.SelectedYear" selected>@Model.SelectedYear</option>
+                        }
+                        @for (var year = lastYear; year >= firstYear; year--)
+                        {
+                            <option value="@year" selected="@(year == Model.SelectedYear)">@year</option>
+                        }
+                    </select>
+                </div>
+                <button class="button button--primary" type="submit">Xem thống kê</button>
+            </form>
+
+            <section class="admin-stats-grid owner-report-kpis" aria-label="Tổng quan sân trong tháng">
+                <article class="admin-stat-card">
+                    <p class="admin-section-label">TỔNG SỐ SÂN</p>
+                    <div class="admin-stat-value">@Model.Statistics.TotalCourts</div>
+                    <p class="admin-stat-sub">@Model.Statistics.ActiveCourts đang hoạt động</p>
+                </article>
+                <article class="admin-stat-card">
+                    <p class="admin-section-label">TỔNG LƯỢT ĐẶT</p>
+                    <div class="admin-stat-value">@Model.Statistics.TotalBookings</div>
+                    <p class="admin-stat-sub">Theo ngày diễn ra booking trong tháng được chọn</p>
+                </article>
+                <article class="admin-stat-card">
+                    <p class="admin-section-label">ĐÃ XÁC NHẬN / HOÀN THÀNH</p>
+                    <div class="admin-stat-value">@Model.Statistics.SuccessfulBookings</div>
+                    <p class="admin-stat-sub">Đơn đã được xác nhận hoặc đã hoàn thành</p>
+                </article>
+                <article class="admin-stat-card">
+                    <p class="admin-section-label">ĐANG CHỜ XÁC NHẬN</p>
+                    <div class="admin-stat-value">@Model.Statistics.PendingBookings</div>
+                    <p class="admin-stat-sub">Đơn cần chủ sân xử lý</p>
+                </article>
+            </section>
+
+            <section class="admin-status-card admin-status-card--block">
+                <p class="admin-section-label">CHI TIẾT THEO SÂN · @Model.Statistics.MonthStart.ToString("MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"))</p>
+                @if (Model.Statistics.Courts.Count == 0)
+                {
+                    <div class="empty-state owner-courts-empty" role="status">
+                        <h3>Bạn chưa có sân nào</h3>
+                        <p>Tạo sân để theo dõi số liệu hoạt động tại đây.</p>
+                        <a class="button button--small button--dark" asp-action="CreateCourt">Thêm sân</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Sân</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-center">Tổng lượt</th>
+                                    <th class="text-center">Thành công</th>
+                                    <th class="text-center">Chờ xác nhận</th>
+                                    <th class="text-center">Đã hủy</th>
+                                    <th class="text-center">Hết hạn</th>
+                                    <th class="text-center">Tỷ lệ thành công</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var court in Model.Statistics.Courts)
+                                {
+                                    <tr>
+                                        <td><strong>@court.CourtName</strong></td>
+                                        <td><span class="status-badge @CourtStatusDisplay.CssClass(court.Status)">@CourtStatusDisplay.Label(court.Status)</span></td>
+                                        <td class="text-center">@court.TotalBookings</td>
+                                        <td class="text-center">@court.SuccessfulBookings</td>
+                                        <td class="text-center">@court.PendingBookings</td>
+                                        <td class="text-center">@court.CancelledBookings</td>
+                                        <td class="text-center">@court.ExpiredBookings</td>
+                                        <td class="text-center">@court.SuccessRatePercent.ToString("0.#")%</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+
+            <p class="owner-preview-note">
+                Đơn thành công gồm trạng thái đã xác nhận hoặc hoàn thành. Tỷ lệ = đơn thành công / tổng lượt đặt;
+                sân không có booking có tỷ lệ 0%.
+            </p>
+        </div>
+    </div>
+</section>

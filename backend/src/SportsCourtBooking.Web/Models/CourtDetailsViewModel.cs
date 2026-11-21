@@ -7,4 +7,6 @@ public class CourtDetailsViewModel
     public CourtDto Court { get; set; } = new();
 
     public DateOnly PlayDate { get; set; }
+
+    public IReadOnlyList<CourtDto> AvailableCourts { get; set; } = Array.Empty<CourtDto>();
 }

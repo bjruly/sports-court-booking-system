@@ -21,10 +21,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<PendingBookingExpirationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IFacilityService, FacilityService>();
+builder.Services.AddScoped<IOwnerDashboardService, OwnerDashboardService>();
+builder.Services.AddScoped<IOwnerCourtStatisticsService, OwnerCourtStatisticsService>();
+builder.Services.AddScoped<IOwnerCourtService, OwnerCourtService>();
+builder.Services.AddScoped<IOwnerFacilityService, OwnerFacilityService>();
+builder.Services.AddScoped<IVoucherService, OwnerVoucherService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IOwnerRevenueReportService, OwnerRevenueReportService>();
 builder.Services.AddHostedService<PendingBookingExpirationWorker>();
 
 // Đăng nhập bằng cookie xác thực (được mã hóa/ký bởi ASP.NET Core, người dùng không tự sửa được)
@@ -55,12 +66,8 @@ using (var scope = app.Services.CreateScope())
     {
         try
         {
-            // Có file migration thì chạy migration; chưa có (chưa chạy "dotnet ef migrations add") thì
-            // tạo bảng trực tiếp từ model, kèm dữ liệu mẫu (HasData).
-            if (db.Database.GetMigrations().Any())
-                db.Database.Migrate();
-            else
-                db.Database.EnsureCreated();
+            await db.BaselineExistingDatabaseAsync();
+            db.Database.Migrate();
 
             if (!await db.Users.AnyAsync(user => user.Email == SeedCredentials.OwnerEmail))
             {
@@ -76,7 +83,13 @@ using (var scope = app.Services.CreateScope())
                 await db.SaveChangesAsync();
             }
 
+            await db.EnsureCourtOwnerSchemaAsync();
+            await db.EnsureOwnerFacilitySchemaAsync();
+            await db.EnsureCourtPricingSchemaAsync();
+            await db.EnsureCourtDistrictSchemaAsync();
+            await db.EnsureVoucherSchemaAsync();
             await db.EnsureBookingSchemaAsync();
+            await db.EnsureReviewSchemaAsync();
 
             // Dữ liệu mẫu có Id cố định nên cần đồng bộ lại bộ đếm Id, nếu không bản ghi mới sẽ bị trùng Id.
             db.SyncIdentitySequences();

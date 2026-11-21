@@ -47,6 +47,28 @@
                     </form>
                 </div>
 
+                @if (Model.SiblingCourts.Count > 1)
+                {
+                    <div class="sibling-switch-box">
+                        <span class="sibling-switch-label">Đang xem: <strong>@Model.Court.CourtName</strong> · Chuyển đổi sân:</span>
+                        <div class="sibling-switch-pills">
+                            @for (int i = 0; i < Model.SiblingCourts.Count; i++)
+                            {
+                                var sib = Model.SiblingCourts[i];
+                                var isCurrent = sib.Id == Model.Court.Id;
+                                <a class="sibling-pill @(isCurrent ? "sibling-pill--active" : "")"
+                                   asp-controller="Home"
+                                   asp-action="Schedule"
+                                   asp-route-id="@sib.Id"
+                                   asp-route-date="@Model.PlayDate.ToString("yyyy-MM-dd")">
+                                    Sân @(i + 1): @sib.CourtName
+                                    @(isCurrent ? " ✓" : "")
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <div class="schedule-toolbar">
                     <span class="selected-date">@Model.PlayDate.ToString("dddd, dd/MM/yyyy", culture)</span>
                     <div class="slot-legend" aria-label="Chú giải trạng thái">
@@ -96,7 +118,14 @@
                 <div class="summary-line"><span>Khung giờ</span><strong id="selectedCount">Chưa chọn</strong></div>
                 <div class="summary-line"><span>Thời lượng</span><strong id="selectedDuration">—</strong></div>
                 <div class="summary-total"><span>Tạm tính</span><strong id="selectedTotal">0₫</strong></div>
-                <p class="summary-caption">Giá đã gồm phụ thu @BookingRules.PeakSurcharge.ToString("N0", culture)₫/giờ từ @BookingRules.PeakStartHour:00.</p>
+                @if (Model.Court.PeakSurcharge > 0)
+                {
+                    <p class="summary-caption">Giá đã gồm phụ thu @Model.Court.PeakSurcharge.ToString("N0", culture)₫/giờ từ @Model.Court.PeakStartHour:00.</p>
+                }
+                else
+                {
+                    <p class="summary-caption">Sân không áp dụng phụ thu giờ cao điểm.</p>
+                }
                 <div class="summary-rule"><span>i</span><p>Giờ chỉ được giữ sau khi bạn đăng nhập và xác nhận đặt sân ở bước tiếp theo.</p></div>
             </aside>
         </div>

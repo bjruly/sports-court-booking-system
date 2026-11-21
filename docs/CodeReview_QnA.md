@@ -12,13 +12,13 @@
   2. **Kiểu dữ liệu `DateOnly` và `TimeOnly` (.NET 6/8):** 
      - Thay vì dùng `DateTime` cồng kềnh và dễ sai lệch múi giờ, thực thể `Booking` dùng `DateOnly BookingDate` (chỉ lưu ngày) và `TimeOnly StartTime/EndTime` (chỉ lưu giờ).
   3. **Raw String Literals (`"""..."""` trong C# 11):**
-     - Dùng trong file [BookingSchemaExtensions.cs](file:///c:/Users/ASUS%20TUF/Documents/GitHub/sports-court-booking-system/backend/src/SportsCourtBooking.Infrastructure/Data/BookingSchemaExtensions.cs#L7) để viết chuỗi SQL dài nhiều dòng tự nhiên, không cần nối chuỗi `+` hay escape dấu nháy kép `\"`.
+     - Dùng trong file [BookingSchemaExtensions.cs](../backend/src/SportsCourtBooking.Infrastructure/Data/BookingSchemaExtensions.cs) để viết chuỗi SQL dài nhiều dòng tự nhiên, không cần nối chuỗi `+` hay escape dấu nháy kép `\"`.
   4. **Switch Expressions & Pattern Matching:**
      - Dùng trong `HomeController.cs` và `BookingRules.cs` để ánh xạ dữ liệu ngắn gọn:
        ```csharp
        District = c.Id switch { 1 => "Quận 7", 2 => "Bình Thạnh", 3 => "Thủ Đức", _ => "Quận 10" };
        ```
-  5. **Bulk Update API mới của EF Core 8 (`ExecuteUpdateAsync`):**
+  5. **Bulk Update API của EF Core (từ EF Core 7, sử dụng trong EF Core 8) (`ExecuteUpdateAsync`):**
      - Chạy trực tiếp lệnh `UPDATE` ở tầng CSDL trong Background Worker mà không cần tải dữ liệu lên bộ nhớ RAM.
 
 ---
@@ -26,7 +26,7 @@
 ## 2. Nhóm câu hỏi về Dependency Injection (DI) & Vòng đời Service
 
 ### ❓ Câu 2: Trong `Program.cs`, tại sao lại dùng các Lifetime khác nhau (Singleton, Scoped, HostedService)?
-* **Vị trí code:** [backend/src/SportsCourtBooking.Web/Program.cs](file:///c:/Users/ASUS%20TUF/Documents/GitHub/sports-court-booking-system/backend/src/SportsCourtBooking.Web/Program.cs#L19-L24)
+* **Vị trí code:** [backend/src/SportsCourtBooking.Web/Program.cs](../backend/src/SportsCourtBooking.Web/Program.cs)
 * **Trả lời:**
   * **`AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>()`:**
     - Lớp này hoàn toàn **không lưu trạng thái (stateless)**, chỉ thực hiện thuật toán tính toán băm mật khẩu. Dùng `Singleton` để ứng dụng chỉ tạo đúng 1 đối tượng duy nhất xuyên suốt thời gian chạy, giúp tiết kiệm bộ nhớ RAM.
@@ -37,7 +37,7 @@
     - Đăng ký một tiến trình nền chạy độc lập với các HTTP Request, khởi động cùng ứng dụng web để thực thi tác vụ quét dọn đơn hàng định kỳ.
 
 ### ❓ Câu 3 (Câu hỏi bẫy): *"Worker chạy ngầm là Singleton, tại sao nó có thể gọi được `PendingBookingExpirationService` vốn là Scoped?"*
-* **Vị trí code:** [PendingBookingExpirationWorker.cs](file:///c:/Users/ASUS%20TUF/Documents/GitHub/sports-court-booking-system/backend/src/SportsCourtBooking.Web/Services/PendingBookingExpirationWorker.cs#L32-L34)
+* **Vị trí code:** [PendingBookingExpirationWorker.cs](../backend/src/SportsCourtBooking.Web/Services/PendingBookingExpirationWorker.cs)
 * **Trả lời:**
   > *"Dạ thưa Thầy, đây là lỗi **Captive Dependency** kinh điển nếu inject trực tiếp Scoped service vào Singleton Worker.*  
   > *Nhóm đã xử lý chuẩn mực bằng cách: Worker chỉ nhận vào `IServiceScopeFactory`. Trong mỗi chu kỳ 15 giây quét dọn, Worker chủ động tạo một Scope con bằng lệnh:*  
@@ -49,7 +49,7 @@
 ## 3. Nhóm câu hỏi về Cơ sở dữ liệu, Concurrency & ACID
 
 ### ❓ Câu 4: Quá trình tạo đơn trong `CreateBookingAsync` đảm bảo tính toàn vẹn (ACID) như thế nào?
-* **Vị trí code:** [BookingService.cs](file:///c:/Users/ASUS%20TUF/Documents/GitHub/sports-court-booking-system/backend/src/SportsCourtBooking.Infrastructure/Services/BookingService.cs#L117-L153)
+* **Vị trí code:** [BookingService.cs](../backend/src/SportsCourtBooking.Infrastructure/Services/BookingService.cs)
 * **Trả lời:**
   * **Atomicity (Nguyên tử):** Toàn bộ thao tác lấy khóa Advisory Lock, kiểm tra giờ trống, tính tiền, và lưu `Booking` mới đều nằm trong một giao dịch `await using var transaction = await _context.Database.BeginTransactionAsync()`. Nếu có bất kỳ lỗi nào xảy ra (hoặc vi phạm trùng giờ), toàn bộ thao tác sẽ bị Rollback về trạng thái ban đầu.
   * **Consistency (Nhất quán):** Ràng buộc `EXCLUDE USING gist` ở tầng CSDL đảm bảo không bao giờ có 2 đơn hàng có dải thời gian chồng lấn nhau trên cùng một sân.
@@ -73,14 +73,14 @@
   * **Lớp 2: Kiểm tra xác thực (`[Authorize]`):**
     - Nếu không có Cookie phiên hợp lệ, server trả về mã lỗi HTTP 401 Unauthorized / chuyển hướng về trang Login.
   * **Lớp 3: Bỏ qua `UserId` do client gửi lên:**
-    - Trong [BookingController.cs](file:///c:/Users/ASUS%20TUF/Documents/GitHub/sports-court-booking-system/backend/src/SportsCourtBooking.Web/Controllers/BookingController.cs#L64-L70), `UserId` của người đặt luôn được lấy trực tiếp từ **Claims của Cookie đăng nhập** (`User.GetUserId()`), hacker không thể mạo danh ID của người khác.
+    - Trong [BookingController.cs](../backend/src/SportsCourtBooking.Web/Controllers/BookingController.cs), `UserId` của người đặt luôn được lấy trực tiếp từ **Claims của Cookie đăng nhập** (`User.GetUserId()`), hacker không thể mạo danh ID của người khác.
   * **Lớp 4: Server-side Business Rules Validation:**
     - Cho dù client can thiệp mã JavaScript để chọn 10 khung giờ hoặc chọn giờ âm, hàm `BookingRules.TryNormalizeHours` và `BookingRules.ValidateTimeRange` ở server sẽ kiểm tra lại toàn bộ và chặn ngay lập tức.
 
 ### ❓ Câu 7: Thuật toán PBKDF2 băm mật khẩu hoạt động như thế nào?
-* **Vị trí code:** [Pbkdf2PasswordHasher.cs](file:///c:/Users/ASUS%20TUF/Documents/GitHub/sports-court-booking-system/backend/src/SportsCourtBooking.Infrastructure/Security/Pbkdf2PasswordHasher.cs#L14-L40)
+* **Vị trí code:** [Pbkdf2PasswordHasher.cs](../backend/src/SportsCourtBooking.Infrastructure/Security/Pbkdf2PasswordHasher.cs)
 * **Trả lời:**
   * Mỗi mật khẩu khi tạo tài khoản sẽ được sinh một chuỗi **Salt ngẫu nhiên 16 bytes (128-bit)** bằng `RandomNumberGenerator`.
-  * Sau đó đưa qua hàm băm `Rfc2898DeriveBytes` kết hợp thuật toán **HMAC-SHA256** và lặp **100.000 vòng (iterations)** để tạo ra khóa băm 256-bit.
-  * Chuỗi lưu trong CSDL có định dạng: `{Salt dạng Base64}:{Hash dạng Base64}`.
-  * Khi người dùng đăng nhập, hệ thống tách Salt cũ ra, băm lại mật khẩu nhập vào đúng 100.000 lần và so sánh bằng thuật toán so sánh an toàn `CryptographicOperations.FixedTimeEquals` để chống tấn công phân tích thời gian (Timing Attacks).
+  * Sau đó đưa qua hàm băm `Rfc2898DeriveBytes` kết hợp thuật toán **HMAC-SHA256** và lặp **600.000 vòng (iterations)** để tạo ra khóa băm 256-bit.
+  * Chuỗi lưu trong CSDL có định dạng: `PBKDF2$iterations$salt_base64$hash_base64`.
+  * Khi người dùng đăng nhập, hệ thống tách Salt cũ ra, băm lại mật khẩu nhập vào theo số vòng được lưu trong hash (hash mới: 600.000 vòng) và so sánh bằng thuật toán so sánh an toàn `CryptographicOperations.FixedTimeEquals` để chống tấn công phân tích thời gian (Timing Attacks).

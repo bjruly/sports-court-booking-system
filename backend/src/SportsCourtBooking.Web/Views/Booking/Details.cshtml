@@ -1,6 +1,7 @@
 @using System.Globalization
 @using SportsCourtBooking.Application.DTOs
 @using SportsCourtBooking.Domain.Enums
+@using SportsCourtBooking.Web.Models
 @model BookingDetailDto
 
 @{
@@ -16,6 +17,7 @@
             || Model.Status == BookingStatus.Confirmed
         )
         && !Model.IsPaid
+        && !Model.CheckInAt.HasValue
         && Model.BookingDate.ToDateTime(Model.StartTime) > nowVietnam
         && (
             Model.Status != BookingStatus.Pending
@@ -24,6 +26,15 @@
                 && Model.ExpiresAt.Value > nowUtc
             )
         );
+    var canRequestRefund = Model.IsPaid
+        && Model.Status == BookingStatus.Confirmed
+        && !Model.CheckInAt.HasValue
+        && Model.BookingDate.ToDateTime(Model.StartTime) > nowVietnam
+        && !Model.RefundStatus.HasValue;
+    var canPay = Model.Status == BookingStatus.Pending
+        && Model.PaymentStatus == PaymentStatus.Unpaid
+        && Model.ExpiresAt.HasValue
+        && Model.ExpiresAt.Value > nowUtc;
 }
 
 <section class="page-section">
@@ -41,6 +52,23 @@
                 Quay lại lịch đặt
             </a>
         </div>
+
+        @if (Model.Status == BookingStatus.Cancelled)
+        {
+            if (PaymentStatusRules.IsRefunded(Model.PaymentStatus)
+                || Model.RefundStatus == RefundStatus.Completed)
+            {
+                <div class="alert alert--info" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; color: #166534;">
+                    <strong>Thông báo hoàn tiền:</strong> Đơn đặt sân này đã được hủy và hoàn trả @((Model.RefundedAmount.HasValue && Model.RefundedAmount > 0 ? Model.RefundedAmount.Value : Model.TotalPrice).ToString("N0", culture))₫ thành công.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert--warning" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; color: #92400e;">
+                    <strong>Thông báo hủy đơn:</strong> Đơn đặt sân này đã được hủy. Khung giờ đã được mở lại.
+                </div>
+            }
+        }
 
         <div class="booking-table-wrap">
             <table class="booking-table">
@@ -70,6 +98,19 @@
                     </tr>
 
                     <tr>
+                        <th>Tạm tính</th>
+                        <td>@((Model.TotalPrice + Model.DiscountAmount).ToString("N0", culture))₫</td>
+                    </tr>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.VoucherCode))
+                    {
+                        <tr>
+                            <th>Voucher (@Model.VoucherCode)</th>
+                            <td>−@Model.DiscountAmount.ToString("N0", culture)₫</td>
+                        </tr>
+                    }
+
+                    <tr>
                         <th>Tổng tiền</th>
                         <td>@Model.TotalPrice.ToString("N0", culture)₫</td>
                     </tr>
@@ -86,11 +127,18 @@
                     <tr>
                         <th>Thanh toán</th>
                         <td>
-                            @(Model.IsPaid
-                                ? "Đã thanh toán"
-                                : "Chưa ghi nhận thanh toán")
+                            @PaymentStatusDisplay.Label(Model.PaymentStatus)
+                            @if (!string.IsNullOrWhiteSpace(Model.PaymentMethod))
+                            {
+                                <span> · @PaymentStatusDisplay.MethodLabel(Model.PaymentMethod)</span>
+                            }}
                         </td>
                     </tr>
+
+                    @if (Model.RefundStatus.HasValue)
+                    {
+                        <tr><th>Hoàn tiền</th><td>@RefundStatusDisplay.Label(Model.RefundStatus) · @(Model.RefundAmount?.ToString("N0", culture) ?? "0")₫</td></tr>
+                    }
 
                     <tr>
                         <th>Thời điểm tạo đơn</th>
@@ -114,6 +162,13 @@
                 </tbody>
             </table>
         </div>
+        @if (canPay)
+        {
+            <div class="my-bookings-actions">
+                <a class="button button--primary" asp-action="Checkout" asp-route-id="@Model.Id">Tiếp tục thanh toán</a>
+                <p>Đơn được giữ đến @Model.ExpiresAt!.Value.AddHours(7).ToString("HH:mm dd/MM/yyyy") (giờ Việt Nam).</p>
+            </div>
+        }
         @if (canCancel)
 {
     <div class="my-bookings-actions">
@@ -131,11 +186,23 @@
         </form>
     </div>
 }
+else if (canRequestRefund)
+{
+    <div class="my-bookings-actions refund-request-panel">
+        <h2>Yêu cầu hủy và hoàn tiền</h2>
+        <p>Yêu cầu sẽ được chuyển đến chủ sân để xem xét và xử lý.</p>
+        <form asp-action="RequestRefund" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <label for="refundReason">Lý do</label>
+            <textarea id="refundReason" name="reason" maxlength="200" required>Thay đổi kế hoạch</textarea>
+            <button class="button button--outline" type="submit">Gửi yêu cầu hoàn tiền</button>
+        </form>
+    </div>
+}
 else if (Model.IsPaid)
 {
     <p>
-        Đơn đã thanh toán. Vui lòng liên hệ nhân viên
-        để được hỗ trợ hủy và xử lý tiền.
+        Đơn đã thanh toán. Trạng thái hoàn tiền: @RefundStatusDisplay.Label(Model.RefundStatus).
     </p>
 }
 
@@ -149,6 +216,34 @@ else if (Model.IsPaid)
                 </p>
             </div>
         </div>
+
+        @if (Model.CanReview)
+        {
+            <div class="review-booking-panel">
+                <div>
+                    <h2>@(Model.ReviewId.HasValue ? "Cập nhật đánh giá" : "Chia sẻ trải nghiệm")</h2>
+                    <p>
+                        @(Model.ReviewId.HasValue
+                            ? $"Bạn đã đánh giá {Model.ReviewRating}/5 sao."
+                            : "Khung giờ đã kết thúc. Hãy chia sẻ trải nghiệm của bạn về sân.")
+                    </p>
+                </div>
+                <a class="button button--primary"
+                   asp-action="Review"
+                   asp-route-id="@Model.Id">
+                    @(Model.ReviewId.HasValue ? "Sửa đánh giá" : "Viết đánh giá")
+                </a>
+            </div>
+        }
+        else if (Model.ReviewId.HasValue)
+        {
+            <div class="review-booking-panel">
+                <div>
+                    <h2>Đánh giá của bạn: @Model.ReviewRating/5 sao</h2>
+                    <p>@(string.IsNullOrWhiteSpace(Model.ReviewComment) ? "Bạn chưa thêm nhận xét." : Model.ReviewComment)</p>
+                </div>
+            </div>
+        }
 
     </div>
 </section>

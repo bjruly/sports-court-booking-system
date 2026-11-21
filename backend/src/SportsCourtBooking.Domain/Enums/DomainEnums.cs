@@ -29,5 +29,23 @@ public enum PaymentStatus
     Unpaid = 1,
     Paid = 2,
     Refunded = 3,
-    Failed = 4
+    Failed = 4,
+    DemoPaid = 5,
+    DemoRefunded = 6
+}
+
+public enum PaymentMethodType
+{
+    VNPayDemo = 1,
+    MoMoDemo = 2,
+    BankTransferDemo = 3,
+    CashAtVenue = 4
+}
+
+public enum RefundStatus
+{
+    Pending = 1,
+    Completed = 2,
+    Failed = 3,
+    Rejected = 4
 }

@@ -47,3 +47,37 @@ public class UserDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+public class OwnerProfileUpdateRequest
+{
+    [Required(ErrorMessage = "Vui lòng nhập họ và tên.")]
+    [StringLength(100, ErrorMessage = "Họ và tên tối đa 100 ký tự.")]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
+    [RegularExpression(@"^(0|\+84)\d{9}$", ErrorMessage = "Số điện thoại không hợp lệ (ví dụ 0901234567).")]
+    public string PhoneNumber { get; set; } = string.Empty;
+}
+
+public class OwnerChangePasswordRequest
+{
+    [Required(ErrorMessage = "Vui lòng nhập mật khẩu hiện tại.")]
+    [StringLength(100, ErrorMessage = "Mật khẩu hiện tại không hợp lệ.")]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới.")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu mới phải từ 8 đến 100 ký tự.")]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu mới.")]
+    [Compare(nameof(NewPassword), ErrorMessage = "Mật khẩu xác nhận không khớp.")]
+    public string ConfirmPassword { get; set; } = string.Empty;
+}
+
+public class OwnerProfileDto
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}

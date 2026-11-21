@@ -1,3 +1,5 @@
+using SportsCourtBooking.Application.Rules;
+
 namespace SportsCourtBooking.Web.Models;
 
 public sealed class CourtCatalogViewModel
@@ -39,9 +41,17 @@ public sealed class CourtCardViewModel
 
     public decimal StartingPrice { get; init; }
 
+    public int PeakStartHour { get; init; } = BookingRules.PeakStartHour;
+
+    public decimal PeakSurcharge { get; init; } = BookingRules.PeakSurcharge;
+
     public string Description { get; init; } = string.Empty;
 
     public string VisualClass { get; init; } = string.Empty;
+
+    public int CourtCount { get; init; } = 1;
+
+    public string CourtNamesSummary { get; init; } = string.Empty;
 }
 
 public sealed class CourtScheduleViewModel
@@ -53,6 +63,8 @@ public sealed class CourtScheduleViewModel
     public IReadOnlyList<CourtSlotViewModel> Slots { get; init; } = [];
 
     public string? ErrorMessage { get; init; }
+
+    public IReadOnlyList<CourtCardViewModel> SiblingCourts { get; init; } = [];
 }
 
 public sealed class CourtSlotViewModel
@@ -74,7 +86,15 @@ public sealed class BookingReviewViewModel
 
     public IReadOnlyList<CourtSlotViewModel> Slots { get; init; } = [];
 
-    public decimal TotalPrice => Slots.Sum(slot => slot.Price);
+    public decimal Subtotal => Slots.Sum(slot => slot.Price);
+
+    public decimal DiscountAmount { get; init; }
+
+    public decimal TotalPrice => Subtotal - DiscountAmount;
+
+    public string? VoucherCode { get; init; }
+
+    public string? VoucherError { get; init; }
 
     public string ReturnUrl { get; init; } = string.Empty;
 }

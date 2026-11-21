@@ -26,38 +26,55 @@ public class CourtService : ICourtService
 
         if (onlyActive)
         {
-            query = query.Where(c => c.Status == CourtStatus.Active);
+            query = query.Where(c =>
+                c.Status == CourtStatus.Active
+                && (c.FacilityId == null || (c.Facility!.IsApproved && c.Facility.IsActive)));
         }
 
         return await query.OrderBy(c => c.Id).Select(c => new CourtDto
         {
             Id = c.Id,
             Name = c.Name,
+            FacilityId = c.FacilityId,
+            FacilityName = c.Facility != null ? c.Facility.Name : null,
             CourtTypeId = c.CourtTypeId,
             CourtTypeName = c.CourtType != null ? c.CourtType.Name : string.Empty,
             Location = c.Location,
+            District = c.District,
             Description = c.Description,
             ImageUrl = c.ImageUrl,
             PricePerHour = c.PricePerHour,
+            PeakStartHour = c.PeakStartHour,
+            PeakSurcharge = c.PeakSurcharge,
             Status = c.Status
         }).ToListAsync();
     }
 
     public async Task<CourtDto?> GetCourtByIdAsync(int id)
     {
-        var c = await _context.Courts.Include(x => x.CourtType).FirstOrDefaultAsync(x => x.Id == id);
+        var c = await _context.Courts
+            .Include(x => x.CourtType)
+            .Include(x => x.Facility)
+            .FirstOrDefaultAsync(x =>
+                x.Id == id
+                && (x.FacilityId == null || (x.Facility!.IsApproved && x.Facility.IsActive)));
         if (c == null) return null;
 
         return new CourtDto
         {
             Id = c.Id,
             Name = c.Name,
+            FacilityId = c.FacilityId,
+            FacilityName = c.Facility?.Name,
             CourtTypeId = c.CourtTypeId,
             CourtTypeName = c.CourtType?.Name ?? string.Empty,
             Location = c.Location,
+            District = c.District,
             Description = c.Description,
             ImageUrl = c.ImageUrl,
             PricePerHour = c.PricePerHour,
+            PeakStartHour = c.PeakStartHour,
+            PeakSurcharge = c.PeakSurcharge,
             Status = c.Status
         };
     }
