@@ -126,6 +126,11 @@ public static class BookingSchemaExtensions
 
         // 1. Đảm bảo đúng 5 Cơ sở thể thao thật khớp 100% với 5 cụm sân trên web
         var facilities = await db.Facilities.ToListAsync(cancellationToken);
+        foreach (var facility in facilities.Where(facility => facility.OwnerId is null))
+        {
+            facility.OwnerId = 3;
+        }
+
         if (!facilities.Any(f => f.Name.Contains("Quận 7")))
         {
             var seedTime = DateTime.UtcNow.AddMonths(-1);
@@ -133,6 +138,7 @@ public static class BookingSchemaExtensions
             {
                 new()
                 {
+                    OwnerId = 3,
                     Name = "Cơ sở Cầu Lông Nam Sài Gòn - Quận 7",
                     Address = "Quận 7, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 001",
@@ -145,6 +151,7 @@ public static class BookingSchemaExtensions
                 },
                 new()
                 {
+                    OwnerId = 3,
                     Name = "Cơ sở Cầu Lông Chu Văn An - Bình Thạnh",
                     Address = "Bình Thạnh, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 002",
@@ -157,6 +164,7 @@ public static class BookingSchemaExtensions
                 },
                 new()
                 {
+                    OwnerId = 3,
                     Name = "Cụm Sân Bóng Đá Mini Thủ Đức",
                     Address = "Thủ Đức, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 003",
@@ -169,6 +177,7 @@ public static class BookingSchemaExtensions
                 },
                 new()
                 {
+                    OwnerId = 3,
                     Name = "Trung Tâm Pickleball Quận 10",
                     Address = "Quận 10, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 004",
@@ -181,6 +190,7 @@ public static class BookingSchemaExtensions
                 },
                 new()
                 {
+                    OwnerId = 3,
                     Name = "CLB Tennis Thảo Điền - Quận 2",
                     Address = "Quận 2, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 005",
