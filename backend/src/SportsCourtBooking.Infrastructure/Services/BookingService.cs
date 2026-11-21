@@ -394,7 +394,7 @@ public class BookingService : IBookingService
 
             var message = status == BookingStatus.Confirmed
                 ? "Đã tạo và xác nhận đơn đặt sân."
-                : "Đã tạo đơn đặt sân, đang chờ xác nhận.";
+                : "Đã tạo đơn đặt sân. Vui lòng truy cập chi tiết đơn để tiến hành thanh toán trong thời hạn giữ chỗ.";
 
             return (true, message, new BookingDto
             {

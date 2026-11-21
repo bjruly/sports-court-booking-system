@@ -258,7 +258,34 @@ public class NotificationController : Controller
                 });
             notifications.AddRange(refundNotifs);
 
-            // 3. Đơn đặt sân được chủ sân xác nhận thành công
+            // 3. Đơn mới đang chờ khách thanh toán: hướng khách đến trang chi tiết đơn.
+            var unpaidBookingsRaw = await _context.Bookings
+                .AsNoTracking()
+                .Include(b => b.Court)
+                .Include(b => b.Payment)
+                .Where(b => b.UserId == userId.Value
+                         && b.Status == BookingStatus.Pending
+                         && b.Payment != null
+                         && b.Payment.Status == PaymentStatus.Unpaid
+                         && b.ExpiresAt.HasValue
+                         && b.ExpiresAt.Value > DateTime.UtcNow
+                         && b.CreatedAt >= effectiveCutoff)
+                .OrderByDescending(b => b.CreatedAt)
+                .Take(6)
+                .ToListAsync();
+
+            var unpaidBookingNotifs = unpaidBookingsRaw.Select(b => new NotificationItemDto
+            {
+                Id = $"cust_payment_{b.Id}_{b.CreatedAt.Ticks}",
+                Title = $"Đơn #{b.Id} đang chờ thanh toán",
+                Message = $"Bạn đã đặt {(b.Court != null ? b.Court.Name : "sân")} ngày {b.BookingDate:dd/MM/yyyy} ({b.StartTime:HH\\:mm}-{b.EndTime:HH\\:mm}). Truy cập chi tiết đơn để tiến hành thanh toán trước {b.ExpiresAt!.Value.AddHours(7):HH:mm}.",
+                Type = "booking",
+                Url = $"/Booking/Details/{b.Id}",
+                CreatedAt = b.CreatedAt
+            });
+            notifications.AddRange(unpaidBookingNotifs);
+
+            // 4. Đơn đặt sân được chủ sân xác nhận thành công
             var confirmedBookingsRaw = await _context.Bookings
                 .AsNoTracking()
                 .Include(b => b.Court)

@@ -404,7 +404,7 @@ public class HomeController : Controller
         }
 
         TempData["SuccessMessage"] =
-            $"Đã tạo đơn đặt sân {startTime:HH:mm} - {endTime:HH:mm} ngày {date:dd/MM/yyyy}, tổng {result.Data?.TotalPrice:N0}₫. Đơn đang chờ xác nhận.";
+            $"Đã tạo đơn đặt sân {startTime:HH:mm} - {endTime:HH:mm} ngày {date:dd/MM/yyyy}, tổng {result.Data?.TotalPrice:N0}₫. Vui lòng xem chi tiết đơn để tiến hành thanh toán trong thời hạn giữ chỗ.";
         return RedirectToAction("My", "Booking");
     }
 
