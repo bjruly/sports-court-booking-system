@@ -30,7 +30,8 @@
         && Model.BookingDate.ToDateTime(Model.StartTime) > nowVietnam
         && !Model.RefundStatus.HasValue;
     var canPay = Model.Status == BookingStatus.Pending
-        && Model.PaymentStatus == PaymentStatus.Unpaid
+        && (Model.PaymentStatus == PaymentStatus.Unpaid || Model.PaymentStatus == null)
+        && !Model.IsPaid
         && Model.ExpiresAt.HasValue
         && Model.ExpiresAt.Value > nowUtc;
 }

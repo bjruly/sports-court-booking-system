@@ -121,7 +121,8 @@ public class BookingController : Controller
         }
 
         if (booking.Status != BookingStatus.Pending
-            || booking.PaymentStatus != PaymentStatus.Unpaid
+            || (booking.PaymentStatus != PaymentStatus.Unpaid && booking.PaymentStatus != null)
+            || booking.IsPaid
             || !booking.ExpiresAt.HasValue
             || booking.ExpiresAt.Value <= DateTime.UtcNow)
         {
@@ -350,10 +351,10 @@ public async Task<IActionResult> My(
             return RedirectToAction("Schedule", "Home", new { id = request.CourtId, date = request.BookingDate.ToString("yyyy-MM-dd") });
         }
 
-        TempData["SuccessMessage"] = $"{result.Message} Tổng tiền: {result.Data?.TotalPrice:N0} VNĐ.";
+        TempData["SuccessMessage"] = $"{result.Message} Tổng tiền: {result.Data?.TotalPrice:N0} VNĐ. Vui lòng chọn phương thức thanh toán để hoàn tất giữ chỗ.";
         return result.Data is null
             ? RedirectToAction(nameof(My))
-            : RedirectToAction(nameof(Details), new { id = result.Data.Id });
+            : RedirectToAction(nameof(Checkout), new { id = result.Data.Id });
     }
 
     // API nhỏ trả về JSON để kiểm tra nhanh khung giờ trống bằng JavaScript/AJAX
