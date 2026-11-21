@@ -7,10 +7,8 @@ public static class PaymentStatusDisplay
     public static string Label(PaymentStatus? status) => status switch
     {
         PaymentStatus.Unpaid => "Chưa thanh toán",
-        PaymentStatus.Paid => "Đã thanh toán",
-        PaymentStatus.DemoPaid => "Đã thanh toán mô phỏng",
-        PaymentStatus.Refunded => "Đã hoàn tiền",
-        PaymentStatus.DemoRefunded => "Đã hoàn tiền mô phỏng",
+        PaymentStatus.Paid or PaymentStatus.DemoPaid => "Đã thanh toán",
+        PaymentStatus.Refunded or PaymentStatus.DemoRefunded => "Đã hoàn tiền",
         PaymentStatus.Failed => "Thanh toán thất bại",
         _ => "Chưa có thanh toán"
     };
@@ -24,10 +22,10 @@ public static class PaymentStatusDisplay
 
         return method switch
         {
-            PaymentMethodType.VNPayDemo => "VNPay demo",
-            PaymentMethodType.MoMoDemo => "MoMo demo",
-            PaymentMethodType.BankTransferDemo => "Chuyển khoản demo",
-            PaymentMethodType.CashAtVenue => "Tiền mặt tại sân (demo)",
+            PaymentMethodType.VNPayDemo => "VNPay",
+            PaymentMethodType.MoMoDemo => "MoMo",
+            PaymentMethodType.BankTransferDemo => "Chuyển khoản",
+            PaymentMethodType.CashAtVenue => "Tiền mặt tại sân",
             _ => value ?? string.Empty
         };
     }

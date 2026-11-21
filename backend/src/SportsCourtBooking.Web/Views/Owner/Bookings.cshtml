@@ -112,13 +112,21 @@
                                             {
                                                 <small class="owner-booking-phone">Voucher @booking.VoucherCode · giảm @booking.DiscountAmount.ToString("N0", culture) đ</small>
                                             }
-                                            @if (booking.PaymentStatus == PaymentStatus.Paid)
-                                            {
-                                                <div><span class="badge" style="font-size: 11px; font-weight: 600; background: rgba(34, 197, 94, 0.15); color: #4ade80; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-top: 4px;">Đã thanh toán</span></div>
-                                            }
-                                            else if (booking.PaymentStatus == PaymentStatus.Refunded)
+                                            @if (PaymentStatusRules.IsRefunded(booking.PaymentStatus))
                                             {
                                                 <div><span class="badge" style="font-size: 11px; font-weight: 600; background: rgba(234, 179, 8, 0.15); color: #facc15; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-top: 4px;">Đã hoàn tiền</span></div>
+                                            }
+                                            else if (booking.RefundStatus == RefundStatus.Pending)
+                                            {
+                                                <div><span class="badge" style="font-size: 11px; font-weight: 600; background: rgba(234, 179, 8, 0.15); color: #facc15; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-top: 4px;">Đang chờ hoàn tiền</span></div>
+                                            }
+                                            else if (booking.RefundStatus == RefundStatus.Failed)
+                                            {
+                                                <div><span class="badge" style="font-size: 11px; font-weight: 600; background: rgba(248, 113, 113, 0.15); color: #f87171; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-top: 4px;">Hoàn tiền thất bại</span></div>
+                                            }
+                                            else if (PaymentStatusRules.IsPaid(booking.PaymentStatus))
+                                            {
+                                                <div><span class="badge" style="font-size: 11px; font-weight: 600; background: rgba(34, 197, 94, 0.15); color: #4ade80; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-top: 4px;">Đã thanh toán</span></div>
                                             }
                                         </td>
                                         <td>
@@ -147,7 +155,7 @@
                                                         <button class="button button--small button--dark" type="submit">Xác nhận</button>
                                                     </form>
                                                 }
-                                                @if (BookingRules.CanCancel(booking.Status))
+                                                @if (BookingRules.CanCancel(booking.Status, booking.BookingDate, booking.StartTime, VietnamClock.Now))
                                                 {
                                                     <form class="inline-form" method="post" asp-action="CancelBooking"
                                                           asp-route-id="@booking.Id" asp-route-date="@selectedDate"
@@ -156,14 +164,19 @@
                                                         <button class="button button--small button--outline" type="submit">Hủy đơn</button>
                                                     </form>
                                                 }
-                                                @if (booking.PaymentStatus == PaymentStatus.Paid)
+                                                @if (PaymentStatusRules.IsPaid(booking.PaymentStatus)
+                                                    && booking.RefundStatus is null)
                                                 {
                                                     <form class="inline-form" method="post" asp-action="RefundBooking"
                                                           asp-route-id="@booking.Id" asp-route-date="@selectedDate"
                                                           asp-route-courtId="@Model.SelectedCourtId" asp-route-status="@selectedStatus"
-                                                          onsubmit="return confirm('Xác nhận hoàn tiền @booking.TotalPrice.ToString("N0", culture) đ cho khách hàng đơn #@booking.Id?');">
+                                                          onsubmit="return confirm('Tạo yêu cầu hoàn tiền @booking.TotalPrice.ToString("N0", culture) đ cho đơn #@booking.Id?');">
                                                         <button class="button button--small button--outline" type="submit" style="color: #f87171; border-color: rgba(248, 113, 113, 0.4);">Hoàn tiền</button>
                                                     </form>
+                                                }
+                                                @if (booking.RefundStatus == RefundStatus.Pending || booking.RefundStatus == RefundStatus.Failed)
+                                                {
+                                                    <a class="text-link" asp-action="Refunds">Tiếp tục xử lý</a>
                                                 }
                                             </div>
                                         </td>

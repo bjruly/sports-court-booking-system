@@ -38,6 +38,13 @@ public static class BookingRules
     public static bool CanCancel(BookingStatus status)
         => status == BookingStatus.Pending || status == BookingStatus.Confirmed;
 
+    public static bool CanCancel(
+        BookingStatus status,
+        DateOnly bookingDate,
+        TimeOnly startTime,
+        DateTime nowVietnam)
+        => CanCancel(status) && bookingDate.ToDateTime(startTime) > nowVietnam;
+
     /// <summary>Giá 1 khung giờ = giá cơ bản của sân + phụ thu (nếu là giờ cao điểm).</summary>
     public static decimal GetSlotPrice(
         decimal basePricePerHour,

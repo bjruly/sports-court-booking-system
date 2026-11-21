@@ -16,7 +16,7 @@
         <div class="admin-page-heading">
             <div><p class="eyebrow eyebrow--dark">CHỦ SÂN</p><h1>Yêu cầu hoàn tiền</h1></div>
         </div>
-        <p class="notice notice--info">Các nút mô phỏng chỉ cập nhật trạng thái trong hệ thống, không chuyển tiền thật.</p>
+        <p class="notice notice--info">Xử lý yêu cầu hoàn tiền tại đây. Sau khi xác nhận giao dịch thành công, hệ thống sẽ ghi nhận đã hoàn. Nếu giao dịch thất bại, bạn có thể thử hoàn thủ công hoặc từ chối yêu cầu và nêu rõ lý do.</p>
         @if (Model.Count == 0)
         {
             <div class="empty-state"><h2>Chưa có yêu cầu hoàn tiền</h2></div>
@@ -42,11 +42,11 @@
                                     <div class="refund-actions">
                                         <form asp-action="ProcessDemoRefund" method="post">
                                             @Html.AntiForgeryToken()<input type="hidden" name="id" value="@refund.Id" /><input type="hidden" name="succeeded" value="true" />
-                                            <button class="button button--small button--primary" type="submit">Mô phỏng thành công</button>
+                                            <button class="button button--small button--primary" type="submit">Xác nhận hoàn thành công</button>
                                         </form>
                                         <form asp-action="ProcessDemoRefund" method="post">
                                             @Html.AntiForgeryToken()<input type="hidden" name="id" value="@refund.Id" /><input type="hidden" name="succeeded" value="false" />
-                                            <button class="button button--small button--outline" type="submit">Mô phỏng thất bại</button>
+                                            <button class="button button--small button--outline" type="submit">Xác nhận hoàn thất bại</button>
                                         </form>
                                     </div>
                                 }
@@ -55,9 +55,14 @@
                                     <form asp-action="CompleteRefundManually" method="post" class="refund-actions">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@refund.Id" />
-                                        <input name="transactionCode" maxlength="100" required placeholder="Mã giao dịch thực tế" />
+                                        <input name="content" maxlength="100" required placeholder="Nội dung" />
                                         <button class="button button--small button--primary" type="submit">Xác nhận đã hoàn</button>
+                                        <button class="button button--small button--outline" type="submit" formaction="@Url.Action("RejectRefund", "Owner")">Từ chối hoàn tiền</button>
                                     </form>
+                                }
+                                else if (refund.Status == RefundStatus.Rejected)
+                                {
+                                    <span>@refund.RejectionReason</span>
                                 }
                                 else
                                 {

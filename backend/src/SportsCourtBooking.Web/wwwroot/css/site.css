@@ -1705,7 +1705,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     align-items: center;
 }
 
-.refund-actions input[name="transactionCode"],
+.refund-actions input[name="content"],
 .refund-request-panel textarea {
     min-width: 220px;
     padding: 10px 12px;

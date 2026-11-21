@@ -50,10 +50,10 @@ public sealed class PaymentService : IPaymentService
             return (false, "Đơn đặt sân chưa có bản ghi thanh toán. Vui lòng liên hệ quản trị viên.");
         }
 
-        if (booking.Payment.Status == PaymentStatus.DemoPaid
+        if (PaymentStatusRules.IsPaid(booking.Payment.Status)
             && booking.Status == BookingStatus.Confirmed)
         {
-            return (true, "Đơn này đã được thanh toán mô phỏng.");
+            return (true, "Đơn này đã được thanh toán.");
         }
 
         var now = DateTime.UtcNow;
@@ -81,7 +81,7 @@ public sealed class PaymentService : IPaymentService
         }
 
         _logger.LogInformation("Demo payment recorded for booking {BookingId}", bookingId);
-        return (true, "Thanh toán mô phỏng thành công. Không có khoản tiền thật được chuyển.");
+        return (true, "Thanh toán thành công.");
     }
 
     public async Task<(bool Success, string Message)> RequestRefundAsync(
@@ -117,7 +117,7 @@ public sealed class PaymentService : IPaymentService
             return (false, "Đơn này đã có yêu cầu hoàn tiền.");
         }
 
-        var paid = booking.Payment.Status is PaymentStatus.Paid or PaymentStatus.DemoPaid;
+        var paid = PaymentStatusRules.IsPaid(booking.Payment.Status);
         var startsAtVietnam = booking.BookingDate.ToDateTime(booking.StartTime);
         if (!paid
             || booking.Status != BookingStatus.Confirmed
@@ -181,7 +181,7 @@ public sealed class PaymentService : IPaymentService
 
         await _context.Entry(refund).Reference(item => item.Payment).LoadAsync();
         if (refund.Status != RefundStatus.Pending || refund.Payment is null
-            || refund.Payment.Status is not (PaymentStatus.Paid or PaymentStatus.DemoPaid))
+            || !PaymentStatusRules.IsPaid(refund.Payment.Status))
         {
             return (false, "Yêu cầu này không còn ở trạng thái chờ xử lý.");
         }
@@ -210,8 +210,8 @@ public sealed class PaymentService : IPaymentService
             "Owner {OwnerId} recorded demo refund result {Succeeded} for refund {RefundId}",
             ownerId, succeeded, refundId);
         return succeeded
-            ? (true, "Đã ghi nhận hoàn tiền mô phỏng thành công. Không có khoản tiền thật được chuyển.")
-            : (true, "Đã ghi nhận hoàn tiền mô phỏng thất bại. Có thể xác nhận hoàn thủ công sau khi chuyển tiền.");
+            ? (true, "Đã ghi nhận hoàn tiền thành công.")
+            : (true, "Giao dịch hoàn tiền thất bại. Bạn có thể nhập mã giao dịch sau khi hoàn thủ công hoặc từ chối yêu cầu.");
     }
 
     public async Task<(bool Success, string Message)> CompleteOwnerRefundManuallyAsync(
@@ -239,7 +239,7 @@ public sealed class PaymentService : IPaymentService
         await _context.Entry(refund).Reference(item => item.Payment).LoadAsync();
         if (refund.Status != RefundStatus.Failed || refund.Payment is null)
         {
-            return (false, "Chỉ có thể xác nhận thủ công yêu cầu hoàn tiền đã thử mô phỏng thất bại.");
+            return (false, "Chỉ có thể xác nhận thủ công yêu cầu hoàn tiền đã thất bại.");
         }
 
         var now = DateTime.UtcNow;
@@ -260,6 +260,49 @@ public sealed class PaymentService : IPaymentService
         }
 
         return (true, "Đã ghi nhận hoàn tiền thủ công hoàn tất.");
+    }
+
+    public async Task<(bool Success, string Message)> RejectOwnerRefundAsync(
+        int refundId,
+        int ownerId,
+        int actorUserId,
+        string reason)
+    {
+        reason = (reason ?? string.Empty).Trim();
+        if (reason.Length == 0 || reason.Length > 500)
+        {
+            return (false, "Vui lòng nhập lý do từ chối (tối đa 500 ký tự).");
+        }
+
+        await using var transaction = _context.Database.IsRelational()
+            ? await _context.Database.BeginTransactionAsync()
+            : null;
+
+        var refund = await LockRefundAsync(refundId);
+        if (refund is null || !await IsOwnerRefundAsync(refund.PaymentId, ownerId))
+        {
+            return (false, "Không tìm thấy yêu cầu hoàn tiền thuộc sân của bạn.");
+        }
+
+        if (refund.Status != RefundStatus.Failed)
+        {
+            return (false, "Chỉ có thể từ chối yêu cầu đã xử lý thất bại.");
+        }
+
+        var now = DateTime.UtcNow;
+        refund.Status = RefundStatus.Rejected;
+        refund.RejectionReason = reason;
+        refund.ProcessedAt = now;
+        refund.ProcessedByUserId = actorUserId;
+        refund.UpdatedAt = now;
+
+        await _context.SaveChangesAsync();
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync();
+        }
+
+        return (true, "Đã từ chối yêu cầu hoàn tiền.");
     }
 
     private async Task<Booking?> LockBookingAsync(int bookingId)
@@ -307,6 +350,7 @@ public sealed class PaymentService : IPaymentService
             PaymentStatus = refund.Payment.Status,
             RequestedAt = refund.RequestedAt,
             ProcessedAt = refund.ProcessedAt,
-            TransactionCode = refund.TransactionCode
+            TransactionCode = refund.TransactionCode,
+            RejectionReason = refund.RejectionReason
         });
 }

@@ -110,7 +110,12 @@ public class BookingService : IBookingService
                 VoucherCode = booking.VoucherCode,
                 DiscountAmount = booking.DiscountAmount,
                 PaymentStatus = booking.Payment != null ? (PaymentStatus?)booking.Payment.Status : null,
-                IsPaid = booking.Payment != null && booking.Payment.Status == PaymentStatus.Paid
+                RefundStatus = booking.Payment != null && booking.Payment.Refund != null
+                    ? booking.Payment.Refund.Status
+                    : null,
+                IsPaid = booking.Payment != null
+                    && (booking.Payment.Status == PaymentStatus.Paid
+                        || booking.Payment.Status == PaymentStatus.DemoPaid)
             })
             .ToListAsync();
     }
@@ -155,7 +160,9 @@ public class BookingService : IBookingService
                 VoucherCode = booking.VoucherCode,
                 DiscountAmount = booking.DiscountAmount,
                 PaymentStatus = booking.Payment != null ? (PaymentStatus?)booking.Payment.Status : null,
-                IsPaid = booking.Payment != null && booking.Payment.Status == PaymentStatus.Paid
+                IsPaid = booking.Payment != null
+                    && (booking.Payment.Status == PaymentStatus.Paid
+                        || booking.Payment.Status == PaymentStatus.DemoPaid)
             })
             .ToListAsync();
     }
@@ -632,15 +639,24 @@ public class BookingService : IBookingService
             ? await _context.Database.BeginTransactionAsync()
             : null;
 
-        var booking = await GetBookingScope(bookingId, ownerId)
-            .Include(item => item.Payment)
-            .ThenInclude(payment => payment!.Refund)
-            .SingleOrDefaultAsync();
+        var booking = await GetBookingForUpdateAsync(bookingId);
         if (booking is null)
         {
             return (false, ownerId.HasValue
                 ? "Không tìm thấy đơn đặt sân thuộc sân của bạn."
                 : "Không tìm thấy đơn đặt sân.");
+        }
+
+        if (ownerId.HasValue && !await _context.Courts.AnyAsync(
+                court => court.Id == booking.CourtId && court.OwnerId == ownerId.Value))
+        {
+            return (false, "Không tìm thấy đơn đặt sân thuộc sân của bạn.");
+        }
+
+        await _context.Entry(booking).Reference(item => item.Payment).LoadAsync();
+        if (booking.Payment is not null)
+        {
+            await _context.Entry(booking.Payment).Reference(payment => payment.Refund).LoadAsync();
         }
 
         if (booking.Status is not (BookingStatus.Pending or BookingStatus.Confirmed))
@@ -650,8 +666,13 @@ public class BookingService : IBookingService
                 : "Đơn ở trạng thái hiện tại không thể hủy.");
         }
 
+        if (booking.BookingDate.ToDateTime(booking.StartTime) <= VietnamClock.Now)
+        {
+            return (false, "Không thể hủy đơn vì khung giờ đặt sân đã bắt đầu.");
+        }
+
         var now = DateTime.UtcNow;
-        var paid = booking.Payment?.Status is PaymentStatus.Paid or PaymentStatus.DemoPaid;
+        var paid = PaymentStatusRules.IsPaid(booking.Payment?.Status);
         if (paid && booking.Payment!.Refund is null)
         {
             _context.Refunds.Add(new Refund
@@ -687,57 +708,74 @@ public class BookingService : IBookingService
         int actorUserId)
     {
         await _expirationService.ExpireOverdueAsync();
+        await using var transaction = _context.Database.IsRelational()
+            ? await _context.Database.BeginTransactionAsync()
+            : null;
 
         var now = DateTime.UtcNow;
-        var bookingScope = GetBookingScope(bookingId, ownerId);
-        var booking = await bookingScope
-            .Include(b => b.Payment)
-            .ThenInclude(p => p!.Refund)
-            .FirstOrDefaultAsync();
+        var booking = await GetBookingForUpdateAsync(bookingId);
 
-        if (booking == null)
+        if (booking is null || !await _context.Courts.AnyAsync(
+                court => court.Id == booking.CourtId && court.OwnerId == ownerId))
         {
             return (false, "Không tìm thấy đơn đặt sân thuộc sân của bạn.");
         }
+
+        await _context.Entry(booking).Reference(item => item.Payment).LoadAsync();
 
         if (booking.Payment == null)
         {
             return (false, "Đơn đặt sân này chưa có bản ghi thanh toán để xử lý hoàn tiền.");
         }
 
-        if (booking.Payment.Status is PaymentStatus.Refunded or PaymentStatus.DemoRefunded)
+        if (PaymentStatusRules.IsRefunded(booking.Payment.Status))
         {
             return (false, "Khoản thanh toán của đơn này đã được hoàn tiền trước đó.");
         }
 
-        booking.Payment.Status = booking.Payment.Status == PaymentStatus.DemoPaid
-            ? PaymentStatus.DemoRefunded
-            : PaymentStatus.Refunded;
-        booking.Payment.UpdatedAt = now;
+        if (!PaymentStatusRules.IsPaid(booking.Payment.Status))
+        {
+            return (false, "Chỉ có thể hoàn tiền cho đơn đã thanh toán thành công.");
+        }
+
+        await _context.Entry(booking.Payment).Reference(payment => payment.Refund).LoadAsync();
+        if (booking.Payment.Refund?.Status == RefundStatus.Completed)
+        {
+            return (false, "Yêu cầu hoàn tiền của đơn này đã được hoàn tất trước đó.");
+        }
 
         if (booking.Payment.Refund != null)
         {
-            booking.Payment.Refund.Status = RefundStatus.Completed;
-            booking.Payment.Refund.ProcessedAt = now;
-            booking.Payment.Refund.ProcessedByUserId = actorUserId;
-            booking.Payment.Refund.UpdatedAt = now;
-        }
-        else
-        {
-            _context.Refunds.Add(new Refund
+            if (booking.Payment.Refund.Status == RefundStatus.Pending)
             {
-                PaymentId = booking.Payment.Id,
-                Amount = booking.Payment.Amount,
-                Reason = "Hoàn tiền trực tiếp từ chủ sân",
-                Status = RefundStatus.Completed,
-                RequestedAt = now,
-                ProcessedAt = now,
-                RequestedByUserId = actorUserId,
-                ProcessedByUserId = actorUserId,
-                CreatedAt = now,
-                UpdatedAt = now
-            });
+                if (booking.Status != BookingStatus.Cancelled)
+                {
+                    booking.Status = BookingStatus.Cancelled;
+                    booking.ExpiresAt = null;
+                    booking.UpdatedAt = now;
+                    await _context.SaveChangesAsync();
+                    if (transaction is not null)
+                    {
+                        await transaction.CommitAsync();
+                    }
+                }
+
+                return (true, "Yêu cầu hoàn tiền của đơn này đang chờ xử lý trên trang Hoàn tiền.");
+            }
+
+            return (false, "Yêu cầu hoàn tiền đã thất bại. Vui lòng xử lý thủ công trên trang Hoàn tiền.");
         }
+
+        _context.Refunds.Add(new Refund
+        {
+            PaymentId = booking.Payment.Id,
+            Amount = booking.Payment.Amount,
+            Reason = "Yêu cầu hoàn tiền do chủ sân tạo",
+            Status = RefundStatus.Pending,
+            RequestedAt = now,
+            RequestedByUserId = actorUserId,
+            CreatedAt = now
+        });
 
         if (booking.Status != BookingStatus.Cancelled)
         {
@@ -747,8 +785,24 @@ public class BookingService : IBookingService
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Chủ sân {OwnerId} đã hoàn tiền đơn {BookingId}", ownerId, bookingId);
-        return (true, $"Đã hoàn tiền {booking.Payment.Amount:N0} đ cho đơn đặt #{bookingId}.");
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync();
+        }
+        _logger.LogInformation("Chủ sân {OwnerId} đã tạo yêu cầu hoàn tiền cho đơn {BookingId}", ownerId, bookingId);
+        return (true, $"Đã gửi yêu cầu hoàn tiền {booking.Payment.Amount:N0} đ cho đơn #{bookingId}. Vui lòng tiếp tục xử lý trên trang Hoàn tiền.");
+    }
+
+    private async Task<Booking?> GetBookingForUpdateAsync(int bookingId)
+    {
+        if (_context.Database.IsNpgsql())
+        {
+            return await _context.Bookings
+                .FromSqlInterpolated($"SELECT * FROM \"Bookings\" WHERE \"Id\" = {bookingId} FOR UPDATE")
+                .SingleOrDefaultAsync();
+        }
+
+        return await _context.Bookings.SingleOrDefaultAsync(booking => booking.Id == bookingId);
     }
 
     private IQueryable<Booking> GetBookingScope(int bookingId, int? ownerId)

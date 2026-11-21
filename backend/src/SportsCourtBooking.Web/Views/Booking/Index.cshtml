@@ -1,4 +1,5 @@
 @using SportsCourtBooking.Application.DTOs
+@using SportsCourtBooking.Application.Common
 @using SportsCourtBooking.Application.Rules
 @model BookingPageViewModel
 @using System.Globalization
@@ -70,7 +71,7 @@
                                                 <button class="button button--small button--dark" type="submit">Xác nhận</button>
                                             </form>
                                         }
-                                        @if (BookingRules.CanCancel(booking.Status))
+                                        @if (BookingRules.CanCancel(booking.Status, booking.BookingDate, booking.StartTime, VietnamClock.Now))
                                         {
                                             <form class="inline-form" method="post" asp-controller="Booking" asp-action="Cancel"
                                                   asp-route-id="@booking.Id" asp-route-date="@Model.SelectedDate.ToString("yyyy-MM-dd")" asp-route-courtId="@Model.SelectedCourtId"

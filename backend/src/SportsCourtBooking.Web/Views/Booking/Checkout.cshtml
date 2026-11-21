@@ -22,18 +22,18 @@
         <div class="booking-table-wrap">
             <div class="booking-detail-panel">
                 <h2>Tổng thanh toán: @Model.TotalPrice.ToString("N0", culture)₫</h2>
-                <p>Chọn phương thức để chạy luồng mô phỏng. Màn hình này không kết nối ngân hàng và không chuyển tiền thật.</p>
+                <p>Chọn phương thức thanh toán. Giao dịch được ghi nhận trên hệ thống; hiện chưa kết nối ngân hàng.</p>
 
                 <form asp-action="DemoPayment" asp-route-id="@Model.Id" method="post">
                     @Html.AntiForgeryToken()
                     <fieldset class="payment-method-list">
-                        <legend>Phương thức mô phỏng</legend>
-                        <label><input type="radio" name="method" value="@PaymentMethodType.VNPayDemo" checked /> VNPay demo</label>
-                        <label><input type="radio" name="method" value="@PaymentMethodType.MoMoDemo" /> MoMo demo</label>
-                        <label><input type="radio" name="method" value="@PaymentMethodType.BankTransferDemo" /> Chuyển khoản demo</label>
-                        <label><input type="radio" name="method" value="@PaymentMethodType.CashAtVenue" /> Tiền mặt tại sân (demo)</label>
+                        <legend>Phương thức thanh toán</legend>
+                        <label><input type="radio" name="method" value="@PaymentMethodType.VNPayDemo" checked /> VNPay</label>
+                        <label><input type="radio" name="method" value="@PaymentMethodType.MoMoDemo" /> MoMo</label>
+                        <label><input type="radio" name="method" value="@PaymentMethodType.BankTransferDemo" /> Chuyển khoản</label>
+                        <label><input type="radio" name="method" value="@PaymentMethodType.CashAtVenue" /> Tiền mặt tại sân</label>
                     </fieldset>
-                    <button class="button button--primary" type="submit">Mô phỏng thanh toán thành công</button>
+                    <button class="button button--primary" type="submit">Xác nhận thanh toán</button>
                 </form>
             </div>
         </div>

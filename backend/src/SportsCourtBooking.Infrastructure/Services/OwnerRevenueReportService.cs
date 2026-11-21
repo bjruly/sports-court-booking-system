@@ -61,17 +61,20 @@ public class OwnerRevenueReportService : IOwnerRevenueReportService
                     .Sum(booking => (decimal?)booking.TotalPrice) ?? 0m,
                 CollectedAmount = group
                     .Where(booking => booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Paid)
+                        && (booking.Payment.Status == PaymentStatus.Paid
+                            || booking.Payment.Status == PaymentStatus.DemoPaid))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m,
                 RefundedAmount = group
                     .Where(booking => booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Refunded)
+                        && (booking.Payment.Status == PaymentStatus.Refunded
+                            || booking.Payment.Status == PaymentStatus.DemoRefunded))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m,
                 CollectedForCancelledBookings = group
                     .Where(booking => (booking.Status == BookingStatus.Cancelled
                             || booking.Status == BookingStatus.Expired)
                         && booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Paid)
+                        && (booking.Payment.Status == PaymentStatus.Paid
+                            || booking.Payment.Status == PaymentStatus.DemoPaid))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m
             })
             .SingleOrDefaultAsync();
@@ -92,17 +95,20 @@ public class OwnerRevenueReportService : IOwnerRevenueReportService
                     .Sum(booking => (decimal?)booking.TotalPrice) ?? 0m,
                 CollectedAmount = group
                     .Where(booking => booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Paid)
+                        && (booking.Payment.Status == PaymentStatus.Paid
+                            || booking.Payment.Status == PaymentStatus.DemoPaid))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m,
                 RefundedAmount = group
                     .Where(booking => booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Refunded)
+                        && (booking.Payment.Status == PaymentStatus.Refunded
+                            || booking.Payment.Status == PaymentStatus.DemoRefunded))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m,
                 CollectedForCancelledBookings = group
                     .Where(booking => (booking.Status == BookingStatus.Cancelled
                             || booking.Status == BookingStatus.Expired)
                         && booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Paid)
+                        && (booking.Payment.Status == PaymentStatus.Paid
+                            || booking.Payment.Status == PaymentStatus.DemoPaid))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m
             })
             .OrderByDescending(report => report.BookingValue)
@@ -124,17 +130,20 @@ public class OwnerRevenueReportService : IOwnerRevenueReportService
                     .Sum(booking => (decimal?)booking.TotalPrice) ?? 0m,
                 CollectedAmount = group
                     .Where(booking => booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Paid)
+                        && (booking.Payment.Status == PaymentStatus.Paid
+                            || booking.Payment.Status == PaymentStatus.DemoPaid))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m,
                 RefundedAmount = group
                     .Where(booking => booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Refunded)
+                        && (booking.Payment.Status == PaymentStatus.Refunded
+                            || booking.Payment.Status == PaymentStatus.DemoRefunded))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m,
                 CollectedForCancelledBookings = group
                     .Where(booking => (booking.Status == BookingStatus.Cancelled
                             || booking.Status == BookingStatus.Expired)
                         && booking.Payment != null
-                        && booking.Payment.Status == PaymentStatus.Paid)
+                        && (booking.Payment.Status == PaymentStatus.Paid
+                            || booking.Payment.Status == PaymentStatus.DemoPaid))
                     .Sum(booking => (decimal?)booking.Payment!.Amount) ?? 0m
             })
             .ToDictionaryAsync(report => report.Date);

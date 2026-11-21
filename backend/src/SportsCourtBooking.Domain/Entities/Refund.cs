@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Domain.Entities;
@@ -13,6 +14,8 @@ public class Refund : BaseEntity
     public DateTime? ProcessedAt { get; set; }
     public int? ProcessedByUserId { get; set; }
     public string? TransactionCode { get; set; }
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
 
     public Payment? Payment { get; set; }
     public User? RequestedByUser { get; set; }

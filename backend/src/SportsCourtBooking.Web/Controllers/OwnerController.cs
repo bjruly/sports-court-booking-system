@@ -748,7 +748,7 @@ public class OwnerController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CompleteRefundManually(int id, string transactionCode)
+    public async Task<IActionResult> CompleteRefundManually(int id, string content)
     {
         var ownerId = User.GetUserId();
         if (ownerId is null)
@@ -757,7 +757,23 @@ public class OwnerController : Controller
         }
 
         var result = await _paymentService.CompleteOwnerRefundManuallyAsync(
-            id, ownerId.Value, ownerId.Value, transactionCode);
+            id, ownerId.Value, ownerId.Value, content);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Refunds));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectRefund(int id, string content)
+    {
+        var ownerId = User.GetUserId();
+        if (ownerId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await _paymentService.RejectOwnerRefundAsync(
+            id, ownerId.Value, ownerId.Value, content);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Refunds));
     }
@@ -959,12 +975,7 @@ public class OwnerController : Controller
 
         var result = await _bookingService.RefundOwnerBookingAsync(id, ownerId.Value, ownerId.Value);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
-        return RedirectToAction(nameof(Bookings), new
-        {
-            date = date?.ToString("yyyy-MM-dd"),
-            courtId,
-            status = status?.ToString()
-        });
+        return RedirectToAction(nameof(Refunds));
     }
 
     [HttpGet]

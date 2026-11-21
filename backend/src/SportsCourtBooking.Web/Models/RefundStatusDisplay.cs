@@ -8,7 +8,8 @@ public static class RefundStatusDisplay
     {
         RefundStatus.Pending => "Đang chờ chủ sân",
         RefundStatus.Completed => "Đã hoàn",
-        RefundStatus.Failed => "Thử hoàn thất bại",
+        RefundStatus.Failed => "Hoàn tiền thất bại",
+        RefundStatus.Rejected => "Đã từ chối",
         _ => "Chưa yêu cầu"
     };
 }

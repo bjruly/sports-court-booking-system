@@ -53,6 +53,8 @@ public interface IPaymentService
         int refundId, int ownerId, int actorUserId, bool succeeded);
     Task<(bool Success, string Message)> CompleteOwnerRefundManuallyAsync(
         int refundId, int ownerId, int actorUserId, string transactionCode);
+    Task<(bool Success, string Message)> RejectOwnerRefundAsync(
+        int refundId, int ownerId, int actorUserId, string reason);
 }
 
 public interface IAuthService
