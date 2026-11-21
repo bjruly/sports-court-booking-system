@@ -103,7 +103,13 @@
                                 <td data-label="Tổng tiền">@booking.TotalPrice.ToString("N0", culture)₫</td>
                                 <td data-label="Trạng thái"><span class="status-badge @BookingStatusDisplay.CssClass(booking.Status)">@BookingStatusDisplay.Label(booking.Status)</span></td>
                                 <td data-label="Thao tác">
-                                    <a class="text-link" asp-controller="Booking" asp-action="Details" asp-route-id="@booking.Id">Xem chi tiết</a>
+                                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                        <a class="text-link" asp-controller="Booking" asp-action="Details" asp-route-id="@booking.Id">Chi tiết</a>
+                                        @if (booking.Status == BookingStatus.Pending && !booking.IsPaid)
+                                        {
+                                            <a class="button button--small button--primary" style="padding: 4px 10px; font-size: 12px; min-height: 28px;" asp-controller="Booking" asp-action="Checkout" asp-route-id="@booking.Id">Thanh toán</a>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }

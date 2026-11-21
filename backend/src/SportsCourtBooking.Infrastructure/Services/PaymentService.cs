@@ -47,7 +47,16 @@ public sealed class PaymentService : IPaymentService
         await _context.Entry(booking).Reference(item => item.Payment).LoadAsync();
         if (booking.Payment is null)
         {
-            return (false, "Đơn đặt sân chưa có bản ghi thanh toán. Vui lòng liên hệ quản trị viên.");
+            var newPayment = new Payment
+            {
+                BookingId = booking.Id,
+                Amount = booking.TotalPrice,
+                PaymentMethod = method.ToString(),
+                Status = PaymentStatus.Unpaid,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Payments.Add(newPayment);
+            booking.Payment = newPayment;
         }
 
         if (PaymentStatusRules.IsPaid(booking.Payment.Status)
