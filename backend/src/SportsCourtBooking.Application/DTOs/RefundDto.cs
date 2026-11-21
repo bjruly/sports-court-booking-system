@@ -17,4 +17,5 @@ public class RefundDto
     public DateTime RequestedAt { get; set; }
     public DateTime? ProcessedAt { get; set; }
     public string? TransactionCode { get; set; }
+    public string? RejectionReason { get; set; }
 }

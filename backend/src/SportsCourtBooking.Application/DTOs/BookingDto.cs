@@ -41,6 +41,7 @@ public class BookingDto
     public string? VoucherCode { get; set; }
     public decimal DiscountAmount { get; set; }
     public PaymentStatus? PaymentStatus { get; set; }
+    public RefundStatus? RefundStatus { get; set; }
     public bool IsPaid { get; set; }
 }
 
@@ -57,8 +58,6 @@ public class BookingDetailDto : BookingDto
     public decimal? RefundedAmount { get; set; }
 
     public string? PaymentMethod { get; set; }
-
-    public RefundStatus? RefundStatus { get; set; }
 
     public decimal? RefundAmount { get; set; }
 

@@ -54,7 +54,8 @@
 
         @if (Model.Status == BookingStatus.Cancelled)
         {
-            if (Model.PaymentStatus == PaymentStatus.Refunded)
+            if (PaymentStatusRules.IsRefunded(Model.PaymentStatus)
+                || Model.RefundStatus == RefundStatus.Completed)
             {
                 <div class="alert alert--info" style="margin-bottom: 20px; padding: 14px 18px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; color: #166534;">
                     <strong>Thông báo hoàn tiền:</strong> Đơn đặt sân này đã được hủy và hoàn trả @((Model.RefundedAmount.HasValue && Model.RefundedAmount > 0 ? Model.RefundedAmount.Value : Model.TotalPrice).ToString("N0", culture))₫ thành công.
@@ -188,7 +189,7 @@ else if (canRequestRefund)
 {
     <div class="my-bookings-actions refund-request-panel">
         <h2>Yêu cầu hủy và hoàn tiền</h2>
-        <p>Yêu cầu sẽ được chuyển đến chủ sân. Đây là quy trình mô phỏng, chưa chuyển tiền thật.</p>
+        <p>Yêu cầu sẽ được chuyển đến chủ sân để xem xét và xử lý.</p>
         <form asp-action="RequestRefund" asp-route-id="@Model.Id" method="post">
             @Html.AntiForgeryToken()
             <label for="refundReason">Lý do</label>
