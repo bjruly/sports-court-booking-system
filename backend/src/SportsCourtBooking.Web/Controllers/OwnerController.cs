@@ -298,6 +298,11 @@ public class OwnerController : Controller
             NumberOfCourts = facility.CourtCount,
             Description = facility.Description
         };
+        if (!string.IsNullOrWhiteSpace(facility.District))
+        {
+            model.District = facility.District;
+        }
+
         await PopulateFacilityFormDropdownsAsync(model);
         return View(model);
     }
@@ -342,6 +347,12 @@ public class OwnerController : Controller
             "Quận 1", "Quận 3", "Quận 4", "Quận 5", "Quận 6", "Quận 7", "Quận 8", "Quận 10", "Quận 11", "Quận 12",
             "Bình Thạnh", "Thủ Đức", "Gò Vấp", "Phú Nhuận", "Tân Bình", "Tân Phú", "Bình Tân", "Nhà Bè"
         };
+        // Giữ giá trị đang lưu khi nó nằm ngoài danh sách có sẵn (ví dụ "Quận 2"), nếu không form sẽ chọn nhầm quận khác.
+        if (!string.IsNullOrWhiteSpace(model.District) && !districts.Contains(model.District))
+        {
+            districts = districts.Prepend(model.District).ToArray();
+        }
+
         model.DistrictList = districts
             .Select(d => new SelectListItem(d, d))
             .ToList();

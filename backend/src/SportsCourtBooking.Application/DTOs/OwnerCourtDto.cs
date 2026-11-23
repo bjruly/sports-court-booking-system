@@ -54,6 +54,8 @@ public class CourtTypeDto
 
 public class OwnerFacilityRequest
 {
+    private string _phoneNumber = string.Empty;
+
     [Required(ErrorMessage = "Vui lòng nhập tên cơ sở.")]
     [StringLength(150, MinimumLength = 2, ErrorMessage = "Tên cơ sở phải từ 2 đến 150 ký tự.")]
     public string Name { get; set; } = string.Empty;
@@ -67,7 +69,12 @@ public class OwnerFacilityRequest
 
     [Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
     [RegularExpression(@"^(0[3|5|7|8|9])+([0-9]{8})$", ErrorMessage = "Số điện thoại không đúng định dạng Việt Nam (10 số).")]
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string PhoneNumber
+    {
+        get => _phoneNumber;
+        // Số thường được viết cách cho dễ đọc ("0901 111 001"); bỏ khoảng trắng trước khi kiểm tra và lưu.
+        set => _phoneNumber = string.Concat((value ?? string.Empty).Where(character => !char.IsWhiteSpace(character)));
+    }
 
     [Required(ErrorMessage = "Vui lòng chọn môn thể thao duy nhất cho cơ sở.")]
     [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn môn thể thao.")]
@@ -93,6 +100,8 @@ public class OwnerFacilityDto
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
+    /// <summary>Quận/huyện của sân đầu tiên trong cơ sở; null nếu cơ sở chưa có sân.</summary>
+    public string? District { get; set; }
     public string PhoneNumber { get; set; } = string.Empty;
     public string OpenTime { get; set; } = "06:00";
     public string CloseTime { get; set; } = "22:00";
