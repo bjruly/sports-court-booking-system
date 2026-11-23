@@ -1,6 +1,6 @@
 # Hệ thống đặt sân thể thao
 
-Đồ án môn học **Ngôn ngữ lập trình C#**, xây dựng hệ thống đặt sân thể thao trực tuyến với giao diện web cho khách hàng, chủ sân và quản trị viên.
+Đồ án môn học **Ngôn ngữ lập trình C#**, xây dựng hệ thống đặt sân thể thao trực tuyến gồm trang web cho khách hàng, chủ sân, nhân viên và ứng dụng WinForms cho quản trị viên.
 
 - **Giảng viên hướng dẫn:** TS. Đỗ Như Tài
 - **Nhóm sinh viên:** 9
@@ -16,22 +16,23 @@
 
 Đây là dự án C# sử dụng **ASP.NET Core MVC + Razor** cho ứng dụng web, tổ chức theo kiến trúc **modular monolith** và các lớp nghiệp vụ. Báo cáo trong `docs/` có khảo sát Next.js/React như một lựa chọn frontend; bộ khung triển khai hiện tại chọn MVC để ứng dụng tập trung vào nền tảng .NET/C#.
 
-- **Ứng dụng web:** ASP.NET Core MVC, Razor và C#.
+- **Ứng dụng web (khách hàng, chủ sân, nhân viên):** ASP.NET Core MVC, Razor và C#.
+- **Ứng dụng quản trị viên:** Windows Forms .NET 8, project `SportsCourtBooking.Desktop`, dùng chung service và database với web.
 - **Nghiệp vụ:** các lớp Application và Domain bằng C#.
 - **Framework hiện tại:** .NET 8 (`net8.0`), EF Core 8 với **PostgreSQL** (Npgsql). Migration EF Core nằm trong `SportsCourtBooking.Infrastructure/Data/Migrations`.
 - **Cache/giữ chỗ:** Redis là thành phần tùy chọn theo đề xuất trong báo cáo.
 - **Tích hợp dự kiến:** VNPay/MoMo, email/SMS và dịch vụ bản đồ.
 - **Triển khai/chạy cục bộ:** Docker và Docker Compose (web + PostgreSQL 16 + pgAdmin).
 
-Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`, gồm các project Web, Application, Domain, Infrastructure và kiểm thử.
+Solution .NET đã được khởi tạo trong `backend/SportsCourtBooking.sln`, gồm các project Web, Desktop, Application, Domain, Infrastructure và kiểm thử.
 
 ## Trạng thái triển khai
 
 - Đã kết nối PostgreSQL: danh sách sân, lịch khung giờ, đăng ký, đăng nhập (cookie, mật khẩu băm PBKDF2) và tạo đơn đặt sân đều lưu/đọc từ database.
 - Quy tắc đặt sân nằm tập trung ở `Application/Rules/BookingRules.cs`: giờ mở cửa 06:00–22:00, tối đa 4 giờ liên tiếp, phụ thu cao điểm mặc định 50.000₫/giờ từ 17:00 (có thể cấu hình riêng theo sân), không đặt giờ đã qua (tính theo giờ Việt Nam), chống đặt trùng khi nhiều người bấm cùng lúc.
 - Booking `Pending` giữ khung giờ tối đa 10 phút; tác vụ nền quét mỗi 15 giây và chuyển đơn quá hạn sang `Expired`. Các lần kiểm tra lịch cũng hết hạn đơn cũ trước khi xác định tình trạng khung giờ. PostgreSQL dùng ràng buộc `EXCLUDE` với khoảng thời gian nửa mở `[bắt đầu, kết thúc)` để chặn booking `Pending`/`Confirmed` bị trùng trên cùng sân. Khởi động ứng dụng cài `btree_gist` và áp dụng schema theo cách idempotent.
-- Đã có: Admin/Staff xem, xác nhận và hủy đơn tại trang "Quản lý lịch đặt" (hủy thì nhả khung giờ ngay); lưới lịch của khách không còn hiện đơn đã hủy hoặc hết hạn là "đã đặt".
-- Đã có dashboard `/Admin` cho tài khoản Admin với menu bên trái theo các phân hệ; hiện chỉ mục theo dõi đơn đặt liên kết tới chức năng đang có, các mục còn lại được đánh dấu chưa triển khai.
+- Đã có: xem, xác nhận và hủy đơn tại trang "Quản lý lịch đặt" trên web (Staff) và màn hình "Lịch đặt theo ngày" trên WinForms (Admin) (hủy thì nhả khung giờ ngay); lưới lịch của khách không còn hiện đơn đã hủy hoặc hết hạn là "đã đặt".
+- Đã có khu Quản trị viên trong ứng dụng WinForms: thống kê hệ thống, lịch đặt, khách hàng, chủ sân, duyệt cơ sở, danh mục, đánh giá, theo dõi hoàn tiền và báo cáo. Dashboard `/Admin` trên web đã được gỡ bỏ.
 - Đã có dashboard `/Owner`, thống kê lượt đặt và trạng thái theo từng sân/tháng, quản lý cơ sở, sân/đơn, lịch tuần, đặt hộ khách vãng lai, check-in, voucher, đánh giá, báo cáo doanh thu, hồ sơ cá nhân và đổi mật khẩu. Cơ sở mới do Chủ sân tạo ở trạng thái chờ Admin duyệt; chỉ cơ sở đã duyệt và đang hoạt động mới được hiển thị công khai và cho phép tạo booking. Chủ sân có thể gán sân vào cơ sở đang chờ duyệt để chuẩn bị trước khi mở hoạt động. Sân cũ chưa được tự gán để tránh suy đoán sai và có thể gán khi chỉnh sửa. Chỉ xóa được cơ sở chưa có sân liên kết; cần chuyển sân sang cơ sở khác trước khi xóa. Địa chỉ cơ sở được lưu riêng với vị trí cụ thể của từng sân. Chủ sân có thể cập nhật họ tên/số điện thoại; email đăng nhập hiện chỉ xem được. Khi đổi mật khẩu cần nhập mật khẩu hiện tại, mật khẩu mới từ 8 đến 100 ký tự và xác nhận lại mật khẩu. Báo cáo phân biệt giá trị booking đã xác nhận/hoàn thành với Payment đã thu/đã hoàn; Payment đã thu từ đơn hủy/hết hạn được đánh dấu để chủ sân rà soát hoàn tiền. Khách có thể đánh giá một lần cho mỗi booking đã xác nhận sau khi giờ chơi kết thúc; đánh giá có thể được chỉnh sửa. Chủ sân xem đánh giá theo sân và gửi/cập nhật phản hồi. Các đánh giá cũ chưa gắn booking vẫn được giữ để chủ sân xem và phản hồi. Chủ sân cấu hình giờ bắt đầu cao điểm và phụ thu riêng theo sân (mặc định 17:00/+50.000₫ mỗi giờ), đồng thời tạo voucher giảm theo phần trăm hoặc số tiền, thời hạn và giới hạn lượt dùng. Thời hạn voucher được kiểm tra theo ngày khách áp dụng mã, không phải ngày ra sân. Tổng tiền và mức giảm được lưu vào booking, không thay đổi nếu voucher được sửa sau đó. Lượt dùng được nhả khi đơn bị hủy hoặc hết hạn. Có sẵn tài khoản Chủ Sân mẫu để đăng nhập thử.
 - Chưa làm: thanh toán, hoàn tiền và hủy đơn do khách tự thực hiện, dashboard quản trị đầy đủ, khóa tài khoản khi nhập sai mật khẩu nhiều lần.
 
@@ -81,6 +82,7 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 │   ├── README.md
 │   ├── src/
 │   │   ├── SportsCourtBooking.Web/
+│   │   ├── SportsCourtBooking.Desktop/
 │   │   ├── SportsCourtBooking.Application/
 │   │   ├── SportsCourtBooking.Domain/
 │   │   └── SportsCourtBooking.Infrastructure/
@@ -94,7 +96,7 @@ Thực hiện lần lượt theo các bước phụ thuộc nhau. Chỉ chuyển
 ### Vai trò các thư mục
 
 - `docs/`: Báo cáo và sơ đồ phân tích, thiết kế hệ thống.
-- `backend/`: Solution .NET 8; `SportsCourtBooking.Web/` chứa ứng dụng MVC, các project Application, Domain, Infrastructure phân chia trách nhiệm nghiệp vụ và tích hợp; `tests/` chứa project kiểm thử xUnit.
+- `backend/`: Solution .NET 8; `SportsCourtBooking.Web/` chứa ứng dụng MVC, `SportsCourtBooking.Desktop/` chứa ứng dụng quản trị WinForms, các project Application, Domain, Infrastructure phân chia trách nhiệm nghiệp vụ và tích hợp; `tests/` chứa project kiểm thử xUnit.
 - `database/`: Tài liệu và tài sản liên quan đến cơ sở dữ liệu. Lịch sử migration thực tế của EF Core nằm trong `backend/src/SportsCourtBooking.Infrastructure/Data/Migrations`.
 - `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`: cấu hình chạy ứng dụng web, PostgreSQL và pgAdmin bằng Docker; `.env` là file cục bộ của từng máy, không đưa lên repository.
 
@@ -130,7 +132,17 @@ Dự án có sẵn cấu hình Docker để mọi thành viên chạy cùng mộ
 | Khách hàng     | `khachhang@gmail.com`   | `Customer@123` |
 | Chủ Sân        | `chusan@sportscourt.vn` | `Owner@123`    |
 
-Bạn cũng có thể tự đăng ký tài khoản Khách hàng ở trang **Tạo tài khoản**. Đăng nhập xong, khách hàng vào **Lịch đặt của tôi** để xem đơn vừa tạo; tài khoản quản trị xem lịch của mọi khách ở `/Booking`.
+Bạn cũng có thể tự đăng ký tài khoản Khách hàng ở trang **Tạo tài khoản**. Đăng nhập xong, khách hàng vào **Lịch đặt của tôi** để xem đơn vừa tạo; tài khoản quản trị viên đăng nhập ở ứng dụng WinForms bên dưới.
+
+### Chạy ứng dụng quản trị WinForms
+
+Cần Windows và .NET 8 SDK; PostgreSQL trong Docker phải đang chạy và web đã khởi động ít nhất một lần để tạo database. Ứng dụng tự đọc kết nối từ file `.env`:
+
+```powershell
+dotnet run --project backend/src/SportsCourtBooking.Desktop
+```
+
+Chi tiết xem [README của Desktop](backend/src/SportsCourtBooking.Desktop/README.md).
 
 ### Lệnh thường dùng
 

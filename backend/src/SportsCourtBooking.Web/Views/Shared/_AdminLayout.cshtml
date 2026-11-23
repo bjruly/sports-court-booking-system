@@ -4,11 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b1414" />
-    @{
-        var pageController = ViewContext.RouteData.Values["controller"]?.ToString();
-        var pageRoleTitle = string.Equals(pageController, "Owner", StringComparison.OrdinalIgnoreCase) ? "Chủ Sân" : "Admin";
-    }
-    <title>@ViewData["Title"] · Sân Nhà @pageRoleTitle</title>
+    <title>@ViewData["Title"] · Sân Nhà Chủ Sân</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin-dark.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
@@ -16,16 +12,11 @@
 <body class="admin-dark-body">
     @{
         var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
-        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
-        var isOwner = string.Equals(currentController, "Owner", StringComparison.OrdinalIgnoreCase);
-            var brandController = isOwner ? "Owner" : "Admin";
-            var brandAction = "Index";
-            var roleLabel = isOwner ? "Chủ sân" : "Admin";
     }
 
     <!-- ─── TOP HEADER ─── -->
     <header class="adm-header">
-        <a class="adm-brand" asp-controller="@brandController" asp-action="@brandAction">
+        <a class="adm-brand" asp-controller="Owner" asp-action="Index">
             <span class="adm-brand-logo">S</span>
             <span>SÂN NHÀ.</span>
         </a>
@@ -39,7 +30,7 @@
             </span>
             <input type="text"
                    class="adm-search-input"
-                   placeholder="@(isOwner ? "Tìm kiếm nhanh... (sân, đơn đặt, voucher, ...)" : "Tìm kiếm nhanh... (sân, đơn đặt, khách hàng, ...)")" />
+                   placeholder="Tìm kiếm nhanh... (sân, đơn đặt, voucher, ...)" />
             <kbd class="adm-search-kbd">Ctrl + K</kbd>
         </div>
 
@@ -79,7 +70,7 @@
                     </div>
 
                     <div class="adm-notif-footer">
-                        <a href="@(isOwner ? Url.Action("Bookings", "Owner") : Url.Action("Bookings", "Admin"))" class="adm-notif-view-all">
+                        <a href="@Url.Action("Bookings", "Owner")" class="adm-notif-view-all">
                             Xem tất cả hoạt động →
                         </a>
                     </div>
@@ -93,7 +84,7 @@
             </button>
 
             <div class="adm-user-dropdown-wrap">
-                <div class="adm-user-profile" id="admUserDropdownToggle" tabindex="0" title="@(isOwner ? "Tài khoản chủ sân" : "Tài khoản quản trị")">
+                <div class="adm-user-profile" id="admUserDropdownToggle" tabindex="0" title="Tài khoản chủ sân">
                     <div class="adm-avatar">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -102,7 +93,7 @@
                     </div>
                     <div class="adm-user-info">
                         <span class="adm-user-name">@(User.Identity?.Name ?? "Quản Trị Viên")</span>
-                        <span class="adm-user-role">@roleLabel</span>
+                        <span class="adm-user-role">Chủ sân</span>
                     </div>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--d-text-sub)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="6 9 12 15 18 9"></polyline>
@@ -112,19 +103,16 @@
                 <div class="adm-user-dropdown-menu">
                     <div class="adm-user-dropdown-header">
                         <div class="adm-user-dropdown-name">@(User.Identity?.Name ?? "Quản Trị Viên")</div>
-                        <div class="adm-user-dropdown-email">Vai trò: @(isOwner ? "Chủ sân" : "Quản trị hệ thống")</div>
+                        <div class="adm-user-dropdown-email">Vai trò: Chủ sân</div>
                     </div>
                     <div class="adm-user-dropdown-divider"></div>
-                    @if (isOwner)
-                    {
-                        <a asp-controller="Owner" asp-action="Profile" class="adm-user-dropdown-item">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            <span>Hồ sơ cá nhân</span>
-                        </a>
-                    }
+                    <a asp-controller="Owner" asp-action="Profile" class="adm-user-dropdown-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Hồ sơ cá nhân</span>
+                    </a>
                     <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="adm-user-dropdown-item adm-user-dropdown-logout">
@@ -143,131 +131,6 @@
 
     <!-- ─── WRAPPER (SIDEBAR + MAIN) ─── -->
     <div class="adm-wrapper">
-        @if (!isOwner)
-        {
-        <aside class="adm-sidebar">
-            <ul class="adm-menu">
-                <li>
-                    <span class="adm-menu-label">HỆ THỐNG</span>
-                    <a class="adm-menu-link @(currentAction == "Index" ? "active" : "")"
-                       asp-controller="Admin" asp-action="Index">
-                        <span class="adm-menu-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                            </svg>
-                        </span>
-                        <span>Tổng quan</span>
-                    </a>
-                </li>
-
-                <li>
-                    <span class="adm-menu-label">NGƯỜI DÙNG</span>
-                    <a class="adm-menu-link @(currentAction == "Customers" ? "active" : "")"
-                       asp-controller="Admin" asp-action="Customers">
-                        <span class="adm-menu-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                        </span>
-                        <span>Khách hàng</span>
-                    </a>
-                    <a class="adm-menu-link @(currentAction == "Owners" ? "active" : "")"
-                       asp-controller="Admin" asp-action="Owners">
-                        <span class="adm-menu-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        </span>
-                        <span>Chủ sân (Owner)</span>
-                    </a>
-                </li>
-
-                <li>
-                    <span class="adm-menu-label">CƠ SỞ & SÂN</span>
-                    <a class="adm-menu-link @(currentAction == "Facilities" ? "active" : "")"
-                       asp-controller="Admin" asp-action="Facilities">
-                        <span class="adm-menu-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                            </svg>
-                        </span>
-                        <span>Cơ sở thể thao</span>
-                    </a>
-                </li>
-
-                <li>
-                    <span class="adm-menu-label">DANH MỤC</span>
-                    <a class="adm-menu-link @(currentAction == "Categories" ? "active" : "")"
-                       asp-controller="Admin" asp-action="Categories">
-                        <span class="adm-menu-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                                <polyline points="2 17 12 22 22 17"></polyline>
-                                <polyline points="2 12 12 17 22 12"></polyline>
-                            </svg>
-                        </span>
-                        <span>Môn thể thao & Loại sân</span>
-                    </a>
-                </li>
-
-                <li>
-                    <span class="adm-menu-label">KIỂM DUYỆT</span>
-                    <a class="adm-menu-link @(currentAction == "Reviews" ? "active" : "")"
-                       asp-controller="Admin" asp-action="Reviews">
-                        <span class="adm-menu-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                        </span>
-                        <span>Xử lý đánh giá</span>
-                    </a>
-                </li>
-
-                <li>
-                    <span class="adm-menu-label">BÁO CÁO THỐNG KÊ</span>
-                    <a class="adm-menu-link @(currentAction == "Reports" ? "active" : "")"
-                       asp-controller="Admin" asp-action="Reports">
-                        <span class="adm-menu-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="20" x2="18" y2="10"></line>
-                                <line x1="12" y1="20" x2="12" y2="4"></line>
-                                <line x1="6" y1="20" x2="6" y2="14"></line>
-                            </svg>
-                        </span>
-                        <span>Báo cáo tổng hợp</span>
-                    </a>
-                </li>
-                <li>
-                    <a class="adm-menu-link @(currentAction == "CategoryReport" ? "active" : "")"
-                       asp-controller="Admin" asp-action="CategoryReport">
-                        <span class="adm-menu-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                                <polyline points="17 6 23 6 23 12"></polyline>
-                            </svg>
-                        </span>
-                        <span>Báo cáo danh mục</span>
-                    </a>
-                </li>
-            </ul>
-
-            <!-- Bottom Promo Card matching image -->
-            <div class="adm-sidebar-card">
-                <p class="adm-sidebar-card-title">Sân bóng SGU</p>
-                <p class="adm-sidebar-card-sub">Thể thao kết nối<br />Cộng đồng</p>
-            </div>
-        </aside>
-        }
-        else
-        {
         <aside class="adm-sidebar">
             <ul class="adm-menu">
                 <li>
@@ -324,7 +187,6 @@
                 <p class="adm-sidebar-card-sub">Không gian quản lý<br />dành cho chủ sân</p>
             </div>
         </aside>
-        }
 
         <main class="adm-main">
             @{

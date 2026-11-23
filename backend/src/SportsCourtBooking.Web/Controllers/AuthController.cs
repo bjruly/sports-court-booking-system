@@ -49,7 +49,9 @@ public class AuthController : Controller
 
         if (user.Role == UserRole.Admin)
         {
-            return RedirectToAction("Index", "Admin");
+            TempData["SuccessMessage"] = $"Xin chào {user.FullName}! Phần quản trị đã chuyển sang ứng dụng WinForms "
+                + "(SportsCourtBooking.Desktop).";
+            return RedirectToAction("Index", "Home");
         }
 
         // Chỉ cho phép quay lại địa chỉ nội bộ của website (chống open redirect)

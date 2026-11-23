@@ -21,6 +21,7 @@ graph TD
     subgraph Client["Presentation & Client Layer"]
         Browser["Trình duyệt Web (Desktop / Mobile)"]
         UI["ASP.NET Core MVC (Razor Views + Modern CSS)"]
+        Desktop["SportsCourtBooking.Desktop\n(Windows Forms - Admin)"]
     end
 
     subgraph Backend["Core Application Layers (.NET 8 / C# 12)"]
@@ -41,6 +42,8 @@ graph TD
 
     Browser -->|HTTP/HTTPS| UI
     UI --> WebProj
+    Desktop --> AppProj
+    Desktop --> InfraProj
     WebProj --> AppProj
     AppProj --> DomainProj
     InfraProj --> AppProj
@@ -59,6 +62,7 @@ graph TD
 | :--- | :--- | :--- | :--- |
 | **Nền tảng & Ngôn ngữ** | **C# / .NET** | **C# 12 / .NET 8 (LTS)** | Nền tảng thực thi chính, hiệu năng cao, kiểu dữ liệu mạnh mẽ (`DateOnly`, `TimeOnly`, pattern matching, primary constructors). |
 | **Giao diện & Web App** | **ASP.NET Core MVC** | 8.0 | Xây dựng ứng dụng web server-rendered với mô hình Model-View-Controller, Razor Engine, Tag Helpers. |
+| **Ứng dụng quản trị** | **Windows Forms** | .NET 8 | Ứng dụng máy tính cho quản trị viên; gọi chung service với web và kết nối trực tiếp PostgreSQL. |
 | **Giao diện Client** | **HTML5, CSS3, Vanilla JS** | Standard | Giao diện hiện đại, responsive thích ứng mobile, component card trực quan, không phụ thuộc nặng vào thư viện ngoài. |
 | **Hệ quản trị CSDL** | **PostgreSQL** | 16 (Alpine) | CSDL quan hệ chính thức, lưu trữ người dùng, sân, đơn đặt; hỗ trợ kiểu dữ liệu dải (`tsrange`) và chỉ mục GiST. |
 | **ORM & Data Access** | **Entity Framework Core** | 8.0.11 | Ánh xạ đối tượng C# sang bảng CSDL (Code-First), quản lý truy vấn qua LINQ, tối ưu `ExecuteUpdateAsync`. |
@@ -67,7 +71,7 @@ graph TD
 | **Tác vụ chạy ngầm** | **Hosted Service (`BackgroundService`)** | .NET 8 Built-in | Tác vụ `PendingBookingExpirationWorker` chạy ngầm định kỳ 15s để tự động giải phóng đơn `Pending` quá hạn 10 phút. |
 | **Bảo mật & Xác thực** | **Cookie Authentication** | ASP.NET Core Built-in | Quản lý phiên làm việc bằng Cookie được mã hóa (`SanNha.Auth`), hỗ trợ bảo vệ dữ liệu bằng Data Protection keys. |
 | **Băm mật khẩu** | **PBKDF2-HMAC-SHA256** | Custom Implementation | Thuật toán băm mật khẩu chuẩn NIST/OWASP với Salt ngẫu nhiên 128-bit và 100.000 vòng lặp. |
-| **Phân quyền người dùng** | **Role-Based Access Control (RBAC)** | Claims-based | Phân định quyền hạn chặt chẽ theo vai trò (`Admin`, `Staff`, `Customer`) qua thuộc tính `[Authorize(Roles = "...")]`. |
+| **Phân quyền người dùng** | **Role-Based Access Control (RBAC)** | Claims-based | Phân định quyền hạn chặt chẽ theo vai trò (`Staff`, `CourtOwner`, `Customer`) trên web qua `[Authorize(Roles = "...")]`; ứng dụng WinForms chỉ nhận tài khoản `Admin`. |
 | **Kiểm thử tự động** | **xUnit & Test SDK** | xUnit 2.5.3 | 104 unit tests và hai test tích hợp PostgreSQL cho đặt đồng thời/hết hạn booking. |
 | **Đóng gói & Vận hành** | **Docker & Docker Compose** | Engine v24+ | Đóng gói toàn bộ hệ thống gồm 3 containers (`web`, `db`, `pgadmin`), khởi tạo môi trường nhất quán chỉ bằng 1 câu lệnh. |
 
