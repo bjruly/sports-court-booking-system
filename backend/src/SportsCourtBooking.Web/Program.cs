@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using SportsCourtBooking.Application.Interfaces;
 using SportsCourtBooking.Domain.Entities;
 using SportsCourtBooking.Domain.Enums;
+using SportsCourtBooking.Infrastructure;
 using SportsCourtBooking.Infrastructure.Data;
-using SportsCourtBooking.Infrastructure.Security;
-using SportsCourtBooking.Infrastructure.Services;
 using SportsCourtBooking.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,29 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Đăng ký DbContext kết nối PostgreSQL
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Đăng ký các Application Services (Dependency Injection)
-builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
-builder.Services.AddScoped<ICourtService, CourtService>();
-builder.Services.AddScoped<IBookingService, BookingService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<PendingBookingExpirationService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IFacilityService, FacilityService>();
-builder.Services.AddScoped<IOwnerDashboardService, OwnerDashboardService>();
-builder.Services.AddScoped<IOwnerCourtStatisticsService, OwnerCourtStatisticsService>();
-builder.Services.AddScoped<IOwnerCourtService, OwnerCourtService>();
-builder.Services.AddScoped<IOwnerFacilityService, OwnerFacilityService>();
-builder.Services.AddScoped<IVoucherService, OwnerVoucherService>();
-builder.Services.AddScoped<IReviewService, ReviewService>();
-builder.Services.AddScoped<IOwnerRevenueReportService, OwnerRevenueReportService>();
+// DbContext và các service nghiệp vụ, dùng chung với ứng dụng WinForms
+builder.Services.AddSportsCourtServices(builder.Configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddHostedService<PendingBookingExpirationWorker>();
 
 // Đăng nhập bằng cookie xác thực (được mã hóa/ký bởi ASP.NET Core, người dùng không tự sửa được)

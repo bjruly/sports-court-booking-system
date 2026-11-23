@@ -6,6 +6,7 @@
 
 - `src/`: các project backend.
 - `src/SportsCourtBooking.Web/`: ứng dụng ASP.NET Core MVC, controller, Razor views và tài nguyên tĩnh.
+- `src/SportsCourtBooking.Desktop/`: ứng dụng quản trị Windows Forms.
 - `src/SportsCourtBooking.Application/`: điều phối nghiệp vụ và use case.
 - `src/SportsCourtBooking.Domain/`: thực thể, quy tắc và khái niệm miền.
 - `src/SportsCourtBooking.Infrastructure/`: tích hợp PostgreSQL, EF Core và dịch vụ ngoài.
@@ -20,6 +21,7 @@ dotnet restore backend/SportsCourtBooking.sln
 dotnet build backend/SportsCourtBooking.sln
 dotnet test backend/SportsCourtBooking.sln
 dotnet run --project backend/src/SportsCourtBooking.Web
+dotnet run --project backend/src/SportsCourtBooking.Desktop
 ```
 
 Web hiện có prototype Razor cho tìm sân, chọn giờ, xem lại và các màn hình tài khoản. Dữ liệu sân/giá là mẫu; Identity, PostgreSQL và tạo booking thực chưa được kết nối. Project xUnit đã được tạo nhưng hiện chưa có test case.

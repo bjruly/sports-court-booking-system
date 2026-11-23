@@ -28,8 +28,8 @@ public class BookingController : Controller
         _paymentService = paymentService;
     }
 
-    // Xem lịch đặt của tất cả khách theo ngày và sân (chỉ nhân viên / quản trị viên, vì có tên khách hàng)
-    [Authorize(Roles = "Admin,Staff")]
+    // Xem lịch đặt của tất cả khách theo ngày và sân (chỉ nhân viên, vì có tên khách hàng; quản trị viên dùng ứng dụng WinForms)
+    [Authorize(Roles = "Staff")]
     [HttpGet]
     public async Task<IActionResult> Index(DateOnly? date, int? courtId, int? courtTypeId)
     {
@@ -49,8 +49,8 @@ public class BookingController : Controller
         return View(viewModel);
     }
 
-    // Admin/Staff xác nhận đơn đang chờ. Id người thực hiện lấy từ cookie đăng nhập để ghi log.
-    [Authorize(Roles = "Admin,Staff")]
+    // Staff xác nhận đơn đang chờ. Id người thực hiện lấy từ cookie đăng nhập để ghi log.
+    [Authorize(Roles = "Staff")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Confirm(int id, DateOnly? date, int? courtId)
@@ -66,8 +66,8 @@ public class BookingController : Controller
         return RedirectToAction(nameof(Index), new { date = date?.ToString("yyyy-MM-dd"), courtId });
     }
 
-    // Admin/Staff hủy đơn Pending hoặc Confirmed; khung giờ được nhả cho khách khác.
-    [Authorize(Roles = "Admin,Staff")]
+    // Staff hủy đơn Pending hoặc Confirmed; khung giờ được nhả cho khách khác.
+    [Authorize(Roles = "Staff")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(int id, DateOnly? date, int? courtId)

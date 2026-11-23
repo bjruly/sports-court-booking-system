@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F7AEEE9D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportsCourtBooking.Tests", "tests\SportsCourtBooking.Tests\SportsCourtBooking.Tests.csproj", "{BDADA881-5056-46C4-B1F5-9AFA5CA4B6B3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportsCourtBooking.Desktop", "src\SportsCourtBooking.Desktop\SportsCourtBooking.Desktop.csproj", "{96A7F064-43BC-4953-BEAD-9F3CB35DE32D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{BDADA881-5056-46C4-B1F5-9AFA5CA4B6B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BDADA881-5056-46C4-B1F5-9AFA5CA4B6B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BDADA881-5056-46C4-B1F5-9AFA5CA4B6B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96A7F064-43BC-4953-BEAD-9F3CB35DE32D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96A7F064-43BC-4953-BEAD-9F3CB35DE32D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96A7F064-43BC-4953-BEAD-9F3CB35DE32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96A7F064-43BC-4953-BEAD-9F3CB35DE32D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D9F8F800-E4D6-465C-95AA-61F40A249162} = {95DF7DD9-864A-4A49-9C84-C021F6DE3FEF}
@@ -53,5 +59,6 @@ Global
 		{01C69D90-4907-4499-ABAE-02004DEF5F87} = {95DF7DD9-864A-4A49-9C84-C021F6DE3FEF}
 		{47E5F280-A8B3-4604-A062-9B3303C6F1E1} = {95DF7DD9-864A-4A49-9C84-C021F6DE3FEF}
 		{BDADA881-5056-46C4-B1F5-9AFA5CA4B6B3} = {F7AEEE9D-696E-4869-B836-62F39FA2724B}
+		{96A7F064-43BC-4953-BEAD-9F3CB35DE32D} = {95DF7DD9-864A-4A49-9C84-C021F6DE3FEF}
 	EndGlobalSection
 EndGlobal
