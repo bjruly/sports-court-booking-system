@@ -22,7 +22,7 @@
             @if (!isAccountPage)
             {
                 <nav class="main-nav" aria-label="Điều hướng chính">
-                    @if (User.IsInRole("Admin") || User.IsInRole("CourtOwner"))
+                    @if (User.IsInRole("CourtOwner"))
                     {
                         <a asp-controller="Home" asp-action="Index" target="_blank" rel="noopener noreferrer">Về trang chính</a>
                     }
@@ -94,11 +94,7 @@
                 {
                     <a class="mobile-account" asp-controller="Account" asp-action="Profile">Hồ sơ</a>
                 }
-                if (User.IsInRole("Admin"))
-                {
-                    <a class="mobile-account" asp-controller="Admin" asp-action="Index" aria-label="Trang quản trị">Trang quản trị <span aria-hidden="true">↗</span></a>
-                }
-                else if (User.IsInRole("CourtOwner"))
+                if (User.IsInRole("CourtOwner"))
                 {
                     <a class="mobile-account" asp-controller="Owner" asp-action="Index" aria-label="Trang Chủ Sân">Trang Chủ Sân <span aria-hidden="true">↗</span></a>
                 }

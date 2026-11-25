@@ -221,3 +221,12 @@ public interface IFacilityService
     /// <summary>Khóa hoặc mở khóa cơ sở thể thao kèm lý do (UC23).</summary>
     Task<(bool Success, string Message, bool? IsActive)> ToggleLockFacilityAsync(int facilityId, string? reason);
 }
+
+public interface INotificationService
+{
+    /// <summary>
+    /// Thông báo gần đây theo vai trò. Với Admin, Url là mã màn hình trong ứng dụng WinForms
+    /// (facilities, bookings, reviews); với Chủ sân và khách hàng, Url là đường dẫn trên web.
+    /// </summary>
+    Task<List<NotificationItemDto>> GetNotificationsAsync(int userId, UserRole role);
+}

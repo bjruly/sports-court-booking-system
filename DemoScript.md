@@ -71,18 +71,18 @@
 
 ### ⏱️ Phần 4: Góc nhìn Quản trị & Cơ chế Giữ chỗ 10 phút (1.5 phút)
 * **Thao tác màn hình (Thành viên 4):**
-  1. Bấm **Đăng xuất** ở góc phải trên.
-  2. Bấm **Đăng nhập**, nhập tài khoản Admin:
+  1. Mở ứng dụng WinForms: `dotnet run --project backend/src/SportsCourtBooking.Desktop`.
+  2. Tại cửa sổ đăng nhập, nhập tài khoản Admin:
      - Email: `admin@sportscourt.vn`
      - Mật khẩu: `Admin@123`
-  3. Trên navbar, bấm **Trang quản trị**; mở `/Booking` để quản lý lịch đặt (Staff có mục Quản lý lịch đặt trực tiếp).
-  4. Trang `/Booking` hiện ra:
+  3. Ở menu trái, bấm **Lịch đặt theo ngày** (Staff dùng trang **Quản lý lịch đặt** `/Booking` trên web).
+  4. Màn hình lịch đặt hiện ra:
      - Chọn đúng ngày vừa đặt đơn ở Bước 3.
      - Danh sách hiện ra đơn đặt của khách `Nguyễn Văn Khách`, hiển thị sân, giờ, số tiền và trạng thái `Pending`.
      - Thử chọn bộ lọc sân để lọc danh sách.
 * **Lời thoại gợi ý (Thành viên 4):**
   > *"Bây giờ em xin chuyển sang góc nhìn của Quản trị viên / Nhân viên.*\
-  > *Khi đăng nhập bằng tài khoản Quản trị viên, thanh điều hướng hiển thị mục **'Trang quản trị'**, còn màn hình quản lý lịch đặt truy cập qua `/Booking` dựa trên cơ chế Role-Based Access Control (`User.IsInRole('Admin')`).*
+  > *Phần quản trị viên là ứng dụng Windows Forms riêng, dùng chung service và database với web, chỉ nhận tài khoản Admin. Nhân viên và chủ sân vẫn làm việc trên web theo Role-Based Access Control.*\
   > *Tại đây, nhân viên có thể tra cứu toàn bộ đơn đặt sân của khách theo từng ngày và lọc theo từng sân cụ thể.*\
   > *Về cơ chế giữ chỗ: Nhóm thiết kế đơn đặt mới có thời hạn giữ chỗ là **10 phút** (`ExpiresAt = CreatedAt + 10 phút`).*\
   > *Để tự động hóa việc này, nhóm xây dựng một **BackgroundService** mang tên `PendingBookingExpirationWorker` chạy ngầm mỗi 15 giây. Worker này sử dụng phương thức `ExecuteUpdateAsync` của EF Core 8 để tự động chuyển các đơn quá hạn sang trạng thái `Expired`, giải phóng khung giờ cho khách khác mà không cần nhân viên phải thao tác thủ công."*
@@ -150,7 +150,7 @@ Nội dung dưới đây được nối từ `docs/CodeReview_QnA.md`, đối ch
 
 **Demo Chủ sân:** đăng nhập `chusan@sportscourt.vn` / `Owner@123`, bấm **Trang Chủ Sân** trên navbar hoặc mở `/Owner` (`/Owner/Index`). Seed đã có `CourtOwner` với ID 3 trong `AppDbContext.SeedData`; `Program.cs` bổ sung tài khoản theo email nếu còn thiếu khi khởi động. Không cần tạo lại tài khoản hoặc khởi động lại Docker để demo nếu đăng nhập đã thành công.
 
-**Lưu ý khi demo trên Docker hiện tại:** các trang `/Admin/Facilities`, `/Admin/Owners`, `/Admin/Reviews` đang trả 404 dù đã có trong source. Xem `docs/EvaluationReport.md` để phân biệt kết quả trên container với code vừa build.
+**Lưu ý khi demo:** dashboard `/Admin` trên web đã được gỡ; thao tác của quản trị viên thực hiện trong ứng dụng WinForms.
 
 ### 5.1. Nhóm câu hỏi về Ngôn ngữ C# 12 & Nền tảng .NET 8
 

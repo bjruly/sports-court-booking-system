@@ -27,6 +27,7 @@ public class OwnerFacilityService : IOwnerFacilityService
                 Id = facility.Id,
                 Name = facility.Name,
                 Address = facility.Address,
+                District = facility.Courts.OrderBy(c => c.Id).Select(c => c.District).FirstOrDefault(),
                 PhoneNumber = facility.PhoneNumber,
                 OpenTime = facility.OpenTime,
                 CloseTime = facility.CloseTime,
@@ -52,6 +53,7 @@ public class OwnerFacilityService : IOwnerFacilityService
                 Id = facility.Id,
                 Name = facility.Name,
                 Address = facility.Address,
+                District = facility.Courts.OrderBy(c => c.Id).Select(c => c.District).FirstOrDefault(),
                 PhoneNumber = facility.PhoneNumber,
                 OpenTime = facility.OpenTime,
                 CloseTime = facility.CloseTime,
@@ -210,11 +212,17 @@ public class OwnerFacilityService : IOwnerFacilityService
             }
         }
 
-        var district = string.IsNullOrWhiteSpace(request.District) ? "Quận 10" : request.District.Trim();
+        // Chỉ ghi quận/huyện xuống các sân khi chủ sân thực sự đổi, để không mất giá trị riêng của từng sân.
+        var currentDistrict = facility.Courts.OrderBy(court => court.Id).FirstOrDefault()?.District;
+        var newDistrict = request.District?.Trim();
+        var districtChanged = !string.IsNullOrEmpty(newDistrict) && newDistrict != currentDistrict;
         foreach (var court in facility.Courts)
         {
             court.Location = facility.Address;
-            court.District = district;
+            if (districtChanged)
+            {
+                court.District = newDistrict!;
+            }
         }
 
         await _context.SaveChangesAsync();

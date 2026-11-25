@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using SportsCourtBooking.Application.DTOs;
 using SportsCourtBooking.Domain.Entities;
@@ -63,6 +64,37 @@ public class OwnerFacilityServiceTests
         var updatedFacility = await service.GetOwnerFacilityAsync(facility.Id, 3);
         Assert.Equal("Cơ sở mới", updatedFacility?.Name);
         Assert.Equal("456 Đường B", updatedFacility?.Address);
+    }
+
+    [Theory]
+    [InlineData("Quận 2", "Quận 2", "Bình Thạnh")]
+    [InlineData("", "Quận 2", "Bình Thạnh")]
+    [InlineData("Quận 7", "Quận 7", "Quận 7")]
+    public async Task UpdateOwnerFacilityAsync_OnlyOverwritesCourtDistrictsWhenDistrictChanges(
+        string submitted,
+        string expectedFirst,
+        string expectedSecond)
+    {
+        await using var context = CreateContext();
+        context.Users.Add(CreateOwner(3));
+        context.Facilities.Add(new Facility { Id = 1, OwnerId = 3, Name = "Cơ sở A", Address = "1 Đường A" });
+        context.Courts.AddRange(
+            new Court { Id = 1, OwnerId = 3, FacilityId = 1, CourtTypeId = 1, Name = "Sân 1", District = "Quận 2" },
+            new Court { Id = 2, OwnerId = 3, FacilityId = 1, CourtTypeId = 1, Name = "Sân 2", District = "Bình Thạnh" });
+        await context.SaveChangesAsync();
+        var service = new OwnerFacilityService(context);
+        Assert.Equal("Quận 2", (await service.GetOwnerFacilityAsync(1, 3))?.District);
+
+        var result = await service.UpdateOwnerFacilityAsync(1, 3, new OwnerFacilityRequest
+        {
+            Name = "Cơ sở A",
+            Address = "1 Đường A",
+            District = submitted
+        });
+
+        Assert.True(result.Success, result.Message);
+        var districts = await context.Courts.OrderBy(court => court.Id).Select(court => court.District).ToListAsync();
+        Assert.Equal(new[] { expectedFirst, expectedSecond }, districts);
     }
 
     [Fact]
@@ -153,6 +185,31 @@ public class OwnerFacilityServiceTests
         Assert.Null(await context.Facilities.FindAsync(1));
         Assert.NotNull(await context.Facilities.FindAsync(2));
         Assert.Equal(2, (await context.Courts.SingleAsync()).FacilityId);
+    }
+
+    [Theory]
+    [InlineData("0901 111 001", "0901111001", true)]
+    [InlineData(" 0901111001 ", "0901111001", true)]
+    [InlineData("0901 111 00", "090111100", false)]
+    [InlineData("0901 abc 001", "0901abc001", false)]
+    [InlineData("   ", "", false)]
+    [InlineData(null, "", false)]
+    public void OwnerFacilityRequest_RemovesSpacesFromPhoneNumberBeforeValidation(
+        string? input,
+        string expected,
+        bool isValid)
+    {
+        var request = new OwnerFacilityRequest
+        {
+            Name = "Cơ sở A",
+            Address = "1 Đường A",
+            CourtTypeId = 1,
+            PhoneNumber = input!
+        };
+
+        Assert.Equal(expected, request.PhoneNumber);
+        Assert.Equal(isValid, Validator.TryValidateObject(
+            request, new ValidationContext(request), new List<ValidationResult>(), validateAllProperties: true));
     }
 
     private static User CreateOwner(int id) => new()
