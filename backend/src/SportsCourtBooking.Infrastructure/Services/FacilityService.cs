@@ -200,11 +200,12 @@ public class FacilityService : IFacilityService
         if (facilityCourts.Count == 0)
         {
             var defaultCourtType = await _context.CourtTypes.FirstOrDefaultAsync() ?? new CourtType { Id = 1, Name = "Cầu lông" };
+            var ownerId = facility.OwnerId ?? await _context.GetDemoOwnerIdAsync();
             var newCourts = new List<Court>
             {
                 new()
                 {
-                    OwnerId = facility.OwnerId ?? 3,
+                    OwnerId = ownerId,
                     FacilityId = facility.Id,
                     CourtTypeId = defaultCourtType.Id,
                     Name = $"Sân 1 ({defaultCourtType.Name})",
@@ -216,7 +217,7 @@ public class FacilityService : IFacilityService
                 },
                 new()
                 {
-                    OwnerId = facility.OwnerId ?? 3,
+                    OwnerId = ownerId,
                     FacilityId = facility.Id,
                     CourtTypeId = defaultCourtType.Id,
                     Name = $"Sân 2 ({defaultCourtType.Name})",

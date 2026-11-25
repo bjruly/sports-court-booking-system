@@ -120,15 +120,16 @@ public static class BookingSchemaExtensions
 
         // Không tự xóa booking, payment, refund hoặc tài khoản khi ứng dụng khởi động.
         // Booking có thể có Payment/Refund liên quan và dữ liệu này cần được giữ lại.
-        await db.Database.ExecuteSqlRawAsync("""
-            UPDATE "Facilities" SET "OwnerId" = 3 WHERE "OwnerId" IS NULL;
-        """, cancellationToken);
+        var demoOwnerId = await db.GetDemoOwnerIdAsync(cancellationToken);
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE \"Facilities\" SET \"OwnerId\" = {demoOwnerId} WHERE \"OwnerId\" IS NULL",
+            cancellationToken);
 
         // 1. Đảm bảo đúng 5 Cơ sở thể thao thật khớp 100% với 5 cụm sân trên web
         var facilities = await db.Facilities.ToListAsync(cancellationToken);
         foreach (var facility in facilities.Where(facility => facility.OwnerId is null))
         {
-            facility.OwnerId = 3;
+            facility.OwnerId = demoOwnerId;
         }
 
         if (!facilities.Any(f => f.Name.Contains("Quận 7")))
@@ -138,7 +139,7 @@ public static class BookingSchemaExtensions
             {
                 new()
                 {
-                    OwnerId = 3,
+                    OwnerId = demoOwnerId,
                     Name = "Cơ sở Cầu Lông Nam Sài Gòn - Quận 7",
                     Address = "Quận 7, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 001",
@@ -151,7 +152,7 @@ public static class BookingSchemaExtensions
                 },
                 new()
                 {
-                    OwnerId = 3,
+                    OwnerId = demoOwnerId,
                     Name = "Cơ sở Cầu Lông Chu Văn An - Bình Thạnh",
                     Address = "Bình Thạnh, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 002",
@@ -164,7 +165,7 @@ public static class BookingSchemaExtensions
                 },
                 new()
                 {
-                    OwnerId = 3,
+                    OwnerId = demoOwnerId,
                     Name = "Cụm Sân Bóng Đá Mini Thủ Đức",
                     Address = "Thủ Đức, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 003",
@@ -177,7 +178,7 @@ public static class BookingSchemaExtensions
                 },
                 new()
                 {
-                    OwnerId = 3,
+                    OwnerId = demoOwnerId,
                     Name = "Trung Tâm Pickleball Quận 10",
                     Address = "Quận 10, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 004",
@@ -190,7 +191,7 @@ public static class BookingSchemaExtensions
                 },
                 new()
                 {
-                    OwnerId = 3,
+                    OwnerId = demoOwnerId,
                     Name = "CLB Tennis Thảo Điền - Quận 2",
                     Address = "Quận 2, TP. Hồ Chí Minh",
                     PhoneNumber = "0901 111 005",
@@ -212,31 +213,32 @@ public static class BookingSchemaExtensions
         var courts = await db.Courts.ToListAsync(cancellationToken);
         if (courts.Count >= 15 && facilities.Count >= 5)
         {
-            var facQ7 = facilities.First(f => f.Name.Contains("Quận 7"));
-            var facBT = facilities.First(f => f.Name.Contains("Bình Thạnh"));
-            var facTD = facilities.First(f => f.Name.Contains("Thủ Đức"));
-            var facQ10 = facilities.First(f => f.Name.Contains("Quận 10"));
-            var facQ2 = facilities.First(f => f.Name.Contains("Quận 2"));
+            // Cơ sở có thể đã được đổi tên; khi đó giữ nguyên sân thay vì làm ứng dụng không khởi động được.
+            var facQ7 = facilities.FirstOrDefault(f => f.Name.Contains("Quận 7"));
+            var facBT = facilities.FirstOrDefault(f => f.Name.Contains("Bình Thạnh"));
+            var facTD = facilities.FirstOrDefault(f => f.Name.Contains("Thủ Đức"));
+            var facQ10 = facilities.FirstOrDefault(f => f.Name.Contains("Quận 10"));
+            var facQ2 = facilities.FirstOrDefault(f => f.Name.Contains("Quận 2"));
 
             // Cầu lông Q7: Sân 1, 6, 7
-            foreach (var c in courts.Where(c => c.Id == 1 || c.Id == 6 || c.Id == 7))
-                c.FacilityId = facQ7.Id;
+            foreach (var c in courts.Where(c => facQ7 is not null && (c.Id == 1 || c.Id == 6 || c.Id == 7)))
+                c.FacilityId = facQ7!.Id;
 
             // Cầu lông Bình Thạnh: Sân 2, 8, 9
-            foreach (var c in courts.Where(c => c.Id == 2 || c.Id == 8 || c.Id == 9))
-                c.FacilityId = facBT.Id;
+            foreach (var c in courts.Where(c => facBT is not null && (c.Id == 2 || c.Id == 8 || c.Id == 9)))
+                c.FacilityId = facBT!.Id;
 
             // Bóng đá Thủ Đức: Sân 3, 10, 11
-            foreach (var c in courts.Where(c => c.Id == 3 || c.Id == 10 || c.Id == 11))
-                c.FacilityId = facTD.Id;
+            foreach (var c in courts.Where(c => facTD is not null && (c.Id == 3 || c.Id == 10 || c.Id == 11)))
+                c.FacilityId = facTD!.Id;
 
             // Pickleball Q10: Sân 4, 12, 13
-            foreach (var c in courts.Where(c => c.Id == 4 || c.Id == 12 || c.Id == 13))
-                c.FacilityId = facQ10.Id;
+            foreach (var c in courts.Where(c => facQ10 is not null && (c.Id == 4 || c.Id == 12 || c.Id == 13)))
+                c.FacilityId = facQ10!.Id;
 
             // Tennis Q2: Sân 5, 14, 15
-            foreach (var c in courts.Where(c => c.Id == 5 || c.Id == 14 || c.Id == 15))
-                c.FacilityId = facQ2.Id;
+            foreach (var c in courts.Where(c => facQ2 is not null && (c.Id == 5 || c.Id == 14 || c.Id == 15)))
+                c.FacilityId = facQ2!.Id;
 
             await db.SaveChangesAsync(cancellationToken);
         }
@@ -283,7 +285,7 @@ public static class BookingSchemaExtensions
                 {
                     db.Courts.Add(new Court
                     {
-                        OwnerId = fac.OwnerId ?? 3,
+                        OwnerId = fac.OwnerId ?? demoOwnerId,
                         FacilityId = fac.Id,
                         CourtTypeId = courtTypeId,
                         Name = $"Sân {i} ({courtTypeName})",

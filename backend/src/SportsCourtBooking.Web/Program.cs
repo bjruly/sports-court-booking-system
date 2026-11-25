@@ -44,6 +44,7 @@ using (var scope = app.Services.CreateScope())
         try
         {
             await db.BaselineExistingDatabaseAsync();
+            await db.UpgradeLegacyFacilitySchemaAsync();
             db.Database.Migrate();
 
             if (!await db.Users.AnyAsync(user => user.Email == SeedCredentials.OwnerEmail))
