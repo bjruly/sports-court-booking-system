@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using SportsCourtBooking.Domain.Enums;
 
 namespace SportsCourtBooking.Infrastructure.Data;
 
@@ -40,10 +39,7 @@ public static class CourtOwnerSchemaExtensions
 
         await db.Database.ExecuteSqlRawAsync(AddOwnerColumnSql, cancellationToken);
 
-        var demoOwnerId = await db.Users
-            .Where(user => user.Email == SeedCredentials.OwnerEmail && user.Role == UserRole.CourtOwner)
-            .Select(user => user.Id)
-            .SingleAsync(cancellationToken);
+        var demoOwnerId = await db.GetDemoOwnerIdAsync(cancellationToken);
 
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"UPDATE \"Courts\" SET \"OwnerId\" = {demoOwnerId} WHERE \"OwnerId\" IS NULL",

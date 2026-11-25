@@ -74,4 +74,20 @@ public static class MigrationBaselineExtensions
             """,
             cancellationToken);
     }
+
+    /// <summary>
+    /// Database cũ được baseline (đánh dấu InitialSchema đã chạy) có thể có bảng Facilities thiếu cột.
+    /// Phải bổ sung trước Migrate() vì các migration sau InitialSchema chèn dữ liệu vào những cột này.
+    /// Database mới hoàn toàn thì bỏ qua, InitialSchema sẽ tự tạo bảng đầy đủ.
+    /// </summary>
+    public static async Task UpgradeLegacyFacilitySchemaAsync(
+        this AppDbContext db,
+        CancellationToken cancellationToken = default)
+    {
+        var appliedMigrations = await db.Database.GetAppliedMigrationsAsync(cancellationToken);
+        if (appliedMigrations.Any())
+        {
+            await db.EnsureOwnerFacilitySchemaAsync(cancellationToken);
+        }
+    }
 }
