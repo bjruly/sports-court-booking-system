@@ -47,17 +47,17 @@ public sealed class AdminReviewsPage : ListPage<ReviewItemDto>
             $"Ẩn đánh giá của {item.UserName}",
             "Lý do ẩn",
             "Ẩn đánh giá",
-            reason => App.CallAsync((IReviewService service) => service.HideReviewAsync(item.Id, reason)),
+            reason => App.CallAsync((IReviewService service) => service.HideReviewAsync(item.Id, reason, App.UserId)),
             suggestions: HideReasons,
             note: $"{item.CourtName}: \"{item.Comment}\""),
             item => !item.IsHidden);
         AddAction("Khôi phục", item => ExecuteAsync(
             "Khôi phục hiển thị lại đánh giá này?",
-            () => App.CallAsync((IReviewService service) => service.UnhideReviewAsync(item.Id))),
+            () => App.CallAsync((IReviewService service) => service.UnhideReviewAsync(item.Id, App.UserId))),
             item => item.IsHidden);
         AddAction("Xóa vĩnh viễn", item => ExecuteAsync(
             "Bạn có chắc chắn muốn xóa vĩnh viễn đánh giá này?",
-            () => App.CallAsync((IReviewService service) => service.DeleteReviewAsync(item.Id))), danger: true);
+            () => App.CallAsync((IReviewService service) => service.DeleteReviewAsync(item.Id, App.UserId))), danger: true);
 
         Body.Controls.Add(GridCard(Grid));
         Body.Controls.Add(Gap());

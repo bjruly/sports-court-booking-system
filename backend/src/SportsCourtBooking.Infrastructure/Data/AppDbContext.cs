@@ -19,10 +19,19 @@ public class AppDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Refund> Refunds => Set<Refund>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<ActivityRecord> ActivityRecords => Set<ActivityRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ActivityRecord>(entity =>
+        {
+            // Giữ mã tài khoản và đối tượng trong nhật ký kể cả khi đối tượng đã bị xóa.
+            entity.HasIndex(item => new { item.OccurredAtUtc, item.Id });
+            entity.HasIndex(item => new { item.ActorRole, item.OccurredAtUtc, item.Id });
+            entity.Property(item => item.Action).HasMaxLength(100);
+        });
 
         // 1. Cấu hình bảng User
         modelBuilder.Entity<User>(entity =>

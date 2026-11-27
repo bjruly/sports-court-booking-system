@@ -57,7 +57,7 @@ public class CategoryService : ICategoryService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<(bool Success, string Message, CategoryDto? Data)> CreateCategoryAsync(CreateCategoryRequest request)
+    public async Task<(bool Success, string Message, CategoryDto? Data)> CreateCategoryAsync(CreateCategoryRequest request, int? adminUserId = null)
     {
         var name = (request.Name ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(name))
@@ -77,6 +77,7 @@ public class CategoryService : ICategoryService
         };
 
         _context.CourtTypes.Add(courtType);
+        _context.RecordAdminActivity(adminUserId, "Thêm danh mục", courtType.Name);
         await _context.SaveChangesAsync();
 
         var dto = new CategoryDto
@@ -91,7 +92,7 @@ public class CategoryService : ICategoryService
         return (true, $"Thêm danh mục \"{name}\" thành công!", dto);
     }
 
-    public async Task<(bool Success, string Message)> UpdateCategoryAsync(UpdateCategoryRequest request)
+    public async Task<(bool Success, string Message)> UpdateCategoryAsync(UpdateCategoryRequest request, int? adminUserId = null)
     {
         var name = (request.Name ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(name))
@@ -110,12 +111,13 @@ public class CategoryService : ICategoryService
         courtType.Name = name;
         courtType.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         courtType.UpdatedAt = DateTime.UtcNow;
+        _context.RecordAdminActivity(adminUserId, "Sửa danh mục", $"Danh mục #{courtType.Id} · {courtType.Name}");
 
         await _context.SaveChangesAsync();
         return (true, $"Cập nhật danh mục \"{name}\" thành công!");
     }
 
-    public async Task<(bool Success, string Message)> DeleteCategoryAsync(int id)
+    public async Task<(bool Success, string Message)> DeleteCategoryAsync(int id, int? adminUserId = null)
     {
         var courtType = await _context.CourtTypes
             .Include(ct => ct.Courts)
@@ -130,6 +132,7 @@ public class CategoryService : ICategoryService
         }
 
         _context.CourtTypes.Remove(courtType);
+        _context.RecordAdminActivity(adminUserId, "Xóa danh mục", $"Danh mục #{courtType.Id} · {courtType.Name}");
         await _context.SaveChangesAsync();
 
         return (true, $"Xóa danh mục \"{courtType.Name}\" thành công!");

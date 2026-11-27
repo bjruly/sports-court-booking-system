@@ -126,7 +126,6 @@ public class OwnerFacilityService : IOwnerFacilityService
         };
 
         _context.Facilities.Add(facility);
-        await _context.SaveChangesAsync();
 
         // Tự động khởi tạo số lượng sân đăng ký thuộc môn thể thao duy nhất này
         var courts = new List<Court>();
@@ -135,7 +134,7 @@ public class OwnerFacilityService : IOwnerFacilityService
             courts.Add(new Court
             {
                 OwnerId = ownerId,
-                FacilityId = facility.Id,
+                Facility = facility,
                 CourtTypeId = courtType.Id,
                 Name = $"Sân {i} ({courtType.Name})",
                 Location = facility.Address,
@@ -150,6 +149,8 @@ public class OwnerFacilityService : IOwnerFacilityService
         }
 
         await _context.Courts.AddRangeAsync(courts);
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, "Thêm cơ sở",
+            $"{facility.Name} · Khởi tạo {courtCount} sân");
         await _context.SaveChangesAsync();
 
         return (true, $"Đã gửi hồ sơ đăng ký cơ sở \"{facility.Name}\" với {courtCount} sân môn {courtType.Name}. Vui lòng chờ Quản trị viên duyệt!");
@@ -225,6 +226,8 @@ public class OwnerFacilityService : IOwnerFacilityService
             }
         }
 
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, "Sửa thông tin cơ sở",
+            $"Cơ sở #{facility.Id} · {facility.Name}");
         await _context.SaveChangesAsync();
 
         if (needsReApproval)
@@ -250,6 +253,8 @@ public class OwnerFacilityService : IOwnerFacilityService
             return (false, "Không thể xóa cơ sở đang có sân. Hãy chuyển các sân sang cơ sở khác trước.");
         }
 
+        var activity = _context.RecordActivity(UserRole.CourtOwner, ownerId, "Xóa cơ sở",
+            $"Cơ sở #{facility.Id} · {facility.Name}");
         _context.Facilities.Remove(facility);
         try
         {
@@ -261,6 +266,7 @@ public class OwnerFacilityService : IOwnerFacilityService
                 SqlState: PostgresErrorCodes.ForeignKeyViolation
             })
         {
+            _context.Entry(activity).State = EntityState.Detached;
             _context.Entry(facility).State = EntityState.Unchanged;
             return (false, "Không thể xóa cơ sở đang có sân. Hãy chuyển các sân sang cơ sở khác trước.");
         }
@@ -319,6 +325,8 @@ public class OwnerFacilityService : IOwnerFacilityService
         };
 
         _context.Courts.Add(court);
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, "Thêm sân vào cơ sở",
+            $"{court.Name} · Cơ sở #{facility.Id}");
         await _context.SaveChangesAsync();
 
         var statusMsg = status == CourtStatus.Active ? "hoạt động ngay" : "chờ cơ sở được duyệt";

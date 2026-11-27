@@ -104,6 +104,8 @@ public class OwnerCourtService : IOwnerCourtService
             Status = request.Status
         });
 
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, "Thêm sân",
+            $"{request.Name.Trim()} · Cơ sở #{request.FacilityId}");
         await _context.SaveChangesAsync();
         return (true, "Đã thêm sân thành công.");
     }
@@ -122,8 +124,12 @@ public class OwnerCourtService : IOwnerCourtService
             return (false, "Thông tin sân hoặc môn thể thao không hợp lệ.");
         }
 
+        var priceChanged = court.PricePerHour != pricePerHour
+            || court.PeakStartHour != request.PeakStartHour
+            || court.PeakSurcharge != request.PeakSurcharge;
         ApplyRequest(court, request, pricePerHour);
         court.UpdatedAt = DateTime.UtcNow;
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, priceChanged ? "Cập nhật thông tin và giá sân" : "Sửa thông tin sân", CourtTarget(court));
         await _context.SaveChangesAsync();
         return (true, "Đã cập nhật thông tin sân.");
     }
@@ -142,11 +148,26 @@ public class OwnerCourtService : IOwnerCourtService
             return (false, "Không tìm thấy sân thuộc tài khoản của bạn.");
         }
 
+        var statusChanged = court.Status != status;
         court.Status = status;
         court.UpdatedAt = DateTime.UtcNow;
+
+        if (statusChanged)
+        {
+            var action = status switch
+            {
+                CourtStatus.Active => "Mở hoạt động sân",
+                CourtStatus.Maintenance => "Chuyển sân sang bảo trì",
+                _ => "Ngừng hoạt động sân"
+            };
+            _context.RecordActivity(UserRole.CourtOwner, ownerId, action, CourtTarget(court));
+        }
+
         await _context.SaveChangesAsync();
         return (true, "Đã cập nhật trạng thái sân.");
     }
+
+    private static string CourtTarget(Court court) => $"Sân #{court.Id} · {court.Name}";
 
     private async Task<bool> IsValidRequestAsync(int ownerId, OwnerCourtRequest request)
     {

@@ -88,7 +88,7 @@ public class ReviewService : IReviewService
         };
     }
 
-    public async Task<(bool Success, string Message)> HideReviewAsync(int reviewId, string reason)
+    public async Task<(bool Success, string Message)> HideReviewAsync(int reviewId, string reason, int? adminUserId = null)
     {
         var review = await _context.Reviews.FindAsync(reviewId);
         if (review == null)
@@ -105,12 +105,13 @@ public class ReviewService : IReviewService
         review.HiddenReason = reason.Trim();
         review.HiddenAt = DateTime.UtcNow;
         review.UpdatedAt = DateTime.UtcNow;
+        _context.RecordAdminActivity(adminUserId, "Ẩn đánh giá", $"Đánh giá #{reviewId} · Sân #{review.CourtId}");
 
         await _context.SaveChangesAsync();
         return (true, "Đã ẩn đánh giá vi phạm thành công.");
     }
 
-    public async Task<(bool Success, string Message)> UnhideReviewAsync(int reviewId)
+    public async Task<(bool Success, string Message)> UnhideReviewAsync(int reviewId, int? adminUserId = null)
     {
         var review = await _context.Reviews.FindAsync(reviewId);
         if (review == null)
@@ -122,12 +123,13 @@ public class ReviewService : IReviewService
         review.HiddenReason = null;
         review.HiddenAt = null;
         review.UpdatedAt = DateTime.UtcNow;
+        _context.RecordAdminActivity(adminUserId, "Bỏ ẩn đánh giá", $"Đánh giá #{reviewId} · Sân #{review.CourtId}");
 
         await _context.SaveChangesAsync();
         return (true, "Đã khôi phục hiển thị đánh giá thành công.");
     }
 
-    public async Task<(bool Success, string Message)> DeleteReviewAsync(int reviewId)
+    public async Task<(bool Success, string Message)> DeleteReviewAsync(int reviewId, int? adminUserId = null)
     {
         var review = await _context.Reviews.FindAsync(reviewId);
         if (review == null)
@@ -136,6 +138,7 @@ public class ReviewService : IReviewService
         }
 
         _context.Reviews.Remove(review);
+        _context.RecordAdminActivity(adminUserId, "Xóa đánh giá", $"Đánh giá #{reviewId} · Sân #{review.CourtId}");
         await _context.SaveChangesAsync();
         return (true, "Đã xóa vĩnh viễn đánh giá thành công.");
     }
@@ -286,6 +289,8 @@ public class ReviewService : IReviewService
         review.OwnerReply = normalizedReply;
         review.OwnerRepliedAt = DateTime.UtcNow;
         review.UpdatedAt = DateTime.UtcNow;
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, "Lưu phản hồi đánh giá",
+            $"Đánh giá #{review.Id} · Sân #{review.CourtId}");
         await _context.SaveChangesAsync();
 
         return (true, "Đã lưu phản hồi.");

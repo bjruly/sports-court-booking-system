@@ -201,6 +201,8 @@ public sealed class PaymentService : IPaymentService
             refund.Payment.UpdatedAt = now;
         }
 
+        _context.RecordActivity(UserRole.CourtOwner, actorUserId, succeeded ? "Ghi nhận hoàn tiền thành công" : "Ghi nhận hoàn tiền thất bại",
+            $"Hoàn tiền #{refund.Id} · Đơn #{refund.Payment.BookingId}");
         await _context.SaveChangesAsync();
         if (transaction is not null)
         {
@@ -254,6 +256,8 @@ public sealed class PaymentService : IPaymentService
             : PaymentStatus.Refunded;
         refund.Payment.UpdatedAt = now;
 
+        _context.RecordActivity(UserRole.CourtOwner, actorUserId, "Xác nhận hoàn tiền thủ công",
+            $"Hoàn tiền #{refund.Id} · Đơn #{refund.Payment.BookingId}");
         await _context.SaveChangesAsync();
         if (transaction is not null)
         {
@@ -297,6 +301,8 @@ public sealed class PaymentService : IPaymentService
         refund.ProcessedByUserId = actorUserId;
         refund.UpdatedAt = now;
 
+        _context.RecordActivity(UserRole.CourtOwner, actorUserId, "Từ chối yêu cầu hoàn tiền",
+            $"Hoàn tiền #{refund.Id}");
         await _context.SaveChangesAsync();
         if (transaction is not null)
         {

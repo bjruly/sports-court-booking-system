@@ -114,13 +114,13 @@ public interface ICategoryService
     Task<CategoryDto?> GetCategoryByIdAsync(int id);
 
     /// <summary>Thêm mới danh mục.</summary>
-    Task<(bool Success, string Message, CategoryDto? Data)> CreateCategoryAsync(CreateCategoryRequest request);
+    Task<(bool Success, string Message, CategoryDto? Data)> CreateCategoryAsync(CreateCategoryRequest request, int? adminUserId = null);
 
     /// <summary>Cập nhật danh mục.</summary>
-    Task<(bool Success, string Message)> UpdateCategoryAsync(UpdateCategoryRequest request);
+    Task<(bool Success, string Message)> UpdateCategoryAsync(UpdateCategoryRequest request, int? adminUserId = null);
 
     /// <summary>Xóa danh mục (chỉ xóa khi chưa có sân nào thuộc danh mục).</summary>
-    Task<(bool Success, string Message)> DeleteCategoryAsync(int id);
+    Task<(bool Success, string Message)> DeleteCategoryAsync(int id, int? adminUserId = null);
 }
 
 public interface IOwnerDashboardService
@@ -184,13 +184,13 @@ public interface IReviewService
     Task<ReviewStatsSummaryDto> GetReviewStatsAsync();
 
     /// <summary>UC26: Ẩn đánh giá vi phạm kèm lý do.</summary>
-    Task<(bool Success, string Message)> HideReviewAsync(int reviewId, string reason);
+    Task<(bool Success, string Message)> HideReviewAsync(int reviewId, string reason, int? adminUserId = null);
 
     /// <summary>UC26: Bỏ ẩn / khôi phục hiển thị đánh giá.</summary>
-    Task<(bool Success, string Message)> UnhideReviewAsync(int reviewId);
+    Task<(bool Success, string Message)> UnhideReviewAsync(int reviewId, int? adminUserId = null);
 
     /// <summary>UC26: Xóa vĩnh viễn đánh giá vi phạm.</summary>
-    Task<(bool Success, string Message)> DeleteReviewAsync(int reviewId);
+    Task<(bool Success, string Message)> DeleteReviewAsync(int reviewId, int? adminUserId = null);
 
     Task<List<OwnerReviewDto>> GetOwnerReviewsAsync(int ownerId, int? courtId = null);
     Task<CustomerReviewFormDto?> GetCustomerReviewFormAsync(int bookingId, int userId);
@@ -210,16 +210,16 @@ public interface IFacilityService
     Task<FacilityItemDto?> GetFacilityByIdAsync(int id);
 
     /// <summary>Thêm mới cơ sở thể thao (UC13).</summary>
-    Task<(bool Success, string Message, FacilityItemDto? Data)> CreateFacilityAsync(CreateFacilityRequest request);
+    Task<(bool Success, string Message, FacilityItemDto? Data)> CreateFacilityAsync(CreateFacilityRequest request, int? adminUserId = null);
 
     /// <summary>Cập nhật thông tin cơ sở thể thao (UC13).</summary>
-    Task<(bool Success, string Message)> UpdateFacilityAsync(UpdateFacilityRequest request);
+    Task<(bool Success, string Message)> UpdateFacilityAsync(UpdateFacilityRequest request, int? adminUserId = null);
 
     /// <summary>Duyệt cơ sở thể thao (UC23).</summary>
-    Task<(bool Success, string Message)> ApproveFacilityAsync(int facilityId);
+    Task<(bool Success, string Message)> ApproveFacilityAsync(int facilityId, int? adminUserId = null);
 
     /// <summary>Khóa hoặc mở khóa cơ sở thể thao kèm lý do (UC23).</summary>
-    Task<(bool Success, string Message, bool? IsActive)> ToggleLockFacilityAsync(int facilityId, string? reason);
+    Task<(bool Success, string Message, bool? IsActive)> ToggleLockFacilityAsync(int facilityId, string? reason, int? adminUserId = null);
 }
 
 public interface INotificationService

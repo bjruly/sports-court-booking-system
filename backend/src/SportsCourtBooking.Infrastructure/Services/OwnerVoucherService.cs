@@ -107,6 +107,7 @@ public class OwnerVoucherService : IVoucherService
             IsActive = request.IsActive
         };
         _context.Vouchers.Add(voucher);
+        var activity = _context.RecordActivity(UserRole.CourtOwner, ownerId, "Tạo voucher", code);
 
         try
         {
@@ -114,6 +115,8 @@ public class OwnerVoucherService : IVoucherService
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
+            _context.Entry(activity).State = EntityState.Detached;
+            _context.Entry(voucher).State = EntityState.Detached;
             return (false, "Mã voucher này đã được sử dụng trong tài khoản của bạn.");
         }
 
@@ -159,6 +162,8 @@ public class OwnerVoucherService : IVoucherService
         voucher.UsageLimit = request.UsageLimit;
         voucher.IsActive = request.IsActive;
         voucher.UpdatedAt = DateTime.UtcNow;
+        var activity = _context.RecordActivity(UserRole.CourtOwner, ownerId, "Sửa voucher",
+            $"Voucher #{voucher.Id} · {code}");
 
         try
         {
@@ -166,6 +171,9 @@ public class OwnerVoucherService : IVoucherService
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
+            _context.Entry(activity).State = EntityState.Detached;
+            _context.Entry(voucher).CurrentValues.SetValues(_context.Entry(voucher).OriginalValues);
+            _context.Entry(voucher).State = EntityState.Unchanged;
             return (false, "Mã voucher này đã được sử dụng trong tài khoản của bạn.");
         }
 
@@ -191,6 +199,8 @@ public class OwnerVoucherService : IVoucherService
 
         voucher.IsActive = !voucher.IsActive;
         voucher.UpdatedAt = DateTime.UtcNow;
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, voucher.IsActive ? "Kích hoạt voucher" : "Ngừng áp dụng voucher",
+            $"Voucher #{voucher.Id} · {voucher.Code}");
         await _context.SaveChangesAsync();
 
         if (transaction is not null)
