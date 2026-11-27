@@ -113,7 +113,7 @@ public class FacilityService : IFacilityService
         };
     }
 
-    public async Task<(bool Success, string Message, FacilityItemDto? Data)> CreateFacilityAsync(CreateFacilityRequest request)
+    public async Task<(bool Success, string Message, FacilityItemDto? Data)> CreateFacilityAsync(CreateFacilityRequest request, int? adminUserId = null)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
             return (false, "Tên cơ sở không được để trống.", null);
@@ -138,6 +138,7 @@ public class FacilityService : IFacilityService
         };
 
         _context.Facilities.Add(facility);
+        _context.RecordAdminActivity(adminUserId, "Thêm cơ sở", facility.Name);
         await _context.SaveChangesAsync();
 
         var dto = new FacilityItemDto
@@ -158,7 +159,7 @@ public class FacilityService : IFacilityService
         return (true, "Thêm mới cơ sở thể thao thành công.", dto);
     }
 
-    public async Task<(bool Success, string Message)> UpdateFacilityAsync(UpdateFacilityRequest request)
+    public async Task<(bool Success, string Message)> UpdateFacilityAsync(UpdateFacilityRequest request, int? adminUserId = null)
     {
         var facility = await _context.Facilities.FindAsync(request.Id);
         if (facility == null)
@@ -180,12 +181,13 @@ public class FacilityService : IFacilityService
         facility.OpenTime = string.IsNullOrWhiteSpace(request.OpenTime) ? "06:00" : request.OpenTime.Trim();
         facility.CloseTime = string.IsNullOrWhiteSpace(request.CloseTime) ? "22:00" : request.CloseTime.Trim();
         facility.UpdatedAt = DateTime.UtcNow;
+        _context.RecordAdminActivity(adminUserId, "Sửa thông tin cơ sở", $"Cơ sở #{facility.Id} · {facility.Name}");
 
         await _context.SaveChangesAsync();
         return (true, "Cập nhật thông tin cơ sở thành công.");
     }
 
-    public async Task<(bool Success, string Message)> ApproveFacilityAsync(int facilityId)
+    public async Task<(bool Success, string Message)> ApproveFacilityAsync(int facilityId, int? adminUserId = null)
     {
         var facility = await _context.Facilities.FindAsync(facilityId);
         if (facility == null)
@@ -239,11 +241,12 @@ public class FacilityService : IFacilityService
             }
         }
 
+        _context.RecordAdminActivity(adminUserId, "Phê duyệt cơ sở", $"Cơ sở #{facility.Id} · {facility.Name}");
         await _context.SaveChangesAsync();
         return (true, $"Đã phê duyệt cơ sở \"{facility.Name}\" và kích hoạt {facilityCourts.Count} sân thành công.");
     }
 
-    public async Task<(bool Success, string Message, bool? IsActive)> ToggleLockFacilityAsync(int facilityId, string? reason)
+    public async Task<(bool Success, string Message, bool? IsActive)> ToggleLockFacilityAsync(int facilityId, string? reason, int? adminUserId = null)
     {
         var facility = await _context.Facilities.FindAsync(facilityId);
         if (facility == null)
@@ -275,6 +278,8 @@ public class FacilityService : IFacilityService
             }
         }
 
+        _context.RecordAdminActivity(adminUserId, facility.IsActive ? "Mở khóa cơ sở" : "Khóa cơ sở",
+            $"Cơ sở #{facility.Id} · {facility.Name}");
         await _context.SaveChangesAsync();
         var statusStr = facility.IsActive ? "Mở khóa hoạt động" : "Tạm khóa";
         return (true, $"Đã {statusStr} cơ sở \"{facility.Name}\".", facility.IsActive);

@@ -93,6 +93,69 @@ public class PostgreSqlIntegrationTests
         }
     }
 
+    [PostgreSqlFact]
+    public async Task SuccessfulAdminAndOwnerActionsAppearInOneHistory()
+    {
+        await using var context = CreateContext();
+        var fixture = await SeedCourtAsync(context);
+        var adminId = await context.Users.Where(user => user.Role == UserRole.Admin)
+            .Select(user => user.Id).FirstAsync();
+        var booking = new Booking
+        {
+            UserId = fixture.CustomerIds[0],
+            CourtId = fixture.CourtId,
+            BookingDate = VietnamClock.Today.AddDays(1),
+            StartTime = new TimeOnly(10, 0),
+            EndTime = new TimeOnly(11, 0),
+            TotalPrice = 80_000m,
+            Status = BookingStatus.Pending,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+            Payment = new Payment { Amount = 80_000m, Status = PaymentStatus.Paid }
+        };
+        context.Bookings.Add(booking);
+        await context.SaveChangesAsync();
+        var target = $"Đơn #{booking.Id}";
+        var courtTarget = $"{target} · Sân #{fixture.CourtId}";
+        var activity = context.ActivityRecords.Where(record => record.Target == target || record.Target == courtTarget);
+
+        try
+        {
+            await using var mutationContext = CreateContext();
+            var service = CreateBookingService(mutationContext);
+            Assert.True((await service.ConfirmBookingAsync(booking.Id, adminId)).Success);
+            Assert.False((await service.ConfirmBookingAsync(booking.Id, adminId)).Success);
+            Assert.True((await service.CancelOwnerBookingAsync(booking.Id, fixture.OwnerId, fixture.OwnerId)).Success);
+
+            var records = await activity.OrderBy(item => item.Id).ToListAsync();
+            Assert.Collection(records,
+                record =>
+                {
+                    Assert.Equal(adminId, record.ActorId);
+                    Assert.Equal(UserRole.Admin, record.ActorRole);
+                    Assert.Equal("Xác nhận đơn đặt sân", record.Action);
+                },
+                record =>
+                {
+                    Assert.Equal(fixture.OwnerId, record.ActorId);
+                    Assert.Equal(UserRole.CourtOwner, record.ActorRole);
+                    Assert.Equal("Hủy đơn và tạo yêu cầu hoàn tiền", record.Action);
+                });
+
+            var date = DateOnly.FromDateTime(VietnamClock.ToVietnamTime(records[0].OccurredAtUtc));
+            var history = new ActivityHistoryService(context);
+            var page = await history.GetPageAsync(adminId, UserRole.Admin, date, 1);
+            Assert.Contains(page.Items, item => item.Id == records[0].Id && item.ActorName is not null);
+            Assert.DoesNotContain(page.Items, item => item.Id == records[1].Id);
+        }
+        finally
+        {
+            await activity.ExecuteDeleteAsync();
+            var paymentId = booking.Payment!.Id;
+            await context.Refunds.Where(refund => refund.PaymentId == paymentId).ExecuteDeleteAsync();
+            await CleanupAsync(context, fixture);
+        }
+    }
+
     private static AppDbContext CreateContext()
     {
         var connectionString = Environment.GetEnvironmentVariable(

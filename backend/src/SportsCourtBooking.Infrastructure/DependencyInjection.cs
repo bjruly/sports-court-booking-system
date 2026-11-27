@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IFacilityService, FacilityService>();
         services.AddScoped<IOwnerDashboardService, OwnerDashboardService>();
+        services.AddScoped<IActivityHistoryService, ActivityHistoryService>();
         services.AddScoped<IOwnerCourtStatisticsService, OwnerCourtStatisticsService>();
         services.AddScoped<IOwnerCourtService, OwnerCourtService>();
         services.AddScoped<IOwnerFacilityService, OwnerFacilityService>();

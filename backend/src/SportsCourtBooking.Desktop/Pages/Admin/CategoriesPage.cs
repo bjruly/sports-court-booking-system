@@ -24,7 +24,7 @@ public sealed class CategoriesPage : ListPage<CategoryDto>
         AddAction("Sửa", EditAsync);
         AddAction("Xóa", item => ExecuteAsync(
             $"Bạn có chắc muốn xóa danh mục \"{item.Name}\"?",
-            () => App.CallAsync((ICategoryService service) => service.DeleteCategoryAsync(item.Id))), danger: true);
+            () => App.CallAsync((ICategoryService service) => service.DeleteCategoryAsync(item.Id, App.UserId))), danger: true);
         Body.Controls.Add(GridCard(Grid));
     }
 
@@ -53,14 +53,14 @@ public sealed class CategoriesPage : ListPage<CategoryDto>
                     return (false, createError);
                 }
 
-                var created = await App.CallAsync((ICategoryService service) => service.CreateCategoryAsync(create));
+                var created = await App.CallAsync((ICategoryService service) => service.CreateCategoryAsync(create, App.UserId));
                 return (created.Success, created.Message);
             }
 
             var update = new UpdateCategoryRequest { Id = category.Id, Name = name.Text, Description = description.Text };
             return Validation.Error(update) is { } updateError
                 ? (false, updateError)
-                : await App.CallAsync((ICategoryService service) => service.UpdateCategoryAsync(update));
+                : await App.CallAsync((ICategoryService service) => service.UpdateCategoryAsync(update, App.UserId));
         });
         return ShowDialogAsync(dialog);
     }

@@ -12,6 +12,7 @@ public static class PageCatalog
     public static readonly IReadOnlyList<PageEntry> All = new PageEntry[]
     {
         new("TỔNG QUAN", "dashboard", "Thống kê hệ thống", (app, shell) => new AdminDashboardPage(app, shell)),
+        new("TỔNG QUAN", "activity-history", "Lịch sử thao tác", (app, shell) => new ActivityHistoryPage(app, shell)),
         new("ĐẶT SÂN", "bookings", "Lịch đặt theo ngày", (app, shell) => new DailyBookingsPage(app, shell)),
         new("ĐẶT SÂN", "refunds", "Theo dõi hoàn tiền", (app, shell) => new AdminRefundsPage(app, shell)),
         new("NGƯỜI DÙNG", "customers", "Khách hàng", (app, shell) => new CustomersPage(app, shell)),

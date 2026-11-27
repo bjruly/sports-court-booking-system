@@ -43,7 +43,7 @@ public sealed class AdminFacilitiesPage : ListPage<FacilityItemDto>
         AddCommand("+ Thêm cơ sở", () => EditAsync(null), primary: true);
         AddAction("Duyệt", item => ExecuteAsync(
             $"Xác nhận phê duyệt cơ sở \"{item.Name}\" hoạt động chính thức?",
-            () => App.CallAsync((IFacilityService service) => service.ApproveFacilityAsync(item.Id))),
+            () => App.CallAsync((IFacilityService service) => service.ApproveFacilityAsync(item.Id, App.UserId))),
             item => !item.IsApproved);
         AddAction("Tạm khóa", LockAsync, item => item.IsActive, danger: true);
         AddAction("Mở khóa", item => ExecuteAsync(
@@ -97,7 +97,7 @@ public sealed class AdminFacilitiesPage : ListPage<FacilityItemDto>
 
     private async Task<(bool Success, string Message)> ToggleLockAsync(int facilityId, string? reason)
     {
-        var result = await App.CallAsync((IFacilityService service) => service.ToggleLockFacilityAsync(facilityId, reason));
+        var result = await App.CallAsync((IFacilityService service) => service.ToggleLockFacilityAsync(facilityId, reason, App.UserId));
         return (result.Success, result.Message);
     }
 
@@ -123,7 +123,7 @@ public sealed class AdminFacilitiesPage : ListPage<FacilityItemDto>
                     CloseTime = FormDialog.TimeText(close),
                     Description = description.Text
                 };
-                var created = await App.CallAsync((IFacilityService service) => service.CreateFacilityAsync(create));
+                var created = await App.CallAsync((IFacilityService service) => service.CreateFacilityAsync(create, App.UserId));
                 return (created.Success, created.Message);
             }
 
@@ -137,7 +137,7 @@ public sealed class AdminFacilitiesPage : ListPage<FacilityItemDto>
                 CloseTime = FormDialog.TimeText(close),
                 Description = description.Text
             };
-            return await App.CallAsync((IFacilityService service) => service.UpdateFacilityAsync(update));
+            return await App.CallAsync((IFacilityService service) => service.UpdateFacilityAsync(update, App.UserId));
         });
         return ShowDialogAsync(dialog);
     }

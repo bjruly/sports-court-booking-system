@@ -115,9 +115,11 @@ public class UserService : IUserService
             return (false, "Không tìm thấy tài khoản Chủ sân.", null);
 
         owner.IsActive = !owner.IsActive;
+        var action = owner.IsActive ? "Mở khóa" : "Khóa";
+        _context.RecordAdminActivity(adminUserId, $"{action} tài khoản",
+            $"Tài khoản #{owner.Id} · {owner.FullName}");
         await _context.SaveChangesAsync();
 
-        var action = owner.IsActive ? "Mở khóa" : "Khóa";
         return (true, $"{action} tài khoản Chủ sân \"{owner.FullName}\" thành công.", owner.IsActive);
     }
 
@@ -139,9 +141,11 @@ public class UserService : IUserService
             return (false, "Không thể khóa tài khoản Admin.", null);
 
         user.IsActive = !user.IsActive;
+        var action = user.IsActive ? "Mở khóa" : "Khóa";
+        _context.RecordAdminActivity(adminUserId, $"{action} tài khoản",
+            $"Tài khoản #{user.Id} · {user.FullName}");
         await _context.SaveChangesAsync();
 
-        var action = user.IsActive ? "Mở khóa" : "Khóa";
         return (true, $"{action} tài khoản \"{user.FullName}\" thành công.", user.IsActive);
     }
 
@@ -180,6 +184,8 @@ public class UserService : IUserService
         user.FullName = fullName;
         user.PhoneNumber = phoneNumber;
         user.UpdatedAt = DateTime.UtcNow;
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, "Cập nhật hồ sơ",
+            $"Tài khoản #{ownerId}");
         await _context.SaveChangesAsync();
 
         return (true, "Đã cập nhật hồ sơ cá nhân.", new OwnerProfileDto
@@ -231,6 +237,8 @@ public class UserService : IUserService
 
         user.PasswordHash = _passwordHasher.Hash(newPassword);
         user.UpdatedAt = DateTime.UtcNow;
+        _context.RecordActivity(UserRole.CourtOwner, ownerId, "Đổi mật khẩu",
+            $"Tài khoản #{ownerId}");
         await _context.SaveChangesAsync();
 
         return (true, "Đổi mật khẩu thành công.");

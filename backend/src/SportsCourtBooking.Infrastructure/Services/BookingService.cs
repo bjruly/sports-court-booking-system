@@ -410,6 +410,12 @@ public class BookingService : IBookingService
 
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
+            if (ownerId.HasValue)
+            {
+                _context.RecordActivity(UserRole.CourtOwner, ownerId.Value, "Tạo đơn đặt hộ", BookingTarget(booking));
+                await _context.SaveChangesAsync();
+            }
+
             await transaction.CommitAsync();
 
             var message = status == BookingStatus.Confirmed
@@ -524,8 +530,11 @@ public class BookingService : IBookingService
         var bookingScope = GetBookingScope(bookingId, ownerId);
         var now = DateTime.UtcNow;
         var today = VietnamClock.Today;
+        await using var transaction = _context.Database.IsRelational()
+            ? await _context.Database.BeginTransactionAsync()
+            : null;
 
-        if (!_context.Database.IsRelational())
+        if (transaction is null)
         {
             var booking = await bookingScope.SingleOrDefaultAsync();
             if (booking is null)
@@ -547,7 +556,6 @@ public class BookingService : IBookingService
 
             booking.CheckInAt = now;
             booking.UpdatedAt = now;
-            await _context.SaveChangesAsync();
         }
         else
         {
@@ -593,6 +601,13 @@ public class BookingService : IBookingService
             }
         }
 
+        _context.RecordActivity(UserRole.CourtOwner, actorUserId, "Ghi nhận khách đến sân", $"Đơn #{bookingId}");
+        await _context.SaveChangesAsync();
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync();
+        }
+
         _logger.LogInformation("Chủ sân {ActorUserId} đã check-in đơn {BookingId}", actorUserId, bookingId);
         return (true, "Đã ghi nhận khách check-in.");
     }
@@ -633,6 +648,10 @@ public class BookingService : IBookingService
 
         await _expirationService.ExpireOverdueAsync();
 
+        // Nhân viên cũng dùng thao tác này, nhưng lịch sử chỉ ghi thao tác của quản trị viên và chủ sân.
+        var isAdmin = await IsAdminActorAsync(actorUserId);
+        await using var transaction = isAdmin ? await _context.Database.BeginTransactionAsync() : null;
+
         var now = DateTime.UtcNow;
         var bookingScope = GetBookingScope(bookingId, ownerId);
 
@@ -662,6 +681,13 @@ public class BookingService : IBookingService
                 BookingStatus.Confirmed => "Đơn này đã được xác nhận trước đó.",
                 _ => "Chỉ đơn đang chờ, còn hạn và đã thanh toán mới có thể xác nhận."
             });
+        }
+
+        if (transaction is not null)
+        {
+            _context.RecordActivity(UserRole.Admin, actorUserId, "Xác nhận đơn đặt sân", $"Đơn #{bookingId}");
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
 
         _logger.LogInformation("Người dùng {ActorUserId} đã xác nhận đơn {BookingId}", actorUserId, bookingId);
@@ -728,6 +754,7 @@ public class BookingService : IBookingService
         booking.Status = BookingStatus.Confirmed;
         booking.ExpiresAt = null;
         booking.UpdatedAt = now;
+        _context.RecordActivity(UserRole.CourtOwner, actorUserId, "Xác nhận đơn đặt sân", BookingTarget(booking));
         await _context.SaveChangesAsync();
         if (transaction is not null)
         {
@@ -795,11 +822,12 @@ public class BookingService : IBookingService
 
         var now = DateTime.UtcNow;
         var paid = PaymentStatusRules.IsPaid(booking.Payment?.Status);
-        if (paid && booking.Payment!.Refund is null)
+        var createsRefund = paid && booking.Payment!.Refund is null;
+        if (createsRefund)
         {
             _context.Refunds.Add(new Refund
             {
-                PaymentId = booking.Payment.Id,
+                PaymentId = booking.Payment!.Id,
                 Amount = booking.Payment.Amount,
                 Reason = ownerId.HasValue ? "Hủy đơn do chủ sân" : "Hủy đơn do quản trị viên",
                 Status = RefundStatus.Pending,
@@ -812,6 +840,16 @@ public class BookingService : IBookingService
         booking.Status = BookingStatus.Cancelled;
         booking.ExpiresAt = null;
         booking.UpdatedAt = now;
+        var action = createsRefund ? "Hủy đơn và tạo yêu cầu hoàn tiền" : "Hủy đơn đặt sân";
+        if (ownerId.HasValue)
+        {
+            _context.RecordActivity(UserRole.CourtOwner, actorUserId, action, BookingTarget(booking));
+        }
+        else if (await IsAdminActorAsync(actorUserId))
+        {
+            _context.RecordActivity(UserRole.Admin, actorUserId, action, BookingTarget(booking));
+        }
+
         await _context.SaveChangesAsync();
         if (transaction is not null)
         {
@@ -882,6 +920,7 @@ public class BookingService : IBookingService
                     booking.Status = BookingStatus.Cancelled;
                     booking.ExpiresAt = null;
                     booking.UpdatedAt = now;
+                    _context.RecordActivity(UserRole.CourtOwner, actorUserId, "Hủy đơn có yêu cầu hoàn tiền đang chờ", BookingTarget(booking));
                     await _context.SaveChangesAsync();
                     if (transaction is not null)
                     {
@@ -913,6 +952,7 @@ public class BookingService : IBookingService
             booking.UpdatedAt = now;
         }
 
+        _context.RecordActivity(UserRole.CourtOwner, actorUserId, "Tạo yêu cầu hoàn tiền", BookingTarget(booking));
         await _context.SaveChangesAsync();
         if (transaction is not null)
         {
@@ -921,6 +961,11 @@ public class BookingService : IBookingService
         _logger.LogInformation("Chủ sân {OwnerId} đã tạo yêu cầu hoàn tiền cho đơn {BookingId}", ownerId, bookingId);
         return (true, $"Đã gửi yêu cầu hoàn tiền {booking.Payment.Amount:N0} đ cho đơn #{bookingId}. Vui lòng tiếp tục xử lý trên trang Hoàn tiền.");
     }
+
+    private Task<bool> IsAdminActorAsync(int actorUserId)
+        => _context.Users.AnyAsync(user => user.Id == actorUserId && user.Role == UserRole.Admin);
+
+    private static string BookingTarget(Booking booking) => $"Đơn #{booking.Id} · Sân #{booking.CourtId}";
 
     private async Task<Booking?> GetBookingForUpdateAsync(int bookingId)
     {

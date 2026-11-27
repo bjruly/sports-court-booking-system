@@ -13,6 +13,9 @@ public static class VietnamClock
 
     public static DateOnly Today => DateOnly.FromDateTime(Now);
 
+    public static DateTime StartOfDayUtc(DateOnly date)
+        => new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), date == DateOnly.MinValue ? TimeSpan.Zero : Offset).UtcDateTime;
+
     public static DateTime ToVietnamTime(DateTime utcDateTime)
         => DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc) + Offset;
 }
